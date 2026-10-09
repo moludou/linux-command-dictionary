@@ -1,0 +1,2102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071018">
+  <meta name="description" content="スマホで引ける、Linuxコマンドの日本語辞典">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Linux辞典">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>Linux コマンド辞典</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071018;
+      --surface: #0d1923;
+      --surface-2: #122331;
+      --line: #203745;
+      --text: #edf7f5;
+      --muted: #91aaa8;
+      --accent: #79efc0;
+      --accent-2: #49c99a;
+      --safe: #6fe3a6;
+      --change: #ffd166;
+      --danger: #ff7b7b;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .38);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 85% -10%, rgba(73, 201, 154, .15), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .app {
+      width: min(100%, 720px);
+      margin: 0 auto;
+      padding: env(safe-area-inset-top) 16px calc(88px + env(safe-area-inset-bottom));
+    }
+
+    header {
+      padding: 28px 2px 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--accent);
+      font: 700 .72rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 8vw, 2.55rem);
+      line-height: 1.18;
+      letter-spacing: -.04em;
+    }
+
+    .lead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: .93rem;
+    }
+
+    .search-wrap {
+      position: sticky;
+      top: max(8px, env(safe-area-inset-top));
+      z-index: 5;
+      padding: 8px 0 10px;
+      background: linear-gradient(var(--bg) 72%, transparent);
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 54px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(13, 25, 35, .94);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, .2);
+      backdrop-filter: blur(14px);
+    }
+
+    .search:focus-within {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(73, 201, 154, .12);
+    }
+
+    .search svg { flex: 0 0 auto; color: var(--muted); }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .search input::placeholder { color: #718988; }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin: 2px -16px 18px;
+      padding: 0 16px 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filters::-webkit-scrollbar { display: none; }
+
+    .filter {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .filter[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #052318;
+      font-weight: 800;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 0 2px 10px;
+    }
+
+    .result-meta h2 { margin: 0; font-size: 1rem; }
+    .result-meta span { color: var(--muted); font-size: .82rem; }
+
+    .command-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .command-card {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 17px;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, var(--surface), #0b1620);
+      box-shadow: 0 7px 24px rgba(0, 0, 0, .14);
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .command-card:active { transform: scale(.985); }
+    .command-card:hover { border-color: #365666; }
+
+    .command-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+
+    .command-name code {
+      color: var(--accent);
+      font: 800 1.18rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .category {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 700;
+    }
+
+    .summary { margin: 0; color: #bfd0cf; font-size: .9rem; }
+
+    .chevron {
+      align-self: center;
+      color: var(--muted);
+      font-size: 1.4rem;
+    }
+
+    .empty {
+      padding: 44px 18px;
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 7;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: min(100%, 720px);
+      min-height: 66px;
+      margin: auto;
+      padding: 7px 14px calc(7px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      background: rgba(7, 16, 24, .94);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .nav-button.active { color: var(--accent); }
+    .nav-button span { display: block; font-size: 1.15rem; line-height: 1.2; }
+
+    dialog {
+      width: 100%;
+      max-width: none;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    dialog::backdrop { background: rgba(0, 0, 0, .74); }
+
+    .detail-shell {
+      width: min(100%, 720px);
+      min-height: 100%;
+      margin: 0 auto;
+      padding: calc(10px + env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom));
+    }
+
+    .detail-bar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 -4px;
+      padding: 6px 4px 12px;
+      background: linear-gradient(var(--bg) 75%, transparent);
+    }
+
+    .icon-button {
+      width: 46px;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      cursor: pointer;
+    }
+
+    .detail-head { padding: 20px 2px 18px; }
+
+    .detail-head h2 {
+      margin: 4px 0 3px;
+      color: var(--accent);
+      font: 850 clamp(2.4rem, 14vw, 4rem)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: -.07em;
+    }
+
+    .detail-head p { margin: 10px 0 14px; color: #d2e0df; }
+
+    .risk {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 800;
+    }
+
+    .risk::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      content: "";
+    }
+
+    .risk.safe { color: var(--safe); }
+    .risk.change { color: var(--change); }
+    .risk.danger { color: var(--danger); }
+
+    .syntax-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0 16px;
+      padding: 16px;
+      border: 1px solid #2a4b57;
+      border-radius: var(--radius);
+      background: #07151d;
+    }
+
+    .syntax-card code {
+      overflow-wrap: anywhere;
+      color: var(--accent);
+      font: 700 .94rem/1.65 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .copy-button {
+      min-width: 68px;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-2);
+      cursor: pointer;
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    details {
+      margin: 10px 0;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    summary {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      cursor: pointer;
+      font-weight: 800;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { color: var(--accent); content: "+"; font-size: 1.25rem; }
+    details[open] summary::after { content: "−"; }
+
+    .detail-content {
+      padding: 0 16px 16px;
+      color: #c2d2d1;
+      font-size: .92rem;
+    }
+
+    .detail-content p { margin: 6px 0; }
+    .detail-content ul { margin: 6px 0 0; padding-left: 1.25rem; }
+    .detail-content li + li { margin-top: 7px; }
+
+    .token-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .token-row {
+      display: grid;
+      grid-template-columns: minmax(76px, auto) 1fr;
+      gap: 12px;
+      align-items: baseline;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(32, 55, 69, .75);
+    }
+
+    .token-row:last-child { border-bottom: 0; }
+    .token-row code { color: var(--accent); font-weight: 800; overflow-wrap: anywhere; }
+
+    .example {
+      margin: 9px 0;
+      padding: 12px;
+      border-radius: 12px;
+      background: #07151d;
+    }
+
+    .example code {
+      display: block;
+      color: var(--accent);
+      font: 700 .86rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .example small { display: block; margin-top: 6px; color: var(--muted); }
+
+    .related {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .related button {
+      min-height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--accent);
+      cursor: pointer;
+      font: 800 .84rem ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: calc(82px + env(safe-area-inset-bottom));
+      left: 50%;
+      z-index: 20;
+      padding: 10px 15px;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
+      box-shadow: var(--shadow);
+      font-size: .84rem;
+      font-weight: 800;
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      pointer-events: none;
+      transition: .2s ease;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (min-width: 740px) {
+      .app { padding-inline: 24px; }
+      .command-list { grid-template-columns: 1fr 1fr; }
+      dialog {
+        width: min(680px, calc(100% - 48px));
+        height: min(820px, calc(100dvh - 48px));
+        margin: auto;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+      }
+      .bottom-nav { border-right: 1px solid var(--line); border-left: 1px solid var(--line); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <p class="eyebrow">Pocket reference</p>
+      <h1>Linux コマンド辞典</h1>
+      <p class="lead">意味・影響・注意点を、スマホですばやく確認。</p>
+    </header>
+
+    <div class="search-wrap">
+      <label class="search" for="searchInput">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="m16.5 16.5 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="searchInput" type="search" placeholder="例：コピー、権限、IP、grep" autocomplete="off">
+      </label>
+    </div>
+
+    <div class="filters" id="filters" aria-label="カテゴリー"></div>
+
+    <div class="result-meta">
+      <h2 id="sectionTitle">コマンド一覧</h2>
+      <span id="resultCount"></span>
+    </div>
+
+    <section class="command-list" id="commandList" aria-live="polite">
+      <div class="empty" id="staticFallback">
+        <strong style="color: var(--text)">内部コマンド</strong><br>
+        alias / cd / command / env / exit / export / help / history / pwd / read / source / type / unalias
+        <br><small>この表示のまま操作できない場合は、スマホのファイルプレビューがJavaScriptを制限しています。HTMLをSafariまたはChromeで開いてください。</small>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="メインナビゲーション">
+    <button class="nav-button active" id="allNav" type="button"><span>⌂</span>辞典</button>
+    <button class="nav-button" id="favoriteNav" type="button"><span>☆</span>お気に入り</button>
+  </nav>
+
+  <dialog id="detailDialog" aria-labelledby="detailTitle">
+    <article class="detail-shell">
+      <div class="detail-bar">
+        <button class="icon-button" id="closeDetail" type="button" aria-label="詳細を閉じる">←</button>
+        <button class="icon-button" id="favoriteButton" type="button" aria-label="お気に入りに追加">☆</button>
+      </div>
+      <div id="detailBody"></div>
+    </article>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const commands = [
+      {
+        name: "ls",
+        category: "内部コマンド",
+        summary: "ファイルやディレクトリの一覧を表示する",
+        keywords: "一覧 中身 確認 隠しファイル 詳細",
+        risk: "safe",
+        riskLabel: "確認のみ・変更なし",
+        syntax: "ls [オプション] [対象]",
+        tokens: [
+          ["ls", "list の略。指定した場所の中身を一覧表示します。"],
+          ["-l", "権限・所有者・サイズ・更新日時などを詳しく表示します。"],
+          ["-a", ". で始まる隠しファイルも含めて表示します。"],
+          ["-h", "-l と組み合わせ、サイズを KB・MB・GB など読みやすい単位で表示します。"],
+          ["-t", "更新日時が新しい順に並べます。"],
+          ["-S", "ファイルサイズが大きい順に並べます。"],
+          ["-r", "現在の並び順を逆にします。"],
+          ["-R", "下位ディレクトリの中身も再帰的に表示します。"],
+          ["-d", "ディレクトリの中身ではなく、ディレクトリ自体の情報を表示します。"],
+          ["-F", "種類が分かる記号を名前の末尾に付けます。例：ディレクトリは /。"],
+          ["対象", "調べるディレクトリ。省略すると現在いる場所です。"]
+        ],
+        examples: [
+          ["ls", "現在いる場所の中身を表示"],
+          ["ls -la /var/log", "/var/log の中身を、隠しファイルを含めて詳しく表示"]
+        ],
+        changes: "何も変更しません。ファイルやディレクトリの情報を読み取って表示するだけです。",
+        caution: "表示権限のない場所では「Permission denied」と表示されることがありますが、ファイルが壊れたわけではありません。",
+        output: "先頭の文字列は種類と権限、その後にリンク数・所有者・グループ・サイズ・更新日時・名前が並びます。",
+        related: ["cd", "grep"]
+      },
+      {
+        name: "cd",
+        category: "ファイル",
+        summary: "現在いるディレクトリを移動する",
+        keywords: "移動 場所 ディレクトリ フォルダ home",
+        risk: "safe",
+        riskLabel: "現在地のみ変更",
+        syntax: "cd [移動先]",
+        tokens: [
+          ["cd", "change directory の略。作業中の場所を変更します。"],
+          ["移動先", "移動したいディレクトリのパスです。"],
+          ["..", "1つ上のディレクトリを表します。"],
+          ["~", "自分のホームディレクトリを表します。"],
+          ["-", "直前にいたディレクトリへ戻ります。"],
+          ["/", "ファイルシステムの最上位であるルートディレクトリへ移動します。"],
+          ["cd", "移動先を省略すると、自分のホームディレクトリへ移動します。"],
+          ["-L", "シンボリックリンクを論理的にたどります。通常はこちらが既定です。"],
+          ["-P", "シンボリックリンクの実体をたどり、物理的なパスを使用します。"]
+        ],
+        examples: [
+          ["cd /var/log", "/var/log へ移動"],
+          ["cd ..", "1つ上のディレクトリへ移動"]
+        ],
+        changes: "ファイルは変更しません。現在のシェルが基準にする作業場所だけが変わります。",
+        caution: "移動先を間違えてもファイルは消えません。pwd で現在地を確認できます。",
+        output: "成功した場合は通常何も表示しません。移動できない場合だけ理由が表示されます。",
+        related: ["ls"]
+      },
+      {
+        name: "cp",
+        category: "ファイル",
+        summary: "ファイルやディレクトリをコピーする",
+        keywords: "複製 コピー バックアップ",
+        risk: "change",
+        riskLabel: "ファイルを作成・上書き",
+        syntax: "cp [オプション] コピー元 コピー先",
+        tokens: [
+          ["cp", "copy の略。元を残したまま複製します。"],
+          ["-r", "ディレクトリとその中身をまとめてコピーします。"],
+          ["-i", "上書き前に確認します。"],
+          ["-n", "コピー先に同名ファイルがある場合、上書きしません。"],
+          ["-u", "コピー元の方が新しい場合、またはコピー先がない場合だけコピーします。"],
+          ["-v", "処理したファイル名を表示します。"],
+          ["-p", "更新日時・アクセス権限・所有者などを可能な範囲で保持します。"],
+          ["-a", "ディレクトリ構造や属性、シンボリックリンクをできるだけ保って複製します。"],
+          ["コピー元", "複製するファイルやディレクトリです。"],
+          ["コピー先", "新しいコピーを置く場所または名前です。"],
+          ["複数のコピー元", "最後の引数をディレクトリにすると、複数の対象をまとめてコピーできます。"]
+        ],
+        examples: [
+          ["cp memo.txt memo.bak", "memo.txt を memo.bak という名前で複製"],
+          ["cp -ri photos backup/", "photos ディレクトリを確認しながら backup/ へコピー"]
+        ],
+        changes: "コピー先に新しいファイルを作ります。コピー先に同名ファイルがあると上書きされる場合があります。コピー元は変わりません。",
+        caution: "重要な場所では -i を付け、上書き前に確認すると安全です。コピー先の指定をよく確認してください。",
+        output: "成功時は通常何も表示しません。エラー時はコピーできなかった対象と理由が表示されます。",
+        related: ["mv", "rm", "ls"]
+      },
+      {
+        name: "mv",
+        category: "ファイル",
+        summary: "ファイルを移動する、または名前を変更する",
+        keywords: "移動 名前 変更 リネーム",
+        risk: "change",
+        riskLabel: "場所・名前を変更",
+        syntax: "mv [オプション] 移動元 移動先",
+        tokens: [
+          ["mv", "move の略。場所の移動と名前変更に使います。"],
+          ["-i", "上書き前に確認します。"],
+          ["-n", "移動先に同名ファイルがある場合、上書きしません。"],
+          ["-f", "確認を求めずに上書きを進めます。"],
+          ["-u", "移動元の方が新しい場合、または移動先がない場合だけ移動します。"],
+          ["-v", "処理した対象名を表示します。"],
+          ["-t ディレクトリ", "先に移動先を指定し、その後ろに複数の移動元を並べます。"],
+          ["移動元", "移動または名前変更する対象です。"],
+          ["移動先", "新しい場所または新しい名前です。"],
+          ["複数の移動元", "最後の引数をディレクトリにすると、複数の対象をまとめて移動できます。"]
+        ],
+        examples: [
+          ["mv old.txt new.txt", "old.txt の名前を new.txt に変更"],
+          ["mv -i report.txt archive/", "確認しながら archive/ へ移動"]
+        ],
+        changes: "対象の保存場所または名前を変更します。移動先に同名ファイルがあると上書きする場合があります。",
+        caution: "cp と違い、元の場所には残りません。重要なファイルでは -i を付けると安全です。",
+        output: "成功時は通常何も表示しません。移動できない場合だけ理由が表示されます。",
+        related: ["cp", "rm", "ls"]
+      },
+      {
+        name: "rm",
+        category: "ファイル",
+        summary: "ファイルやディレクトリを削除する",
+        keywords: "削除 消す remove ディレクトリ",
+        risk: "danger",
+        riskLabel: "要注意・削除あり",
+        syntax: "rm [オプション] 対象",
+        tokens: [
+          ["rm", "remove の略。指定した対象を削除します。"],
+          ["-i", "削除する前に1件ずつ確認します。"],
+          ["-r", "ディレクトリとその中身を再帰的に削除します。"],
+          ["-f", "確認せず、存在しない対象のエラーも抑えて削除を進めます。"],
+          ["-v", "削除した対象名を表示します。"],
+          ["-d", "空のディレクトリを削除します。通常は rmdir の方が意図を示しやすいです。"],
+          ["--preserve-root", "/ を再帰削除の対象として扱わない安全機能です。GNU rm では通常有効です。"],
+          ["--one-file-system", "再帰削除時に、別のファイルシステムへ入り込まないようにします。"],
+          ["--", "これ以降をオプションではなくファイル名として扱います。- で始まる名前に使います。"],
+          ["対象", "削除するファイルやディレクトリです。"]
+        ],
+        examples: [
+          ["rm -i memo.txt", "確認してから memo.txt を削除"],
+          ["rm -r old-folder", "old-folder と中身を削除（慎重に使用）"]
+        ],
+        changes: "指定したファイルを削除します。通常の rm はデスクトップのごみ箱へ移動しません。",
+        caution: "特に -r と -f の組み合わせは広い範囲を確認なしで削除できます。対象のパスを必ず確認してください。",
+        output: "成功時は通常何も表示しません。-i を付けると削除確認が表示されます。",
+        related: ["ls", "cp", "mv"]
+      },
+      {
+        name: "mkdir",
+        category: "ファイル",
+        summary: "新しいディレクトリを作成する",
+        keywords: "作る フォルダ directory",
+        risk: "change",
+        riskLabel: "ディレクトリを作成",
+        syntax: "mkdir [オプション] ディレクトリ名",
+        tokens: [
+          ["mkdir", "make directory の略。新しいディレクトリを作ります。"],
+          ["-p", "途中の親ディレクトリがなければ一緒に作ります。すでに存在してもエラーにしません。"],
+          ["-m 権限", "作成時のアクセス権限を数値または記号で指定します。"],
+          ["-v", "作成したディレクトリ名を表示します。"],
+          ["--", "これ以降をオプションではなく名前として扱います。- で始まる名前に使います。"],
+          ["ディレクトリ名", "新しく作る場所または名前です。空白で区切れば複数作成できます。"],
+          ["親/子", "/ で階層を表します。親がない場合は -p が必要です。"]
+        ],
+        examples: [
+          ["mkdir notes", "現在地に notes を作成"],
+          ["mkdir -p project/docs", "project と、その中の docs を必要に応じて作成"]
+        ],
+        changes: "指定した場所に新しいディレクトリを作ります。既存ファイルの内容は変えません。",
+        caution: "作成先の書き込み権限が必要です。同名の対象が存在するとエラーになります。",
+        output: "成功時は通常何も表示しません。作成できない場合だけ理由が表示されます。",
+        related: ["cd", "ls"]
+      },
+      {
+        name: "grep",
+        category: "検索",
+        summary: "文章やコマンド出力から条件に合う行を探す",
+        keywords: "検索 文字 行 ログ 絞り込み",
+        risk: "safe",
+        riskLabel: "確認のみ・変更なし",
+        syntax: "grep [オプション] 検索文字列 [ファイル]",
+        tokens: [
+          ["grep", "指定したパターンに一致する行を探して表示します。"],
+          ["-i", "英字の大文字と小文字を区別せず検索します。"],
+          ["-n", "一致した行の行番号も表示します。"],
+          ["-r", "ディレクトリ内を再帰的に検索します。"],
+          ["-v", "一致しない行を表示します。"],
+          ["-w", "検索文字列が単語全体と一致する行だけを表示します。"],
+          ["-E", "拡張正規表現を使います。複数条件の | などを扱えます。"],
+          ["-F", "検索文字列を正規表現ではなく、そのままの文字として扱います。"],
+          ["-c", "一致した行そのものではなく、行数を表示します。"],
+          ["-l", "一致する行を含むファイル名だけを表示します。"],
+          ["-C 数", "一致した行の前後を指定した行数だけ一緒に表示します。"],
+          ["--color=auto", "一致した部分を色付きで見やすく表示します。"],
+          ["検索文字列", "探したい文字やパターンです。"]
+        ],
+        examples: [
+          ["grep -n error app.log", "app.log から error を探し、行番号も表示"],
+          ["ip address | grep inet", "ip address の出力から inet を含む行だけ表示"]
+        ],
+        changes: "検索対象を読み取るだけで、ファイル内容は変更しません。",
+        caution: "検索文字列に空白や記号が含まれる場合は、引用符で囲む必要があります。",
+        output: "一致した行が表示されます。何も一致しなければ通常は何も表示されません。",
+        related: ["ls"]
+      },
+      {
+        name: "chmod",
+        category: "権限",
+        summary: "ファイルやディレクトリのアクセス権限を変更する",
+        keywords: "権限 permission 読み 書き 実行 640 755",
+        risk: "change",
+        riskLabel: "権限を変更",
+        syntax: "chmod [オプション] 権限 対象",
+        tokens: [
+          ["chmod", "change mode の略。アクセス権限を変更します。"],
+          ["640", "所有者は読み書き、グループは読み取り、その他は権限なし。"],
+          ["u+x", "所有者（user）に実行権限を追加します。"],
+          ["g-w", "グループ（group）から書き込み権限を外します。"],
+          ["o=r", "その他（others）の権限を読み取りだけに置き換えます。"],
+          ["a+r", "全員（all）に読み取り権限を追加します。"],
+          ["-R", "ディレクトリ以下の対象を再帰的に変更します。影響範囲が広いため要注意です。"],
+          ["-v", "処理したすべての対象について変更内容を表示します。"],
+          ["-c", "実際に権限が変わった対象だけを表示します。"],
+          ["--reference=参照元", "数値を直接書かず、別ファイルと同じ権限に設定します。"],
+          ["対象", "権限を変更するファイルやディレクトリです。"]
+        ],
+        examples: [
+          ["chmod 640 report.txt", "report.txt の権限を rw-r----- に設定"],
+          ["chmod u+x script.sh", "所有者に実行権限を追加"]
+        ],
+        changes: "対象のアクセス権限を変更します。ファイルの内容、所有者、保存場所は変わりません。",
+        caution: "権限を厳しくしすぎると必要なユーザーが開けず、緩くしすぎると意図しないユーザーが操作できます。",
+        output: "成功時は通常何も表示しません。ls -l で変更後の権限を確認できます。",
+        related: ["ls"]
+      },
+      {
+        name: "systemctl",
+        category: "システム",
+        summary: "systemdのサービス状態を確認・操作する",
+        keywords: "サービス 起動 停止 再起動 状態 systemd",
+        risk: "change",
+        riskLabel: "指定内容により変更",
+        syntax: "systemctl 操作 [サービス名]",
+        tokens: [
+          ["systemctl", "systemd が管理するサービスなどを操作する窓口です。"],
+          ["status", "現在の状態を確認します。変更はしません。"],
+          ["start", "今すぐサービスを起動します。"],
+          ["stop", "今動いているサービスを停止します。"],
+          ["restart", "停止してから起動し直します。一時的にサービスが止まります。"],
+          ["reload", "対応サービスの設定を、完全停止せずに再読み込みします。"],
+          ["enable", "次回以降の起動時に自動起動する設定にします。"],
+          ["disable", "自動起動設定を解除します。現在動いているサービスは止めません。"],
+          ["is-active", "現在稼働中かを短い結果で確認します。"],
+          ["is-enabled", "自動起動が有効かを確認します。"],
+          ["--now", "enable または disable と同時に、今すぐ起動または停止も行います。"],
+          ["サービス名", "操作対象の unit 名です。例：ssh または ssh.service。"]
+        ],
+        examples: [
+          ["systemctl status ssh", "ssh サービスの状態を確認"],
+          ["sudo systemctl restart ssh", "ssh サービスを再起動（接続中なら要注意）"]
+        ],
+        changes: "status は変更しません。start・stop・restart は現在の動作状態を、enable・disable は自動起動設定を変更します。",
+        caution: "SSHやネットワーク関連サービスを停止すると、リモート接続が切れることがあります。",
+        output: "loaded は設定の読み込み状態、active は現在の稼働状態、末尾には最近のログが表示されます。",
+        related: []
+      },
+      {
+        name: "ip",
+        category: "ネットワーク",
+        summary: "IPアドレスや通信経路などを確認・設定する",
+        keywords: "IP アドレス ネットワーク route link 経路",
+        risk: "safe",
+        riskLabel: "表示操作は変更なし",
+        syntax: "ip 対象 操作 [追加指定]",
+        tokens: [
+          ["ip", "Linuxのネットワーク情報を表示・設定するコマンドです。"],
+          ["address", "ネットワーク機器に設定されたIPアドレスを扱います。"],
+          ["route", "通信先までの経路情報を扱います。"],
+          ["link", "ネットワーク機器自体の状態を扱います。"],
+          ["neighbour", "同じネットワーク内のIPアドレスとMACアドレスの対応を扱います。neigh と省略できます。"],
+          ["show", "指定した種類の情報を表示します。多くの場合は省略できます。"],
+          ["get 宛先", "指定した宛先へ通信するときに使う経路を1件確認します。"],
+          ["-br", "情報を1機器1行の短い形式で表示します。brief の略です。"],
+          ["-4", "IPv4の情報だけに絞ります。"],
+          ["-6", "IPv6の情報だけに絞ります。"],
+          ["-s", "送受信量やエラー数などの統計情報も表示します。"],
+          ["dev 機器名", "対象のネットワーク機器を指定します。例：dev eth0。"]
+        ],
+        examples: [
+          ["ip address", "すべてのネットワーク機器とIPアドレスを表示"],
+          ["ip route get 8.8.8.8", "8.8.8.8 へ通信するときに使う経路を確認"]
+        ],
+        changes: "address・route・link を表示する例は変更しません。add・del・set などを使うとネットワーク設定を変更します。",
+        caution: "表示操作と設定変更の両方ができるコマンドです。add・del・set を使う場合は影響範囲を確認してください。",
+        output: "機器名、状態、IPv4の inet、IPv6の inet6、経路の default や dev などが表示されます。",
+        related: ["grep"]
+      }
+    ];
+
+    function historicalCommand({
+      name, category, summary, keywords, risk = "safe", riskLabel = "確認のみ・変更なし",
+      syntax, tokens, examples, changes, caution, output, related = []
+    }) {
+      return { name, category, summary, keywords, risk, riskLabel, syntax, tokens, examples, changes, caution, output, related };
+    }
+
+    commands.push(
+      historicalCommand({
+        name: "aa-status", category: "セキュリティ", summary: "AppArmorの読み込み・適用状態を表示する",
+        keywords: "AppArmor profile enforce complain セキュリティ",
+        syntax: "sudo aa-status [オプション]",
+        tokens: [["aa-status", "AppArmor全体とプロファイルの状態を表示します。"], ["--enabled", "AppArmorが有効なら成功終了します。"], ["--profiled", "読み込まれたプロファイル数を表示します。"], ["--enforced", "強制モードのプロファイル数を表示します。"], ["--complaining", "記録だけ行うcomplainモードの数を表示します。"], ["--json", "対応版では結果をJSON形式で表示します。"]],
+        examples: [["sudo aa-status", "AppArmorの全体状態を確認"], ["aa-status --enabled", "AppArmorが有効か終了ステータスで確認"]],
+        changes: "AppArmorの状態を読み取るだけで、プロファイルや設定は変更しません。",
+        caution: "サービスがactiveでも、個々のプロファイルがenforceとは限りません。両方を分けて確認します。",
+        output: "moduleの読込状態、profile総数、enforce・complain・unconfinedの内訳が表示されます。",
+        related: ["systemctl"]
+      }),
+      historicalCommand({
+        name: "apt", category: "パッケージ", summary: "Debian系でパッケージを検索・導入・更新・削除する",
+        keywords: "package install update upgrade remove Debian Ubuntu",
+        risk: "change", riskLabel: "操作によりシステムを変更", syntax: "sudo apt 操作 [パッケージ名]",
+        tokens: [["update", "リポジトリから最新のパッケージ一覧を取得します。"], ["upgrade", "導入済みパッケージを更新します。"], ["install", "パッケージと必要な依存関係を導入します。"], ["remove", "パッケージ本体を削除し、設定ファイルは通常残します。"], ["purge", "パッケージ本体と設定ファイルを削除します。"], ["search", "名前や説明からパッケージを検索します。"], ["show", "パッケージの説明や依存関係を表示します。"], ["autoremove", "不要になった自動導入パッケージを削除します。"]],
+        examples: [["apt search openssh-server", "パッケージを検索"], ["sudo apt install ufw", "ufwを導入"]],
+        changes: "search・showは確認のみです。updateは一覧、install・upgrade・removeはシステムのパッケージ状態を変更します。",
+        caution: "remove・purge・autoremoveでは削除予定一覧を確認してから承認します。",
+        output: "対象、依存関係、取得容量、追加・更新・削除される件数が表示されます。"
+      }),
+      historicalCommand({
+        name: "awk", category: "テキスト", summary: "行と列に分けて抽出・計算・整形する",
+        keywords: "列 フィールド 集計 監視スクリプト text",
+        syntax: "awk [オプション] '条件 {処理}' [ファイル]",
+        tokens: [["'...'", "awkが解釈する条件と処理を囲みます。"], ["$1, $2", "現在行の1列目、2列目を表します。"], ["$0", "現在行の全体を表します。"], ["-F 区切り", "列を分ける文字を指定します。"], ["-v 名前=値", "awk内部へ変数を渡します。"], ["NR", "読み込んだ通算行番号です。"], ["NF", "現在行の列数です。"], ["printf", "指定書式で値を出力します。"]],
+        examples: [["awk '{print $1}' file.txt", "各行の1列目を表示"], ["free -m | awk '/^Mem:/ {print $3}'", "メモリ行の使用量列を抽出"]],
+        changes: "通常は入力を読み取って結果を表示するだけです。リダイレクト先のファイルは別途変更されます。",
+        caution: "shellの変数とawkの $1 などを混同しないよう、プログラム部分を引用符で囲みます。",
+        output: "指定した条件・計算・書式に従った文字列が標準出力へ表示されます。",
+        related: ["grep", "sed"]
+      }),
+      historicalCommand({
+        name: "cat", category: "テキスト", summary: "ファイル内容を連続して標準出力へ表示する",
+        keywords: "内容 表示 concatenate 結合",
+        syntax: "cat [オプション] [ファイル...]",
+        tokens: [["cat", "concatenateの略。複数ファイルも順番に表示します。"], ["-n", "空行を含むすべての行に番号を付けます。"], ["-b", "空行以外に行番号を付けます。"], ["-A", "タブや行末など見えない文字も記号で表示します。"], ["-s", "連続した空行を1行にまとめて表示します。"], ["-", "ファイルではなく標準入力から読みます。"]],
+        examples: [["cat /etc/os-release", "OS情報ファイルを表示"], ["cat a.txt b.txt", "2ファイルを順番に表示"]],
+        changes: "元ファイルは変更しません。> や >> を組み合わせた場合は出力先が変更されます。",
+        caution: "巨大ファイルやバイナリを表示すると画面が埋まるため、lessやheadも検討します。",
+        output: "指定したファイルの内容が、そのまま順番に表示されます。",
+        related: ["tail"]
+      }),
+      historicalCommand({
+        name: "chage", category: "ユーザー", summary: "パスワードの有効期限情報を表示・変更する",
+        keywords: "password age 有効期限 警告 最長 最短 shadow",
+        risk: "change", riskLabel: "指定により認証設定を変更", syntax: "sudo chage [オプション] ユーザー名",
+        tokens: [["-l", "現在のパスワード期限情報を一覧表示します。"], ["-m 日数", "変更後、次に変更できるまでの最短日数です。"], ["-M 日数", "パスワードを使える最長日数です。"], ["-W 日数", "期限切れ前に警告を始める日数です。"], ["-I 日数", "期限切れ後、アカウントを無効にするまでの日数です。"], ["-E 日付", "アカウント自体の失効日を設定します。"], ["-d 日付", "最後にパスワードを変更した日を設定します。"]],
+        examples: [["sudo chage -l alice", "aliceの期限情報を確認"], ["sudo chage -M 30 -m 2 -W 7 alice", "最長30日、最短2日、7日前警告に設定"]],
+        changes: "-lは確認のみです。その他の主なオプションは/etc/shadowの期限情報を変更します。",
+        caution: "値を誤るとユーザーがログインできなくなるため、変更後は必ず chage -l で確認します。",
+        output: "最終変更日、失効日、最短・最長日数、警告期間などが表示されます。"
+      }),
+      historicalCommand({
+        name: "crontab", category: "システム", summary: "ユーザー単位の定期実行予定を表示・編集する",
+        keywords: "cron schedule 定期実行 10分 monitoring",
+        risk: "change", riskLabel: "指定により予定を変更", syntax: "crontab [オプション] [ファイル]",
+        tokens: [["-l", "現在のcrontabを一覧表示します。"], ["-e", "エディタでcrontabを編集します。"], ["-r", "現在のcrontabを削除します。要注意です。"], ["-u ユーザー", "rootが操作対象ユーザーを指定します。"], ["ファイル", "その内容で現在のcrontab全体を置き換えます。"], ["-", "標準入力の内容でcrontabを置き換えます。"]],
+        examples: [["sudo crontab -l", "rootの予定表を表示"], ["sudo crontab -e", "rootの予定表を編集"]],
+        changes: "-lは確認のみです。-e・-r・ファイル登録は予定表を変更します。",
+        caution: "ファイル登録は追記ではなく全体置換です。変更前に crontab -l を保存します。",
+        output: "-lでは各予定が1行ずつ表示されます。未登録ならその旨が表示されます。",
+        related: ["systemctl"]
+      }),
+      historicalCommand({
+        name: "df", category: "ストレージ", summary: "マウント済みファイルシステムの容量を表示する",
+        keywords: "disk free 容量 使用率 mount",
+        syntax: "df [オプション] [対象]",
+        tokens: [["-h", "容量をKB・MB・GBなど読みやすい単位で表示します。"], ["-T", "ファイルシステム形式も表示します。"], ["-i", "容量ではなくinodeの使用状況を表示します。"], ["--total", "最後に合計行を追加します。"], ["-x 種類", "指定したファイルシステム形式を除外します。"], ["対象", "そのファイルが属するファイルシステムだけを表示します。"]],
+        examples: [["df -h", "全体の容量を読みやすく表示"], ["df -h /srv/shared", "/srv/sharedが属する領域を確認"]],
+        changes: "容量情報を読み取るだけで、ディスクやファイルは変更しません。",
+        caution: "dfはファイルシステム全体、duはディレクトリやファイルごとの使用量です。",
+        output: "総容量、使用量、空き、使用率、マウント先が表示されます。",
+        related: ["lsblk", "findmnt"]
+      }),
+      historicalCommand({
+        name: "dpkg", category: "パッケージ", summary: "Debianパッケージを低い層で照会・導入・削除する",
+        keywords: "deb package installed Debian status",
+        risk: "change", riskLabel: "指定によりパッケージを変更", syntax: "dpkg [オプション] [対象]",
+        tokens: [["-l 名前", "パッケージの導入状態を一覧形式で照会します。"], ["-s 名前", "1パッケージの詳しい状態を表示します。"], ["-L 名前", "パッケージが配置したファイルを一覧表示します。"], ["-S パス", "そのファイルを所有するパッケージを探します。"], ["-i file.deb", "ローカルのdebファイルを導入します。"], ["-r 名前", "設定を残してパッケージ本体を削除します。"], ["-P 名前", "設定も含めて完全削除します。"], ["--configure -a", "未設定状態のパッケージをまとめて設定します。"]],
+        examples: [["dpkg -s sudo", "sudoパッケージの状態を確認"], ["dpkg -L ufw", "ufwが配置したファイルを表示"]],
+        changes: "-l・-s・-L・-Sは確認のみです。-i・-r・-P・--configureは状態を変更します。",
+        caution: "dpkg -iは依存関係を自動解決しないため、通常の導入はaptを使います。",
+        output: "導入状態、バージョン、説明、ファイル一覧など、指定操作に応じた情報が表示されます。",
+        related: ["apt"]
+      }),
+      historicalCommand({
+        name: "find", category: "検索", summary: "指定した場所以下から条件に合う対象を探す",
+        keywords: "ファイル 検索 name type size mtime 再帰",
+        syntax: "find 検索開始場所 [条件] [処理]",
+        tokens: [["検索開始場所", "どのディレクトリ以下を探すか指定します。"], ["-name パターン", "大文字小文字を区別して名前で探します。"], ["-iname パターン", "大文字小文字を区別せず名前で探します。"], ["-type f", "通常ファイルだけに絞ります。dならディレクトリです。"], ["-size", "ファイルサイズで絞ります。例：+100M。"], ["-mtime", "内容の更新日数で絞ります。"], ["-maxdepth 数", "検索する階層の深さを制限します。"], ["-exec ... {} +", "見つかった対象を別コマンドへまとめて渡します。"]],
+        examples: [["find . -type f -name '*.md'", "現在地以下のMarkdownファイルを検索"], ["find /var/log -type f -mtime -1", "24時間以内に更新されたログを検索"]],
+        changes: "検索条件だけなら変更しません。-deleteや、-execで変更コマンドを実行すると変更が発生します。",
+        caution: "-deleteやrmを組み合わせる前に、同じ条件を処理なしで実行して対象を確認します。",
+        output: "条件に一致したパスが1行ずつ表示されます。",
+        related: ["grep"]
+      }),
+      historicalCommand({
+        name: "findmnt", category: "ストレージ", summary: "マウント状態と対応するデバイスを表示する",
+        keywords: "mount filesystem target source UUID マウント",
+        syntax: "findmnt [オプション] [対象]",
+        tokens: [["--target パス", "指定パスが属するマウントを調べます。"], ["--source デバイス", "指定デバイスのマウント先を探します。"], ["-t 種類", "ext4などファイルシステム形式で絞ります。"], ["-o 列", "表示する列を指定します。"], ["-n", "見出しを表示しません。"], ["-J", "結果をJSON形式で表示します。"], ["--verify", "fstabの内容を検査します。"]],
+        examples: [["findmnt --target /srv/shared", "/srv/sharedを提供するデバイスを確認"], ["findmnt -t ext4", "ext4だけを表示"]],
+        changes: "現在のマウント情報を読み取るだけで変更しません。",
+        caution: "表示された/dev/sdX名は接続順で変わり得ます。モデルやUUIDも合わせて確認します。",
+        output: "TARGET、SOURCE、FSTYPE、OPTIONSなどが階層表示されます。",
+        related: ["lsblk", "df"]
+      }),
+      historicalCommand({
+        name: "free", category: "システム", summary: "メモリとswapの使用状況を表示する",
+        keywords: "RAM memory swap available used",
+        syntax: "free [オプション]",
+        tokens: [["-h", "読みやすい単位で表示します。"], ["-m", "MiB単位で表示します。"], ["-g", "GiB単位で表示します。"], ["-s 秒", "指定間隔で繰り返し表示します。"], ["-c 回数", "繰り返す回数を指定します。"], ["-t", "メモリとswapの合計行を表示します。"], ["-w", "buffersとcacheを分けて表示します。"]],
+        examples: [["free -h", "現在のメモリ状況を確認"], ["free -m -s 2 -c 3", "2秒間隔で3回、MiB表示"]],
+        changes: "メモリ統計を読み取るだけで変更しません。",
+        caution: "free欄が小さくてもavailableが十分なら、すぐにメモリ不足とは限りません。",
+        output: "total、used、free、shared、buff/cache、availableとswapが表示されます。"
+      }),
+      historicalCommand({
+        name: "getent", category: "ユーザー", summary: "NSS経由でユーザーやグループ情報を取得する",
+        keywords: "passwd group NSS UID GID user database",
+        syntax: "getent データベース [キー]",
+        tokens: [["passwd", "ユーザーアカウント情報を検索します。"], ["group", "グループ情報を検索します。"], ["hosts", "ホスト名やIPアドレスを検索します。"], ["services", "サービス名とポート番号を検索します。"], ["キー", "調べるユーザー名、グループ名、ホスト名などです。"], ["-s サービス", "filesやdnsなど使用するNSSサービスを限定します。"]],
+        examples: [["getent passwd alice", "aliceのアカウント情報を取得"], ["getent group sudo", "sudoグループと補助メンバーを表示"]],
+        changes: "情報源へ問い合わせるだけで、ユーザーやグループを変更しません。",
+        caution: "group出力末尾は補助メンバーです。ユーザーの全所属確認にはidも使います。",
+        output: "passwdならユーザー名・UID・GID・ホーム・shell、groupならGIDとメンバーが表示されます。",
+        related: ["id", "whoami"]
+      }),
+      historicalCommand({
+        name: "git", category: "Git", summary: "ソースコードなどの変更履歴を記録・同期する",
+        keywords: "status add commit push pull diff branch repository",
+        risk: "change", riskLabel: "操作により履歴・作業内容を変更", syntax: "git サブコマンド [オプション] [対象]",
+        tokens: [["status", "作業ツリーとステージングの状態を表示します。"], ["diff", "未ステージの変更差分を表示します。"], ["diff --cached", "コミット予定の差分を表示します。"], ["add 対象", "変更を次のコミット候補へ追加します。"], ["commit -m メッセージ", "ステージされた変更をローカル履歴に記録します。"], ["pull --ff-only", "分岐を作らず、可能な場合だけリモート履歴を取り込みます。"], ["push origin main", "mainのコミットをoriginへ送ります。"], ["log --oneline", "履歴を1コミット1行で表示します。"]],
+        examples: [["git status", "現在の変更状態を確認"], ["git pull --ff-only", "安全に最新履歴を取り込める場合だけ更新"]],
+        changes: "status・diff・logは確認のみです。addはステージ、commitはローカル履歴、pullは作業ツリー、pushはリモートを変更します。",
+        caution: "push後も別PCの作業ツリーは自動更新されません。その側でpullが必要です。",
+        output: "サブコマンドに応じて変更状態、差分、コミット、転送結果などが表示されます。"
+      }),
+      historicalCommand({
+        name: "hostnamectl", category: "システム", summary: "ホスト名とOS情報を表示・変更する",
+        keywords: "hostname static pretty transient OS kernel",
+        risk: "change", riskLabel: "指定によりホスト名を変更", syntax: "hostnamectl [操作] [名前]",
+        tokens: [["status", "ホスト名とOS・kernel・機種情報を表示します。"], ["--static", "永続的な静的ホスト名だけを表示します。"], ["--transient", "一時的なホスト名だけを表示します。"], ["--pretty", "人向けの説明的なホスト名を表示します。"], ["set-hostname 名前", "静的ホスト名を変更します。"], ["--no-ask-password", "対話的な認証要求を行いません。"]],
+        examples: [["hostnamectl --static", "現在の静的ホスト名を表示"], ["sudo hostnamectl set-hostname server42", "ホスト名をserver42へ変更"]],
+        changes: "表示操作は変更なしです。set-hostnameはシステムのホスト名設定を変更します。",
+        caution: "ホスト名変更はSSH表示やサービス設定に影響し得ます。変更後の復元値を先に記録します。",
+        output: "ホスト名、機種、OS、kernel、アーキテクチャなどが表示されます。"
+      }),
+      historicalCommand({
+        name: "id", category: "ユーザー", summary: "ユーザーのUID・GID・所属グループを表示する",
+        keywords: "user group UID GID groups 所属",
+        syntax: "id [オプション] [ユーザー名]",
+        tokens: [["-u", "UIDだけを表示します。"], ["-g", "プライマリGIDだけを表示します。"], ["-G", "所属する全グループのGIDを表示します。"], ["-n", "数値ではなく名前で表示します。-u・-g・-Gと併用します。"], ["-a", "対応環境では通常の全情報を表示します。"], ["ユーザー名", "省略すると現在のユーザーを対象にします。"]],
+        examples: [["id", "現在のユーザー情報を表示"], ["id -nG alice", "aliceの所属グループ名を表示"]],
+        changes: "アカウント情報を読み取るだけで変更しません。",
+        caution: "プライマリグループと補助グループの両方を含むため、getent groupの結果と表示範囲が異なります。",
+        output: "uid、gid、groupsが数値と名前で表示されます。",
+        related: ["getent", "whoami", "usermod"]
+      }),
+      historicalCommand({
+        name: "journalctl", category: "ログ", summary: "systemd journalのログを検索・表示する",
+        keywords: "log kernel boot service UFW pager",
+        syntax: "journalctl [オプション]",
+        tokens: [["-u unit", "指定サービスのログに絞ります。"], ["-k", "kernelログだけを表示します。"], ["-b", "現在の起動以降に絞ります。-1なら前回起動です。"], ["-n 行数", "末尾から指定行数を表示します。"], ["-f", "新しいログを追跡表示します。"], ["--since 時刻", "指定時刻以降に絞ります。"], ["-g パターン", "メッセージをパターンで検索します。"], ["--no-pager", "lessを使わず直接表示します。"], ["--list-boots", "記録されている起動履歴を一覧表示します。"]],
+        examples: [["sudo journalctl -k -b -n 50 --no-pager", "今回起動のkernelログ末尾50行"], ["journalctl -u ssh --since today", "今日のsshサービスログ"]],
+        changes: "ログを読み取るだけで変更しません。",
+        caution: "切り取られた1行だけで判断せず、同じ時刻の前後とサービス状態も確認します。",
+        output: "日時、ホスト名、プロセス名、PID、メッセージが時系列で表示されます。",
+        related: ["systemctl", "grep"]
+      }),
+      historicalCommand({
+        name: "lsblk", category: "ストレージ", summary: "ディスク・パーティション・LVM・マウント先を階層表示する",
+        keywords: "block device disk partition LVM model serial UUID",
+        syntax: "lsblk [オプション] [デバイス]",
+        tokens: [["-f", "ファイルシステム形式、ラベル、UUID、マウント先を表示します。"], ["-o 列", "NAME・MODEL・SERIALなど表示列を指定します。"], ["-p", "/dev/sdaのように完全なデバイスパスで表示します。"], ["-b", "サイズをbyte単位で表示します。"], ["-d", "子パーティションを表示せずディスク本体だけにします。"], ["-J", "JSON形式で表示します。"], ["-e 番号", "指定したmajor番号のデバイスを除外します。"]],
+        examples: [["lsblk -f", "形式・UUID・マウント先を確認"], ["lsblk -o NAME,PATH,MODEL,SERIAL,SIZE,FSTYPE,LABEL,MOUNTPOINTS", "ディスク個体を詳しく識別"]],
+        changes: "ブロックデバイス情報を読み取るだけで変更しません。",
+        caution: "/dev/sdaなどの名前は接続順で変わり得ます。モデル・シリアル・UUIDで識別します。",
+        output: "親ディスクの下にパーティションやLVMが木構造で表示されます。",
+        related: ["findmnt", "df"]
+      }),
+      historicalCommand({
+        name: "man", category: "ヘルプ", summary: "コマンドや設定ファイルの公式マニュアルを表示する",
+        keywords: "manual help option documentation section",
+        syntax: "man [オプション] [セクション] 名前",
+        tokens: [["名前", "調べるコマンドや設定ファイル名です。"], ["セクション", "1は一般コマンド、5は設定ファイル、8は管理コマンドなどです。"], ["-k キーワード", "説明文から関連マニュアルを検索します。apropos相当です。"], ["-f 名前", "名前に一致するマニュアルの要約を表示します。"], ["-a", "同名の全セクションを順に表示します。"], ["-w", "マニュアルファイルの保存場所を表示します。"]],
+        examples: [["man ls", "lsのマニュアルを表示"], ["man 5 crontab", "crontabファイル形式の説明を表示"]],
+        changes: "マニュアルを読み取って表示するだけで変更しません。",
+        caution: "同じ名前でもセクションにより内容が異なります。例：passwdコマンドは1、設定ファイルは5です。",
+        output: "NAME、SYNOPSIS、DESCRIPTION、OPTIONSなどがページャーで表示されます。"
+      }),
+      historicalCommand({
+        name: "nmcli", category: "ネットワーク", summary: "NetworkManagerの接続・機器状態を確認・操作する",
+        keywords: "wifi NetworkManager device connection radio route",
+        risk: "change", riskLabel: "指定により接続設定を変更", syntax: "nmcli [オプション] 対象 操作 [引数]",
+        tokens: [["device status", "ネットワーク機器と接続状態を一覧表示します。"], ["device wifi list", "周囲のWi-Fiアクセスポイントを表示します。"], ["connection show", "保存済み接続プロファイルを表示します。"], ["connection up 名前", "保存済み接続を有効にします。"], ["connection down 名前", "接続を切断します。"], ["radio wifi on|off", "Wi-Fi無線を有効・無効にします。"], ["-f 列", "表示する項目を指定します。"], ["-t", "スクリプト向けの区切り形式で表示します。"]],
+        examples: [["nmcli device status", "有線・Wi-Fiの接続状態を確認"], ["nmcli connection show", "保存済みプロファイルを確認"]],
+        changes: "status・list・showは確認のみです。up・down・radio・modifyは接続状態や設定を変更します。",
+        caution: "リモート接続中に使用中の接続をdownすると通信が切れます。機器名と経路を先に確認します。",
+        output: "機器名、種類、状態、使用中の接続名などが表形式で表示されます。",
+        related: ["ip"]
+      }),
+      historicalCommand({
+        name: "passwd", category: "ユーザー", summary: "ユーザーのパスワードやロック状態を変更する",
+        keywords: "password lock unlock status authentication",
+        risk: "change", riskLabel: "認証情報を変更", syntax: "passwd [オプション] [ユーザー名]",
+        tokens: [["ユーザー名", "rootが変更対象ユーザーを指定します。省略時は自分です。"], ["-S", "パスワード状態を短い形式で表示します。"], ["-l", "パスワード認証をロックします。"], ["-u", "パスワードのロックを解除します。"], ["-d", "パスワードを削除して空にします。危険です。"], ["-e", "パスワードを直ちに期限切れにします。"], ["-n 日数", "変更可能になるまでの最短日数を設定します。"], ["-x 日数", "有効な最長日数を設定します。"]],
+        examples: [["passwd", "自分のパスワードを変更"], ["sudo passwd -S alice", "aliceのパスワード状態を確認"]],
+        changes: "-Sは確認のみです。通常実行や-l・-u・-d・-eなどは認証情報を変更します。",
+        caution: "ロックや期限設定を誤るとログインできなくなります。SSH接続だけの環境では特に注意します。",
+        output: "変更時は現在・新しいパスワード入力を求め、状態表示では設定の短い要約が出ます。",
+        related: ["chage"]
+      }),
+      historicalCommand({
+        name: "sed", category: "テキスト", summary: "入力を行単位で選択・置換・整形する",
+        keywords: "stream editor replace print line text",
+        risk: "change", riskLabel: "-i使用時はファイルを変更", syntax: "sed [オプション] '処理' [ファイル]",
+        tokens: [["-n", "自動表示を止め、pで指定した行だけ表示します。"], ["-i", "結果を標準出力ではなく元ファイルへ反映します。"], ["-i.bak", "変更前のバックアップを.bakで残します。"], ["-E", "拡張正規表現を使います。"], ["s/旧/新/", "各行の最初の一致を置換します。"], ["s/旧/新/g", "各行の一致をすべて置換します。"], ["行番号p", "指定行を表示します。"], ["-e 処理", "複数の処理を指定します。"]],
+        examples: [["sed -n '1,20p' file.txt", "1〜20行目だけ表示"], ["sed 's/error/ERROR/g' file.txt", "置換結果を表示するが元ファイルは変更しない"]],
+        changes: "通常は表示だけです。-iを付けると元ファイルを直接変更します。",
+        caution: "-iの置換前に、同じ処理を-iなしで実行して結果を確認します。",
+        output: "処理後の行が標準出力へ表示されます。-n指定時は明示的にpした行だけです。",
+        related: ["grep", "awk"]
+      }),
+      historicalCommand({
+        name: "sha256sum", category: "ファイル", summary: "SHA-256ハッシュを計算・照合する",
+        keywords: "hash checksum signature VDI integrity 照合",
+        syntax: "sha256sum [オプション] [ファイル...]",
+        tokens: [["ファイル", "ハッシュを計算する対象です。複数指定できます。"], ["-c ファイル", "保存済みハッシュ一覧と実ファイルを照合します。"], ["--quiet", "照合成功行を表示せず失敗だけ表示します。"], ["--status", "何も表示せず終了ステータスだけ返します。"], ["--ignore-missing", "一覧にあっても存在しないファイルを無視します。"], ["-", "標準入力のデータを計算します。"]],
+        examples: [["sha256sum disk.vdi", "VDIのSHA-256を計算"], ["sha256sum -c signature.txt", "保存済み値と照合"]],
+        changes: "計算・照合だけなら対象ファイルを変更しません。出力を>で保存する場合は保存先を作成します。",
+        caution: "ハッシュ一致は同じbyte列の証明です。ファイルの内容が安全・正しいこと自体は別問題です。",
+        output: "64桁のハッシュとファイル名、照合時はOKまたはFAILEDが表示されます。"
+      }),
+      historicalCommand({
+        name: "ss", category: "ネットワーク", summary: "ソケット・接続状態・待受ポートを表示する",
+        keywords: "socket TCP UDP LISTEN ESTAB port process",
+        syntax: "ss [オプション] [フィルター]",
+        tokens: [["-t", "TCPソケットを表示します。"], ["-u", "UDPソケットを表示します。"], ["-l", "待受中のソケットだけ表示します。"], ["-a", "待受・接続中を含むすべてを表示します。"], ["-n", "サービス名へ変換せずポート番号で表示します。"], ["-p", "使用しているプロセス情報を表示します。"], ["-s", "種類別の統計を表示します。"], ["sport = :PORT", "送信元ポートで絞ります。待受確認にも使います。"]],
+        examples: [["ss -ltn", "TCPの待受ポートを数値で表示"], ["ss -ltn 'sport = :3389'", "3389番の待受だけ確認"]],
+        changes: "kernelのソケット情報を読み取るだけで変更しません。",
+        caution: "LISTENは待受中、ESTABは接続成立中です。外部公開の有無はfirewallや経路も合わせて判断します。",
+        output: "状態、送受信queue、ローカル・接続先アドレスとポートが表示されます。",
+        related: ["ip", "ufw"]
+      }),
+      historicalCommand({
+        name: "ssh", category: "ネットワーク", summary: "リモートホストへ暗号化して接続する",
+        keywords: "remote login secure shell port key Tailscale",
+        risk: "change", riskLabel: "接続先での操作内容による", syntax: "ssh [オプション] [ユーザー@]ホスト [リモートコマンド]",
+        tokens: [["ユーザー@ホスト", "接続先のアカウント名とホスト名・IPです。"], ["-p ポート", "接続先SSHポートを指定します。"], ["-i 鍵ファイル", "認証に使う秘密鍵を指定します。"], ["-v", "接続処理の詳細を表示します。-vv、-vvvでさらに詳しくします。"], ["-T", "対話端末を割り当てません。データ転送や自動処理向けです。"], ["-L", "ローカルポート転送を設定します。"], ["-o 名前=値", "PreferredAuthenticationsなど個別設定を指定します。"], ["リモートコマンド", "ログインシェルの代わりに接続先で1コマンドを実行します。"]],
+        examples: [["ssh -p 4242 alice@127.0.0.1", "4242番でaliceとして接続"], ["ssh -v ubuntu-home", "SSH設定の別名へ詳細表示付きで接続"]],
+        changes: "接続開始自体はローカル設定を変えません。接続先で実行したコマンドにより変更が起こります。",
+        caution: "初回のホスト鍵は接続先の正当性を確認してから承認します。秘密鍵の内容は共有しません。",
+        output: "認証要求、警告、接続先のshell、または-v指定時の接続診断が表示されます。"
+      }),
+      historicalCommand({
+        name: "sudo", category: "権限", summary: "許可された1コマンドを別ユーザー権限で実行する",
+        keywords: "root administrator privilege user security",
+        risk: "change", riskLabel: "後ろのコマンドによる", syntax: "sudo [オプション] コマンド [引数...]",
+        tokens: [["コマンド", "高い権限などで実行する対象です。sudo自体が処理内容を決めるわけではありません。"], ["-u ユーザー", "root以外を含む実行ユーザーを指定します。"], ["-l", "自分に許可されたsudoルールを表示します。"], ["-v", "認証情報を更新し、実行権限を確認します。"], ["-k", "保存中の認証時刻を無効にします。"], ["-i", "対象ユーザーのログインshellを開始します。"], ["-H", "HOMEを対象ユーザーのものに設定します。"], ["--", "以降をsudoのオプションではなくコマンドとして扱います。"]],
+        examples: [["sudo -l", "許可されている操作を確認"], ["sudo systemctl status ssh", "root権限でssh状態を確認"]],
+        changes: "sudo -lなどは確認のみです。実際の変更内容は後ろに続くコマンドで決まります。",
+        caution: "sudoは後続コマンドの影響を拡大します。対象・範囲・復元方法を確認して1コマンドずつ使います。",
+        output: "必要ならパスワードを求め、その後は実行したコマンドの出力が表示されます。",
+        related: ["visudo"]
+      }),
+      historicalCommand({
+        name: "tail", category: "テキスト", summary: "ファイルの末尾部分を表示・追跡する",
+        keywords: "last lines log follow monitor",
+        syntax: "tail [オプション] [ファイル...]",
+        tokens: [["-n 行数", "末尾から表示する行数を指定します。"], ["-行数", "-nの短い書き方です。例：-50。"], ["-f", "追記された内容を継続表示します。"], ["-F", "ログローテーションでファイルが作り直されても追跡します。"], ["-c byte数", "行ではなく末尾のbyte数で表示します。"], ["--pid PID", "指定プロセス終了時に-fの追跡も終了します。"]],
+        examples: [["tail -n 50 app.log", "末尾50行を表示"], ["tail -F /var/log/syslog", "作り直しにも対応してログを追跡"]],
+        changes: "ファイルを読み取るだけで変更しません。",
+        caution: "-fは自動終了しません。通常はCtrl+Cで表示を終了します。",
+        output: "指定した末尾部分が表示され、-fでは新しい追記が随時表示されます。",
+        related: ["cat", "grep"]
+      }),
+      historicalCommand({
+        name: "tailscale", category: "ネットワーク", summary: "Tailscale接続・端末・経路の状態を確認・操作する",
+        keywords: "VPN mesh status IP ping up down device",
+        risk: "change", riskLabel: "指定によりVPN状態を変更", syntax: "tailscale サブコマンド [オプション]",
+        tokens: [["status", "自端末と接続可能な端末の状態を表示します。"], ["ip", "この端末のTailscale IPを表示します。"], ["ping 相手", "Tailscale経由の到達性と経路を確認します。"], ["netcheck", "UDP・IPv4/IPv6・DERPなど通信環境を診断します。"], ["up", "Tailscale接続を有効化・設定します。"], ["down", "Tailscale接続を停止します。"], ["logout", "この端末のログイン状態を解除します。"], ["--json", "対応サブコマンドの結果をJSONで表示します。"]],
+        examples: [["tailscale status", "端末一覧と接続状態を確認"], ["tailscale ping taiichimacbook-air", "MacへのTailscale経路を確認"]],
+        changes: "status・ip・ping・netcheckは確認です。up・down・logoutは接続状態を変更します。",
+        caution: "Tailscale経由で遠隔操作中にdownやlogoutを実行すると接続が切れます。",
+        output: "Tailscale IP、端末名、OS、接続方式、オンライン状態などが表示されます。",
+        related: ["ip", "ssh", "ss"]
+      }),
+      historicalCommand({
+        name: "ufw", category: "セキュリティ", summary: "ファイアウォールの状態と通信ルールを管理する",
+        keywords: "firewall allow deny delete status port interface",
+        risk: "change", riskLabel: "ルール・有効状態を変更可能", syntax: "sudo ufw 操作 [ルール]",
+        tokens: [["status verbose", "有効状態、既定方針、ルールを詳しく表示します。"], ["status numbered", "削除に使える番号付きでルールを表示します。"], ["allow 22/tcp", "指定した通信を許可します。"], ["deny", "指定した通信を拒否します。"], ["delete 番号", "番号で指定したルールを削除します。"], ["default deny incoming", "受信の既定方針を拒否にします。"], ["enable", "UFWを有効にします。"], ["disable", "UFWを無効にします。"], ["from IP to any port PORT", "送信元IPと宛先ポートを限定します。"], ["in on インターフェース", "受信インターフェースを限定します。"]],
+        examples: [["sudo ufw status numbered", "現在のルールを番号付き表示"], ["sudo ufw allow in on tailscale0 from 100.64.0.0/10 to any port 22 proto tcp", "Tailscale側からのSSH許可例"]],
+        changes: "statusは確認のみです。allow・deny・delete・default・enable・disableはfirewall状態を変更します。",
+        caution: "SSHで接続中にルールを誤ると締め出されます。許可経路を確認してから有効化します。",
+        output: "有効状態、既定方針、宛先・動作・送信元、IPv4/IPv6ルールが表示されます。",
+        related: ["ss", "ip"]
+      }),
+      historicalCommand({
+        name: "uname", category: "システム", summary: "kernel名・バージョン・CPUアーキテクチャを表示する",
+        keywords: "kernel release architecture machine OS",
+        syntax: "uname [オプション]",
+        tokens: [["-a", "利用可能な主な情報をまとめて表示します。"], ["-s", "kernel名を表示します。"], ["-r", "kernel releaseを表示します。"], ["-v", "kernelのビルド情報を表示します。"], ["-m", "マシンのハードウェア名を表示します。"], ["-p", "CPU種類を表示します。不明と出る場合があります。"], ["-o", "OS名を表示します。"]],
+        examples: [["uname -r", "現在のkernel releaseを確認"], ["uname -a", "システム情報をまとめて表示"]],
+        changes: "kernel情報を読み取るだけで変更しません。",
+        caution: "UbuntuやDebianなどディストリビューション情報は/etc/os-releaseの方が適しています。",
+        output: "指定したkernel・機種・OS情報が1行で表示されます。"
+      }),
+      historicalCommand({
+        name: "uptime", category: "システム", summary: "稼働時間・ログイン人数・負荷平均を表示する",
+        keywords: "boot time load average users 稼働時間",
+        syntax: "uptime [オプション]",
+        tokens: [["-p", "稼働時間を人が読みやすい文章で表示します。"], ["-s", "システムを起動した日時を表示します。"], ["--since", "-sと同じく起動日時を表示します。"], ["-V", "uptimeコマンドのバージョンを表示します。"], ["load average", "直近1分・5分・15分の平均的な実行待ち量です。"]],
+        examples: [["uptime", "稼働時間と負荷をまとめて確認"], ["uptime -s", "起動日時を確認"]],
+        changes: "システム状態を読み取るだけで変更しません。",
+        caution: "load averageの評価はCPU数やI/O待ちも考慮します。数値だけで異常と断定しません。",
+        output: "現在時刻、稼働時間、ログイン人数、1・5・15分のload averageが表示されます。"
+      }),
+      historicalCommand({
+        name: "usermod", category: "ユーザー", summary: "既存ユーザーのアカウント設定を変更する",
+        keywords: "user group append login shell home account",
+        risk: "change", riskLabel: "ユーザー設定を変更", syntax: "sudo usermod [オプション] ユーザー名",
+        tokens: [["-aG グループ", "現在の補助グループを残し、指定グループへ追加します。"], ["-G グループ一覧", "補助グループ全体を置き換えます。-aなしは要注意です。"], ["-g グループ", "プライマリグループを変更します。"], ["-s shell", "ログインshellを変更します。"], ["-d ホーム", "ホームディレクトリの登録パスを変更します。"], ["-m", "-dと併用し、既存ホームの内容も移動します。"], ["-l 新名前", "ログイン名を変更します。"], ["-L / -U", "パスワードをロック／解除します。"]],
+        examples: [["sudo usermod -aG sudo alice", "aliceを既存所属を保ってsudoへ追加"], ["id alice", "変更後の所属を確認"]],
+        changes: "ユーザーDB、グループ所属、shell、ホームなど指定項目を変更します。",
+        caution: "-Gを-aなしで使うと、記載していない補助グループから外れます。変更後はidで確認します。",
+        output: "成功時は通常何も表示しません。警告やエラーがある場合だけ表示されます。",
+        related: ["id", "getent"]
+      }),
+      historicalCommand({
+        name: "visudo", category: "権限", summary: "sudoersをロック・構文検査しながら安全に扱う",
+        keywords: "sudoers syntax check editor include permission",
+        risk: "change", riskLabel: "編集時はsudo権限設定を変更", syntax: "sudo visudo [オプション]",
+        tokens: [["-c", "sudoers本体と読み込み先の構文を検査します。"], ["-f ファイル", "対象のsudoersファイルを指定します。"], ["-q", "検査時、エラー以外の表示を抑えます。"], ["-s", "厳格な構文検査を行います。"], ["-x ファイル", "sudoersをJSON形式へ出力します。"], ["EDITOR", "編集時に使う許可済みエディタへ影響する環境変数です。"]],
+        examples: [["sudo visudo -c", "全sudoers設定を構文検査"], ["sudo visudo -cf /etc/sudoers.d/custom", "指定ファイルだけ検査"]],
+        changes: "-cは検査だけです。通常起動して保存するとsudo権限設定を変更します。",
+        caution: "構文エラーはsudo利用不能につながります。直接編集せずvisudoを使います。",
+        output: "正常ならparsed OK、異常ならファイル名・行番号・エラー内容が表示されます。",
+        related: ["sudo"]
+      }),
+      historicalCommand({
+        name: "wc", category: "テキスト", summary: "行数・単語数・byte数・文字数を数える",
+        keywords: "count lines words bytes characters",
+        syntax: "wc [オプション] [ファイル...]",
+        tokens: [["-l", "改行の数を数えます。通常は行数確認に使います。"], ["-w", "単語数を数えます。"], ["-c", "byte数を数えます。"], ["-m", "文字数を数えます。日本語では-cと異なる場合があります。"], ["-L", "最も長い行の表示幅を表示します。"], ["ファイル", "複数指定すると各結果と合計を表示します。"]],
+        examples: [["wc -l file.txt", "ファイルの行数を確認"], ["ss -ta | wc -l", "ssの出力行数を数える"]],
+        changes: "入力を数えるだけで、ファイルや設定は変更しません。",
+        caution: "wc -lは改行文字を数えるため、末尾に改行がない最終行では見た目の行数とずれることがあります。",
+        output: "数値と、ファイル指定時はファイル名が表示されます。"
+      }),
+      historicalCommand({
+        name: "whoami", category: "ユーザー", summary: "現在の実効ユーザー名を表示する",
+        keywords: "current user effective UID login",
+        syntax: "whoami [オプション]",
+        tokens: [["whoami", "現在の実効ユーザーIDに対応する名前を表示します。"], ["--help", "使い方を表示します。"], ["--version", "コマンドのバージョンを表示します。"], ["実効ユーザー", "現在の処理が実際に持つ権限のユーザーです。"]],
+        examples: [["whoami", "現在どのユーザー権限か確認"], ["sudo whoami", "sudo後の実効ユーザーがrootか確認"]],
+        changes: "現在のユーザー情報を表示するだけで変更しません。",
+        caution: "ログイン名ではなく実効ユーザーを表示します。sudo内ではrootと表示されます。",
+        output: "通常はユーザー名が1行だけ表示されます。",
+        related: ["id", "sudo"]
+      })
+    );
+
+    commands.push(
+      historicalCommand({
+        name: "adduser", category: "ユーザー", summary: "新しいユーザーを対話形式で作成する",
+        keywords: "user create home password group account", risk: "change", riskLabel: "ユーザーを作成・変更",
+        syntax: "sudo adduser [オプション] ユーザー名",
+        tokens: [["ユーザー名", "新しく作るログイン名です。"], ["--home パス", "ホームディレクトリの場所を指定します。"], ["--shell パス", "ログインshellを指定します。"], ["--ingroup グループ", "プライマリグループを指定します。"], ["--disabled-password", "パスワードログインを無効のまま作成します。"], ["--gecos 文字列", "氏名などの説明欄を指定します。"]],
+        examples: [["sudo adduser alice", "aliceを対話形式で作成"], ["getent passwd alice", "作成後の登録を確認"]],
+        changes: "ユーザーDB、グループ、ホームディレクトリなどを作成します。",
+        caution: "既存名との重複、UID、ホーム、所属グループを確認し、不要なsudo権限を付けません。",
+        output: "作成処理とパスワード・説明情報の入力確認が順に表示されます。",
+        related: ["getent", "id", "usermod"]
+      }),
+      historicalCommand({
+        name: "blkid", category: "ストレージ", summary: "ブロックデバイスのUUID・形式・ラベルを表示する",
+        keywords: "UUID LABEL TYPE filesystem disk partition", syntax: "sudo blkid [オプション] [デバイス]",
+        tokens: [["デバイス", "調べる/dev/sda1などを指定します。省略時は検出対象全体です。"], ["-s タグ", "UUIDやTYPEなど表示項目を限定します。"], ["-o value", "タグ名を付けず値だけ表示します。"], ["-o list", "表形式で一覧表示します。"], ["-L ラベル", "ラベルに対応するデバイスを探します。"], ["-U UUID", "UUIDに対応するデバイスを探します。"], ["-p", "低レベルのprobe結果を表示します。"]],
+        examples: [["sudo blkid", "検出されたUUIDと形式を一覧表示"], ["blkid -U 0a3b...", "UUIDに対応するデバイスを検索"]],
+        changes: "識別情報を読み取るだけで変更しません。",
+        caution: "出力の/dev/sdXだけを記憶せず、UUID・ラベル・モデルと組み合わせて識別します。",
+        output: "デバイスごとにUUID、BLOCK_SIZE、TYPE、LABELなどが表示されます。",
+        related: ["lsblk", "findmnt"]
+      }),
+      historicalCommand({
+        name: "groupadd", category: "ユーザー", summary: "新しいLinuxグループを作成する",
+        keywords: "group create GID system user", risk: "change", riskLabel: "グループを作成",
+        syntax: "sudo groupadd [オプション] グループ名",
+        tokens: [["グループ名", "新しく登録する名前です。"], ["-g GID", "数値のグループIDを指定します。"], ["-r", "システム用グループとして作成します。"], ["-f", "同名グループが存在しても成功扱いにします。"], ["-K KEY=VALUE", "login.defsの既定値を一時的に上書きします。"], ["-o", "-gと併用し、重複GIDを許可します。通常は避けます。"]],
+        examples: [["sudo groupadd user42", "user42グループを作成"], ["getent group user42", "作成後の登録を確認"]],
+        changes: "/etc/groupなどへ新しいグループを登録します。",
+        caution: "既存名・GIDとの重複をgetentで確認し、-oによる重複GIDは特別な理由なしに使いません。",
+        output: "成功時は通常何も表示しません。重複や不正な値はエラーになります。",
+        related: ["getent", "usermod", "id"]
+      }),
+      historicalCommand({
+        name: "hostname", category: "ネットワーク", summary: "現在のホスト名や割り当てアドレスを表示する",
+        keywords: "host name IP address FQDN machine", riskLabel: "表示操作は変更なし",
+        syntax: "hostname [オプション]",
+        tokens: [["-I", "この端末に割り当てられたIPアドレスを一覧表示します。"], ["-i", "ホスト名から解決されたアドレスを表示します。"], ["-f", "FQDNを表示します。"], ["-s", "ドメイン部分を除いた短いホスト名を表示します。"], ["-d", "DNSドメイン名を表示します。"], ["-A", "このホストのFQDN候補をすべて表示します。"]],
+        examples: [["hostname", "現在のホスト名を表示"], ["hostname -I", "割り当てられたIPアドレスを表示"]],
+        changes: "ここに載せた表示用オプションは変更しません。ホスト名変更にはhostnamectlを使います。",
+        caution: "hostname -Iは複数の有線・Wi-Fi・VPNアドレスを返すことがあります。用途別に見分けます。",
+        output: "ホスト名または指定種類のアドレスが1行で表示されます。",
+        related: ["hostnamectl", "ip"]
+      }),
+      historicalCommand({
+        name: "mount", category: "ストレージ", summary: "ファイルシステムをディレクトリへ接続する",
+        keywords: "filesystem device mountpoint fstab option", risk: "change", riskLabel: "マウント状態を変更可能",
+        syntax: "sudo mount [オプション] [デバイス] [マウント先]",
+        tokens: [["-a", "/etc/fstabで指定された対象をまとめてマウントします。"], ["-t 種類", "ext4やcifsなど形式を指定します。"], ["-o オプション", "ro・rw・noexecなどの動作を指定します。"], ["-o remount", "既存マウントのオプションを再設定します。"], ["--bind", "既存ディレクトリを別の場所にも見せます。"], ["デバイス", "UUID=...や/dev/...など接続元です。"], ["マウント先", "内容を見せる既存ディレクトリです。"]],
+        examples: [["mount | grep /srv/shared", "現在のマウント表示から対象を検索"], ["sudo mount -a", "fstabの設定を適用"]],
+        changes: "引数なしは一覧表示です。通常のmount実行はkernelのマウント状態を変更します。",
+        caution: "対象デバイスとマウント先をモデル・UUIDまで確認し、fstab変更後は再起動前に検査します。",
+        output: "表示時は接続元、接続先、形式、オプションが表示されます。",
+        related: ["findmnt", "lsblk", "df"]
+      }),
+      historicalCommand({
+        name: "reboot", category: "システム", summary: "OSを安全な手順で再起動する",
+        keywords: "restart shutdown system boot", risk: "danger", riskLabel: "システムを再起動",
+        syntax: "sudo reboot [オプション]",
+        tokens: [["reboot", "systemd環境では再起動要求をsystem managerへ送ります。"], ["--no-wall", "ログイン中ユーザーへの通知を送らない指定です。"], ["--message 文章", "再起動記録に残すメッセージを指定します。"], ["-f", "通常の停止手順を省く強制再起動です。原則使いません。"], ["--dry-run", "対応環境では操作を実行せず通知などを試します。"], ["--boot-loader-entry", "対応環境で次回起動するboot entryを指定します。"]],
+        examples: [["sudo reboot", "通常の安全な再起動"], ["systemctl reboot", "systemdへ再起動を要求"]],
+        changes: "サービスを停止し、ファイルシステムを同期・解除してOSを再起動します。接続は切れます。",
+        caution: "保存していない作業、SSH接続、VM状態、他ユーザーの作業を確認してから実行します。",
+        output: "通知後に接続が終了し、起動処理が始まります。通常は完了メッセージを同じshellで確認できません。"
+      }),
+      historicalCommand({
+        name: "scp", category: "ネットワーク", summary: "SSHを使ってホスト間でファイルを暗号化転送する",
+        keywords: "secure copy remote transfer file SSH", risk: "change", riskLabel: "転送先へファイルを作成・上書き",
+        syntax: "scp [オプション] コピー元 コピー先",
+        tokens: [["user@host:path", "リモート側のユーザー、ホスト、パスです。"], ["-P ポート", "SSHポートを指定します。sshの-pと違い大文字です。"], ["-i 鍵", "認証に使う秘密鍵を指定します。"], ["-r", "ディレクトリを再帰的に転送します。"], ["-p", "更新日時と権限を可能な範囲で保持します。"], ["-C", "通信を圧縮します。"], ["-v", "接続・転送の詳細を表示します。"]],
+        examples: [["scp -P 4242 file.txt alice@host:/tmp/", "4242番を使ってファイルを送信"], ["scp user@host:/var/log/app.log .", "リモートから現在地へ取得"]],
+        changes: "転送先にファイルを作成し、同名対象を上書きする場合があります。コピー元は通常変わりません。",
+        caution: "送信元と送信先の向き、ポート指定が-Pであること、上書き先を確認します。",
+        output: "転送中のファイル名、進捗率、容量、速度、残り時間が表示されます。",
+        related: ["ssh", "cp"]
+      }),
+      historicalCommand({
+        name: "smbclient", category: "ネットワーク", summary: "Samba/SMB共有へCLIから接続・検査する",
+        keywords: "Samba SMB share NAS login list file", risk: "change", riskLabel: "操作により共有上を変更",
+        syntax: "smbclient [共有] [オプション]",
+        tokens: [["-L ホスト", "ホストが公開する共有一覧を表示します。"], ["//host/share", "接続する共有をUNC形式で指定します。"], ["-U ユーザー", "認証ユーザーを指定します。"], ["-m SMB3", "使用する最大プロトコルを指定します。"], ["-c '操作'", "対話画面に入らず操作を実行します。"], ["-N", "パスワードを尋ねません。匿名接続の検査向けです。"], ["get / put", "共有から取得／共有へ送信します。"]],
+        examples: [["smbclient -L localhost -U alice", "ローカルSambaの共有一覧を確認"], ["smbclient //localhost/shared -U alice", "sharedへ対話接続"]],
+        changes: "一覧・ls・getは共有を変更しません。put・del・mkdirなどは共有上を変更します。",
+        caution: "パスワードをコマンド行へ直接書くと履歴やプロセス一覧に残るため、対話入力を使います。",
+        output: "共有名、種類、サーバー情報、認証エラー、対話プロンプトなどが表示されます。"
+      }),
+      historicalCommand({
+        name: "ssh-keygen", category: "セキュリティ", summary: "SSH鍵ペアと鍵の指紋を生成・管理する",
+        keywords: "private public key fingerprint ed25519 RSA", risk: "change", riskLabel: "鍵ファイルを作成・変更可能",
+        syntax: "ssh-keygen [オプション]",
+        tokens: [["-t ed25519", "生成する鍵方式をEd25519にします。"], ["-f パス", "読み書きする鍵ファイルを指定します。"], ["-C コメント", "公開鍵末尾の識別コメントを設定します。"], ["-l", "指定鍵の指紋を表示します。"], ["-y", "秘密鍵から対応する公開鍵だけを出力します。"], ["-p", "秘密鍵のパスフレーズを変更します。"], ["-R ホスト", "known_hostsから指定ホストの鍵を削除します。"]],
+        examples: [["ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519", "Ed25519鍵ペアを作成"], ["ssh-keygen -lf ~/.ssh/id_ed25519.pub", "公開鍵の指紋を表示"]],
+        changes: "-l・-yは確認です。鍵生成、-p、-Rは鍵関連ファイルを作成・変更します。",
+        caution: "秘密鍵の内容は表示・共有しません。既存パスを指定すると上書き確認が出るため慎重に判断します。",
+        output: "生成先、指紋、randomart、または公開鍵が表示されます。",
+        related: ["ssh"]
+      }),
+      historicalCommand({
+        name: "stat", category: "ファイル", summary: "ファイルの権限・所有者・サイズ・時刻などを表示する",
+        keywords: "metadata permission owner inode timestamp size", syntax: "stat [オプション] ファイル...",
+        tokens: [["-c 書式", "表示項目と並びを指定します。"], ["%A", "権限を-rw-r--r--のような文字形式で表示します。"], ["%a", "権限を644などの8進数で表示します。"], ["%U:%G", "所有ユーザーとグループ名を表示します。"], ["%s", "ファイルサイズをbyteで表示します。"], ["%n", "ファイル名を表示します。"], ["-f", "ファイル自体ではなくファイルシステム情報を表示します。"]],
+        examples: [["stat file.txt", "メタデータを詳しく表示"], ["stat -c '%A %U:%G %n' ~/.ssh", "権限・所有者・名前を指定書式で表示"]],
+        changes: "メタデータを読み取るだけで変更しません。",
+        caution: "Changeは内容変更ではなくinodeメタデータ変更時刻です。Modifyと区別します。",
+        output: "サイズ、inode、権限、UID/GID、アクセス・更新・変更時刻などが表示されます。",
+        related: ["ls"]
+      }),
+      historicalCommand({
+        name: "tee", category: "テキスト", summary: "標準入力を画面とファイルの両方へ送る",
+        keywords: "pipe redirect write append sudo output", risk: "change", riskLabel: "出力先ファイルを変更",
+        syntax: "コマンド | tee [オプション] ファイル...",
+        tokens: [["ファイル", "標準入力を書き込む出力先です。通常は上書きします。"], ["-a", "上書きせず末尾へ追記します。"], ["-i", "割り込みシグナルを無視します。"], ["-p", "パイプ書き込みエラーに適した動作を選びます。"], ["--output-error", "書き込みエラー時の動作を指定します。"], ["複数ファイル", "同じ入力を複数の出力先へ同時に書けます。"]],
+        examples: [["echo hello | tee note.txt", "画面表示しながらnote.txtを上書き"], ["echo line | sudo tee -a /etc/example.conf", "root権限で設定末尾へ追記"]],
+        changes: "指定ファイルを作成または上書きします。-aでは末尾へ追記します。標準出力にも同じ内容を出します。",
+        caution: "-aなしは全内容を上書きします。設定ファイルでは対象と現在内容を先に確認します。",
+        output: "標準入力と同じ内容が画面にも表示されます。",
+        related: ["cat"]
+      }),
+      historicalCommand({
+        name: "testparm", category: "セキュリティ", summary: "Samba設定ファイルの構文と有効値を検査する",
+        keywords: "Samba smb.conf syntax share security config", syntax: "testparm [オプション] [設定ファイル]",
+        tokens: [["設定ファイル", "省略すると通常/etc/samba/smb.confを検査します。"], ["-s", "確認待ちをせず設定結果を表示します。"], ["-v", "既定値を含む全パラメータを表示します。"], ["--parameter-name=名前", "指定パラメータの値だけを表示します。"], ["--section-name=名前", "指定セクションだけを表示します。"], ["--suppress-prompt", "Enter待ちを抑えます。"]],
+        examples: [["sudo testparm", "Samba設定を構文検査"], ["testparm -s --section-name=shared", "sharedセクションの有効設定を表示"]],
+        changes: "設定ファイルを解析して表示するだけで変更しません。",
+        caution: "構文OKは認証やファイル権限まで保証しません。smbclientで実接続も確認します。",
+        output: "設定の読み込み結果、警告、サービス定義、最終的に解釈された値が表示されます。"
+      })
+    );
+
+    commands.push(
+      historicalCommand({
+        name: "alias", category: "内部コマンド", summary: "長いコマンドに短い別名を付ける",
+        keywords: "shell builtin 別名 shortcut bash", risk: "change", riskLabel: "現在のshell内を変更",
+        syntax: "alias [名前[=値] ...]",
+        tokens: [["alias", "引数なしで現在の別名一覧を表示します。"], ["名前=値", "名前に実行内容を割り当てます。全体を引用符で囲みます。"], ["alias 名前", "指定した別名の定義だけを表示します。"], ["unalias 名前", "別名を削除する別の内部コマンドです。"], ["unalias -a", "現在のshellの別名をすべて削除します。"]],
+        examples: [["alias", "現在の別名を一覧表示"], ["alias ll='ls -alF'", "llという別名を現在のshellへ登録"]],
+        changes: "定義すると現在のshellの別名一覧が変わります。通常はshell終了で消え、設定ファイルへ書けば次回も有効です。",
+        caution: "既存コマンドと同じ名前のaliasは本来の動作を隠すため、typeで実体を確認します。",
+        output: "一覧・指定表示では alias 名前='値' の形式で表示されます。",
+        related: ["type"]
+      }),
+      historicalCommand({
+        name: "command", category: "内部コマンド", summary: "関数やaliasの影響を避けてコマンドを実行・確認する",
+        keywords: "shell builtin lookup execute alias function", syntax: "command [オプション] 名前 [引数...]",
+        tokens: [["名前", "検索または実行するコマンド名です。"], ["-v", "実行されるコマンドの名前やパスを表示します。"], ["-V", "種類を含む詳しい説明を表示します。"], ["-p", "標準的なPATHを使って外部コマンドを探します。"], ["--", "以降をオプションではなくコマンド名として扱います。"]],
+        examples: [["command -V cd", "cdが内部コマンドか詳しく確認"], ["command ls -l", "同名shell関数を避けてlsを実行"]],
+        changes: "-v・-Vは確認のみです。実行時の変更範囲は後ろのコマンドで決まります。",
+        caution: "commandはsudoの代わりではなく、権限を高めません。shell内の名前解決を制御します。",
+        output: "確認時はパス、alias定義、builtinなど名前の解決結果が表示されます。",
+        related: ["type"]
+      }),
+      historicalCommand({
+        name: "exit", category: "内部コマンド", summary: "現在のshellまたはSSHセッションを終了する",
+        keywords: "shell builtin logout session status", risk: "change", riskLabel: "現在のセッションを終了",
+        syntax: "exit [終了ステータス]",
+        tokens: [["exit", "数値を省略すると直前のコマンドの終了ステータスを使います。"], ["0", "一般に成功を表す終了ステータスです。"], ["1〜255", "一般に不一致やエラーなど成功以外を表します。"], ["終了ステータス", "親shellや呼び出し元へ返す数値です。"]],
+        examples: [["exit", "現在のshellを終了"], ["exit 1", "失敗状態を返してshellやscriptを終了"]],
+        changes: "設定やファイルは変更しませんが、現在のshell・SSH接続・scriptを終了します。",
+        caution: "未保存の対話作業や実行中ジョブがないか確認します。SSHでは接続が閉じます。",
+        output: "通常は何も表示せず、親shellへ戻るかターミナル接続が終了します。"
+      }),
+      historicalCommand({
+        name: "export", category: "内部コマンド", summary: "shell変数を子プロセスへ渡す環境変数にする",
+        keywords: "shell builtin environment variable PATH", risk: "change", riskLabel: "現在のshell環境を変更",
+        syntax: "export [オプション] [名前[=値] ...]",
+        tokens: [["名前=値", "変数へ値を設定し、子プロセスへ引き継げるようにします。"], ["名前", "既存変数にexport属性を付けます。"], ["-p", "export済みの変数を再利用可能な形式で表示します。"], ["-n 名前", "export属性だけを外します。変数自体は残ります。"], ["PATH", "外部コマンドを探すディレクトリ一覧を持つ代表的な環境変数です。"]],
+        examples: [["export", "export済み変数を表示"], ["export EDITOR=nano", "子プロセスにもEDITOR=nanoを渡す"]],
+        changes: "現在のshellと、そこから起動する子プロセスの環境を変更します。通常はshell終了で消えます。",
+        caution: "PATHを上書きするとコマンドが見つからなくなることがあります。追加時は既存値を残します。",
+        output: "-pや引数なしではexportされた変数定義が表示されます。"
+      }),
+      historicalCommand({
+        name: "help", category: "内部コマンド", summary: "Bash内部コマンドの使い方を表示する",
+        keywords: "shell builtin manual bash help syntax", syntax: "help [オプション] [パターン]",
+        tokens: [["パターン", "調べる内部コマンド名です。"], ["-d", "短い説明だけを表示します。"], ["-m", "man pageに近い形式で表示します。"], ["-s", "書式（synopsis）だけを表示します。"], ["help", "引数なしで内部コマンド一覧を表示します。"]],
+        examples: [["help cd", "cd内部コマンドの説明を表示"], ["help -s export", "exportの書式だけ表示"]],
+        changes: "Bashが持つ説明を表示するだけで変更しません。",
+        caution: "外部コマンドはhelpではなくmanや --help を使います。typeで種類を判別できます。",
+        output: "内部コマンドの書式、説明、オプションが表示されます。",
+        related: ["type", "man"]
+      }),
+      historicalCommand({
+        name: "history", category: "内部コマンド", summary: "現在のshellが保持するコマンド履歴を表示・操作する",
+        keywords: "shell builtin command history bash", risk: "change", riskLabel: "指定により履歴を変更",
+        syntax: "history [オプション] [件数]",
+        tokens: [["件数", "末尾から表示する履歴件数です。"], ["-c", "現在のshellの履歴一覧を消去します。"], ["-d 番号", "指定番号の履歴を削除します。"], ["-a", "今回追加された履歴を履歴ファイルへ追記します。"], ["-r", "履歴ファイルを読み込み、現在の一覧へ追加します。"], ["-w", "現在の一覧で履歴ファイルを上書きします。"]],
+        examples: [["history 20", "最近の20件を表示"], ["history | grep ssh", "履歴からsshを含む行を検索"]],
+        changes: "表示だけなら変更しません。-c・-d・-a・-r・-wはメモリ上またはファイルの履歴を変更します。",
+        caution: "パスワードやtokenをコマンドへ直接書くと履歴に残り得ます。秘密情報は入力しません。",
+        output: "履歴番号とコマンド文字列が古い順に表示されます。",
+        related: ["grep"]
+      }),
+      historicalCommand({
+        name: "pwd", category: "内部コマンド", summary: "現在の作業ディレクトリを絶対パスで表示する",
+        keywords: "shell builtin current working directory path", syntax: "pwd [オプション]",
+        tokens: [["pwd", "print working directoryの略です。"], ["-L", "シンボリックリンク名を保った論理パスを表示します。通常の既定です。"], ["-P", "シンボリックリンクを解決した物理パスを表示します。"], ["PWD", "現在の論理的な作業場所を持つshell変数です。"]],
+        examples: [["pwd", "現在地を表示"], ["pwd -P", "シンボリックリンクを解決した実体の場所を表示"]],
+        changes: "現在地を表示するだけで、作業場所やファイルは変更しません。",
+        caution: "危険な操作の前はpwdで対象ディレクトリを確認します。-Lと-Pで表示が異なる場合があります。",
+        output: "/から始まる現在地の絶対パスが1行で表示されます。",
+        related: ["cd"]
+      }),
+      historicalCommand({
+        name: "read", category: "内部コマンド", summary: "標準入力から1行読み、shell変数へ保存する",
+        keywords: "shell builtin input variable prompt script", risk: "change", riskLabel: "shell変数へ値を保存",
+        syntax: "read [オプション] [変数名 ...]",
+        tokens: [["変数名", "読み取った値を保存します。複数なら単語ごとに割り当てます。"], ["-p 文章", "入力前にpromptを表示します。"], ["-r", "バックスラッシュを特別扱いせず、そのまま読みます。"], ["-s", "入力文字を画面に表示しません。"], ["-t 秒", "入力待ちの制限時間を設定します。"], ["-n 文字数", "指定文字数を読んだ時点で終了します。"], ["-a 配列", "単語を配列要素へ保存します。"]],
+        examples: [["read -r name", "1行をname変数へ保存"], ["read -r -p '続けますか? ' answer", "質問を表示して回答を保存"]],
+        changes: "現在のshell変数を変更します。ファイルやシステム設定は変更しません。",
+        caution: "-sは画面表示を抑えるだけです。読み取った秘密値をechoしたり履歴へ残したりしません。",
+        output: "通常は入力待ちになり、成功時に値そのものは自動表示されません。"
+      }),
+      historicalCommand({
+        name: "source", category: "内部コマンド", summary: "ファイルを現在のshell環境で読み込んで実行する",
+        keywords: "shell builtin dot config bashrc execute", risk: "change", riskLabel: "現在のshellを直接変更可能",
+        syntax: "source ファイル [引数...]",
+        tokens: [["source", ". と同じ働きをするBashの内部コマンドです。"], ["ファイル", "現在のshellで実行するscriptや設定ファイルです。"], ["引数", "読み込むファイル内の$1、$2などへ渡します。"], [". ファイル", "POSIX shellでも使われるsourceの別表記です。"], ["PATH", "ファイル名に/がなければPATHなどから検索します。"]],
+        examples: [["source ~/.bashrc", "変更したBash設定を現在のshellへ反映"], [". ./env.sh", "env.shを現在のshellで実行"]],
+        changes: "読み込んだ内容により変数、関数、alias、現在地、設定、ファイルなどが変わり得ます。",
+        caution: "別プロセスではなく現在のshellで実行します。内容を確認できないファイルは読み込みません。",
+        output: "読み込んだファイルが出力した内容だけが表示されます。成功時に無表示の場合もあります。"
+      }),
+      historicalCommand({
+        name: "type", category: "内部コマンド", summary: "名前がalias・内部コマンド・関数・外部コマンドのどれか調べる",
+        keywords: "shell builtin command lookup path alias function", syntax: "type [オプション] 名前...",
+        tokens: [["名前", "種類を調べるコマンド名です。複数指定できます。"], ["-a", "同名で見つかるすべての候補を表示します。"], ["-t", "alias・keyword・function・builtin・fileの種類だけ表示します。"], ["-P", "PATHから外部実行ファイルだけを探します。"], ["-p", "外部ファイルならパスだけを表示します。"]],
+        examples: [["type cd", "cdがshell builtinであることを確認"], ["type -a pwd", "pwdの内部・外部候補をすべて表示"]],
+        changes: "名前の解決結果を調べるだけで変更しません。",
+        caution: "whichは外部ファイル中心です。aliasや内部コマンドまで含める確認にはtypeが適しています。",
+        output: "名前がalias、function、builtin、または実行ファイルのパスとして表示されます。",
+        related: ["command", "help"]
+      }),
+      historicalCommand({
+        name: "unalias", category: "内部コマンド", summary: "現在のshellからalias定義を削除する",
+        keywords: "shell builtin alias remove", risk: "change", riskLabel: "現在のshell内を変更",
+        syntax: "unalias [-a] 名前...",
+        tokens: [["名前", "削除するalias名です。複数指定できます。"], ["-a", "現在定義されているaliasをすべて削除します。"], ["unalias", "Bash内部コマンドで、外部ファイルを削除する操作ではありません。"]],
+        examples: [["unalias ll", "llのaliasを削除"], ["unalias -a", "現在のshellの全aliasを削除"]],
+        changes: "現在のshellが保持するalias定義を削除します。通常、設定ファイルの記述は変わりません。",
+        caution: "-aはすべてのaliasへ影響します。永続定義を消すには.bashrcなどを別途編集する必要があります。",
+        output: "成功時は通常何も表示しません。存在しない名前ではエラーになります。",
+        related: ["alias", "type"]
+      })
+    );
+
+    commands.push(
+      historicalCommand({
+        name: "activate", category: "仮想環境", summary: "Python仮想環境を現在のshellで有効化する",
+        keywords: ".venv venv virtual environment source Python", risk: "change", riskLabel: "現在のshell環境を変更",
+        syntax: "source .venv/bin/activate",
+        tokens: [["source", "activateを別プロセスではなく現在のshellで読み込みます。"], [".venv", "プロジェクト内に作る仮想環境ディレクトリの慣例的な名前です。"], ["bin/activate", "Linux・macOS用の有効化scriptです。"], ["VIRTUAL_ENV", "有効化された仮想環境の場所を示す環境変数です。"], ["PATH", ".venv/binが先頭側へ追加され、そのPythonとpipが優先されます。"]],
+        examples: [["source .venv/bin/activate", "Linux・macOSで.venvを有効化"], ["which python", "有効化後に使われるPythonの場所を確認"]],
+        changes: "現在のshellのPATHなどを一時的に変更します。.venvの中身やシステムPythonは変更しません。",
+        caution: "有効化は仮想環境の作成ではありません。先に python3 -m venv .venv を実行します。",
+        output: "通常は何も表示せず、promptの先頭へ(.venv)などが付くことがあります。",
+        related: ["source", "deactivate", "venv", "python3", "pip"]
+      }),
+      historicalCommand({
+        name: "build", category: "Python", summary: "Pythonパッケージのsdistとwheelを作成する",
+        keywords: "python -m build pyproject.toml wheel sdist dist package", risk: "change", riskLabel: "distへ成果物を作成",
+        syntax: "python3 -m build [オプション] [ソースディレクトリ]",
+        tokens: [["-m build", "buildパッケージをPython moduleとして実行します。"], ["--wheel", "wheelだけを作成します。"], ["--sdist", "source distributionだけを作成します。"], ["--outdir DIR", "成果物の出力先を指定します。既定はdist/です。"], ["--no-isolation", "一時的な隔離build環境を作らず現在の環境を使います。"], ["ソースディレクトリ", "pyproject.tomlがあるプロジェクトを指定します。省略時は現在地です。"]],
+        examples: [["python3 -m pip install build", "buildコマンドに必要なパッケージを導入"], ["python3 -m build", "dist/へsdistとwheelを作成"]],
+        changes: "build用の一時環境と、通常はdist/配下に.tar.gzおよび.whlを作成します。ソースは変更しません。",
+        caution: "これはPythonコードを実行ファイルへ変換する操作ではなく、配布・導入用パッケージを作る操作です。",
+        output: "build環境、依存関係、作成したwheelとsdistのファイル名が表示されます。",
+        related: ["python3", "pip", "venv"]
+      }),
+      historicalCommand({
+        name: "deactivate", category: "仮想環境", summary: "現在のPython仮想環境を無効化する",
+        keywords: ".venv venv virtual environment exit shell", risk: "change", riskLabel: "現在のshell環境を元へ戻す",
+        syntax: "deactivate",
+        tokens: [["deactivate", "activate時に定義されるshell関数です。外部コマンドではありません。"], ["PATH", "仮想環境を有効にする前の内容へ戻します。"], ["VIRTUAL_ENV", "仮想環境を示す環境変数が解除されます。"], ["prompt", "表示されていた(.venv)などが外れます。"]],
+        examples: [["deactivate", "現在の仮想環境を無効化"], ["which python3", "無効化後に使われるPythonを確認"]],
+        changes: "現在のshellの環境変数を元へ戻します。.venvディレクトリや導入済みパッケージは削除しません。",
+        caution: "仮想環境が有効でないshellでは、deactivateは見つかりません。",
+        output: "通常は何も表示せず、promptの(.venv)表示が消えます。",
+        related: ["activate", "venv"]
+      }),
+      historicalCommand({
+        name: "env", category: "内部コマンド", summary: "環境変数を表示、または一時設定してコマンドを実行する",
+        keywords: "environment variable .env PATH command", risk: "change", riskLabel: "子プロセスの環境を一時変更",
+        syntax: "env [オプション] [名前=値 ...] [コマンド [引数...]]",
+        tokens: [["env", "引数なしで現在の環境変数を一覧表示します。"], ["名前=値", "後ろのコマンドにだけ渡す環境変数を設定します。"], ["-i", "現在の環境変数を引き継がず、空の環境から始めます。"], ["-u 名前", "指定変数を取り除いてコマンドを実行します。"], ["-C DIR", "指定ディレクトリへ移動してからコマンドを実行します。"], ["コマンド", "指定した一時環境で実行する外部・内部処理です。"]],
+        examples: [["env | sort", "環境変数を並べ替えて表示"], ["env DEBUG=1 python3 app.py", "この実行だけDEBUG=1を渡す"]],
+        changes: "引数なしは確認のみです。名前=値は後ろのコマンドとその子プロセスにだけ影響し、現在のshellへ通常は残りません。",
+        caution: ".envは環境変数を書いた慣例的なファイル名で、envコマンドとは別物です。shellは.envを自動読込しません。",
+        output: "引数なしではNAME=value形式の一覧、コマンド指定時はそのコマンドの出力が表示されます。",
+        related: ["export", "source"]
+      }),
+      historicalCommand({
+        name: "pip", category: "Python", summary: "Pythonパッケージを導入・確認・削除する",
+        keywords: "pip3 package install uninstall requirements freeze PyPI", risk: "change", riskLabel: "Python環境へパッケージを変更",
+        syntax: "python3 -m pip サブコマンド [オプション] [対象]",
+        tokens: [["install パッケージ", "指定パッケージと依存関係を導入します。"], ["install -r requirements.txt", "一覧ファイルに記載されたパッケージを導入します。"], ["uninstall パッケージ", "指定パッケージを削除します。"], ["list", "現在の環境に導入済みの一覧を表示します。"], ["show パッケージ", "版、場所、依存関係などを表示します。"], ["freeze", "導入済みパッケージをrequirements形式で表示します。"], ["check", "導入済み依存関係の不整合を検査します。"], ["--upgrade", "既存パッケージをより新しい版へ更新します。"], ["--no-deps", "依存パッケージを自動導入しません。"], ["--dry-run", "対応版では導入せず予定内容だけ確認します。"]],
+        examples: [["python3 -m pip list", "現在のPython環境のパッケージ一覧"], ["python3 -m pip install -r requirements.txt", "requirementsから導入"]],
+        changes: "list・show・freeze・checkは確認です。install・uninstallは現在選ばれているPython環境を変更します。",
+        caution: "どのPythonへ導入するか明確にするため、pip単独より python3 -m pip を推奨します。.venv有効化も確認します。",
+        output: "取得元、版、依存関係、導入・削除したパッケージ、警告などが表示されます。",
+        related: ["python3", "venv", "activate", "build"]
+      }),
+      historicalCommand({
+        name: "python3", category: "Python", summary: "Python 3のコード・script・moduleを実行する",
+        keywords: "python interpreter script module version REPL", risk: "change", riskLabel: "実行するコードの内容による",
+        syntax: "python3 [オプション] [script.py | -m module] [引数...]",
+        tokens: [["script.py", "指定したPythonファイルを実行します。"], ["-m module", "moduleをPythonの検索規則に従って実行します。"], ["-c 'code'", "引数に書いた短いPythonコードを実行します。"], ["-V / --version", "Pythonのバージョンを表示します。"], ["-i", "script実行後も対話モードを続けます。"], ["-B", "__pycache__や.pycを作成しません。"], ["-u", "標準入出力をbufferせず扱います。"], ["-X dev", "追加の警告や検査を有効にする開発モードです。"], ["引数", "script内ではsys.argvから受け取れます。"]],
+        examples: [["python3 --version", "使用されるPython 3の版を確認"], ["python3 app.py", "app.pyを実行"], ["python3 -m pip list", "同じPythonに対応するpipを実行"]],
+        changes: "バージョン表示は確認のみです。scriptやmoduleがファイル・通信・設定を変更するかは、そのコード次第です。",
+        caution: "Ubuntuではpythonコマンドが存在しない場合があります。まずpython3を使用し、which python3で実体を確認します。",
+        output: "対話モードのprompt、scriptの出力、エラー時はTracebackなどが表示されます。",
+        related: ["venv", "pip", "build"]
+      }),
+      historicalCommand({
+        name: "venv", category: "仮想環境", summary: "プロジェクト専用のPython仮想環境を作成する",
+        keywords: "python -m venv .venv virtual environment isolate", risk: "change", riskLabel: "仮想環境ディレクトリを作成",
+        syntax: "python3 -m venv [オプション] .venv",
+        tokens: [["-m venv", "Python標準のvenv moduleを実行します。"], [".venv", "作成先です。先頭の.により通常は隠しディレクトリになります。"], ["--clear", "既存の作成先を消してから作り直します。"], ["--upgrade", "既存環境を現在のPython版に合わせて更新します。"], ["--without-pip", "pipを用意せずに環境を作ります。"], ["--system-site-packages", "システム側のパッケージも見えるようにします。"], ["--prompt 名前", "有効化時に表示する環境名を指定します。"]],
+        examples: [["python3 -m venv .venv", "現在のプロジェクトへ.venvを作成"], ["source .venv/bin/activate", "作成した環境を現在のshellで有効化"]],
+        changes: ".venv配下に専用のPython実行環境、設定、pipなどを作成します。システムPython自体は変更しません。",
+        caution: ".venvは通常Gitへコミットせず.gitignoreへ登録します。削除すると、その環境だけが失われます。",
+        output: "成功時は通常何も表示しません。.venv/bin/pythonなどのファイルが作成されます。",
+        related: ["activate", "deactivate", "python3", "pip"]
+      })
+    );
+
+    commands.push(
+      historicalCommand({
+        name: "cmake", category: "ビルド", summary: "C/C++などのビルド設定を生成・実行する",
+        keywords: "C C++ configure build CMakeLists Ninja Make", risk: "change", riskLabel: "ビルド用ファイル・成果物を作成",
+        syntax: "cmake [オプション] ソース | cmake --build ビルド先",
+        tokens: [["-S DIR", "CMakeLists.txtがあるソースディレクトリを指定します。"], ["-B DIR", "生成ファイルを置くビルドディレクトリを指定します。"], ["-G 生成器", "NinjaやUnix Makefilesなどを指定します。"], ["-D名前=値", "CMake変数やオプションを設定します。"], ["--build DIR", "生成済みビルドシステムを使って実際にビルドします。"], ["--target 名前", "build・testなど特定targetだけを実行します。"], ["-j 数", "並列ビルド数を指定します。"], ["--install DIR", "設定済みのinstall処理を実行します。"]],
+        examples: [["cmake -S . -B build", "ソースと分離してbuild/へ設定を生成"], ["cmake --build build -j 4", "build/を4並列でビルド"]],
+        changes: "-Bで指定した場所へ設定・キャッシュ・ビルド用ファイルを生成し、--buildで成果物を作ります。",
+        caution: "ソース内ビルドを避け、通常は-B buildで生成物を分離します。install先は権限と対象を確認します。",
+        output: "compiler検出、機能検査、生成先、ビルド進捗、エラーなどが表示されます。",
+        related: ["make", "ninja", "gcc", "g++", "pkg-config"]
+      }),
+      historicalCommand({
+        name: "g++", category: "ビルド", summary: "C++ソースをコンパイル・リンクするGNU compiler",
+        keywords: "C++ compiler compile link object executable", risk: "change", riskLabel: "object・実行ファイルを作成",
+        syntax: "g++ [オプション] ソース.cpp... [-o 出力]",
+        tokens: [["-o ファイル", "生成する実行ファイルやobjectの名前を指定します。"], ["-c", "linkせずobjectファイルまで作ります。"], ["-std=c++17", "使用するC++標準を指定します。"], ["-Wall", "代表的な警告を有効にします。"], ["-Wextra", "追加の有用な警告を有効にします。"], ["-g", "debugger用情報を含めます。"], ["-O0〜-O3", "最適化levelを指定します。"], ["-I DIR", "header検索ディレクトリを追加します。"], ["-L DIR", "library検索ディレクトリを追加します。"], ["-l名前", "指定libraryをlinkします。"]],
+        examples: [["g++ -Wall -Wextra -std=c++17 main.cpp -o app", "main.cppからappを作成"], ["g++ -c source.cpp -o source.o", "objectファイルだけ作成"]],
+        changes: "指定先へobjectファイルまたは実行ファイルを作成・上書きします。ソースは変更しません。",
+        caution: "警告を消すためだけに無効化せず、内容を確認します。出力先に既存ファイルがあると上書きされます。",
+        output: "成功時は通常無表示です。警告・エラー時はファイル名、行、列、内容が表示されます。",
+        related: ["gcc", "make", "cmake"]
+      }),
+      historicalCommand({
+        name: "gcc", category: "ビルド", summary: "Cソースをコンパイル・リンクするGNU compiler",
+        keywords: "C compiler compile link object executable", risk: "change", riskLabel: "object・実行ファイルを作成",
+        syntax: "gcc [オプション] ソース.c... [-o 出力]",
+        tokens: [["-o ファイル", "生成する実行ファイルやobjectの名前を指定します。"], ["-c", "linkせずobjectファイルまで作ります。"], ["-std=c11", "使用するC言語標準を指定します。"], ["-Wall", "代表的な警告を有効にします。"], ["-Wextra", "追加の有用な警告を有効にします。"], ["-Werror", "警告をエラーとして扱います。"], ["-g", "debugger用情報を含めます。"], ["-O0〜-O3", "最適化levelを指定します。"], ["-I DIR", "header検索ディレクトリを追加します。"], ["-l名前", "指定libraryをlinkします。"]],
+        examples: [["gcc -Wall -Wextra main.c -o app", "main.cからappを作成"], ["gcc -c source.c -o source.o", "objectファイルだけ作成"]],
+        changes: "指定先へobjectファイルまたは実行ファイルを作成・上書きします。ソースは変更しません。",
+        caution: "生成した実行ファイルは./appのように明示して実行します。コンパイル成功とプログラムの正しさは別です。",
+        output: "成功時は通常無表示です。警告・エラー時はファイル名、行、列、内容が表示されます。",
+        related: ["g++", "make", "cmake"]
+      }),
+      historicalCommand({
+        name: "make", category: "ビルド", summary: "Makefileの依存関係に従って必要な処理だけ実行する",
+        keywords: "Makefile target dependency compile build clean", risk: "change", riskLabel: "targetの処理内容による",
+        syntax: "make [オプション] [target...]",
+        tokens: [["target", "Makefileで定義されたbuild・cleanなどの処理名です。"], ["-f ファイル", "Makefile以外の定義ファイルを指定します。"], ["-j 数", "同時に実行するjob数を指定します。"], ["-n", "実際には実行せず、実行予定コマンドを表示します。"], ["-B", "更新日時に関係なく全targetを作り直します。"], ["-C DIR", "指定ディレクトリへ移動してmakeを実行します。"], ["名前=値", "Makefile変数をコマンド行から上書きします。"], ["clean", "慣例的に生成物を削除するtargetです。内容はMakefile次第です。"]],
+        examples: [["make", "既定targetを必要な範囲だけbuild"], ["make -n", "実行予定だけ確認"], ["make -j 4", "最大4jobで並列build"]],
+        changes: "実際の変更内容はMakefileのtarget定義によります。通常はobject・実行ファイルを作り、cleanは削除します。",
+        caution: "cleanやinstallは名前だけで安全性を判断せず、make -nやMakefileで処理内容を確認します。",
+        output: "実行されるcompiler command、進捗、警告、エラーが表示されます。",
+        related: ["cmake", "gcc", "g++"]
+      }),
+      historicalCommand({
+        name: "ninja", category: "ビルド", summary: "生成済みbuild定義を高速に並列実行する",
+        keywords: "build.ninja CMake parallel compile target", risk: "change", riskLabel: "targetの処理内容による",
+        syntax: "ninja [オプション] [target...]",
+        tokens: [["target", "build.ninjaで定義された処理名です。省略時は既定targetです。"], ["-C DIR", "指定ディレクトリのbuild.ninjaを使います。"], ["-j 数", "同時job数を指定します。"], ["-n", "実行せず予定だけ表示します。"], ["-v", "実行するcommandを省略せず表示します。"], ["-t targets", "利用可能なtargetを一覧表示します。"], ["-t clean", "生成物を削除します。"], ["-d explain", "なぜ再buildが必要と判断したか表示します。"]],
+        examples: [["ninja -C build", "build/の既定targetを実行"], ["ninja -C build -n", "実行予定だけ確認"]],
+        changes: "build.ninjaの定義に従って成果物を作成・更新します。clean toolは生成物を削除します。",
+        caution: "通常build.ninjaはCMakeなどが生成します。手動編集すると再生成時に上書きされます。",
+        output: "完了target数、実行内容、compilerの警告・エラーなどが表示されます。",
+        related: ["cmake", "make", "gcc", "g++"]
+      }),
+      historicalCommand({
+        name: "pkg-config", category: "ビルド", summary: "libraryのcompiler・linker用オプションを取得する",
+        keywords: "library cflags libs version pc file compile link", syntax: "pkg-config [オプション] パッケージ...",
+        tokens: [["--cflags", "header検索などcompile用オプションを表示します。"], ["--libs", "library検索とlink用オプションを表示します。"], ["--modversion", "指定パッケージのversionを表示します。"], ["--exists", "利用可能なら成功終了し、通常は何も表示しません。"], ["--list-all", "認識しているパッケージを一覧表示します。"], ["--variable=名前", ".pcファイルに定義された変数値を表示します。"], ["--atleast-version=版", "指定版以上か終了ステータスで判定します。"], ["PKG_CONFIG_PATH", "追加の.pc検索ディレクトリを指定する環境変数です。"]],
+        examples: [["pkg-config --modversion openssl", "OpenSSLのversionを確認"], ["pkg-config --cflags --libs libcurl", "libcurl用compile・link指定を取得"]],
+        changes: "メタデータを読み取り、必要な文字列や終了ステータスを返すだけで変更しません。",
+        caution: "library本体を導入するコマンドではありません。見つからない場合は開発用パッケージや検索パスを確認します。",
+        output: "-I・-L・-lなどのflag、version、変数値、パッケージ一覧が表示されます。",
+        related: ["gcc", "g++", "cmake"]
+      }),
+      historicalCommand({
+        name: "sshd", category: "ネットワーク", summary: "OpenSSHサーバー設定を検査・表示する",
+        keywords: "SSH server daemon config test effective settings", risk: "change", riskLabel: "掲載操作は設定検査のみ",
+        syntax: "sudo sshd [オプション]",
+        tokens: [["-t", "設定ファイルとhost keyを検査し、問題がなければ無表示で終了します。"], ["-T", "最終的に有効な設定値をすべて表示します。"], ["-f ファイル", "通常とは別の設定ファイルを検査します。"], ["-C 条件", "user・host・addrなど接続条件を指定し、Match適用後を表示します。"], ["-d", "debug modeでforeground起動します。通常運用では使いません。"], ["-D", "daemon化せずforegroundで動作します。"], ["-p ポート", "待受ポートを指定して起動します。"], ["-V", "OpenSSHのversionを表示します。"]],
+        examples: [["sudo sshd -t", "SSHサーバー設定を構文検査"], ["sudo sshd -T | grep '^port'", "有効なport設定を確認"]],
+        changes: "-t・-T・-Vは確認のみです。sshdを直接起動する指定はserver processを開始します。",
+        caution: "設定変更後はsshd -t成功を確認してからreloadします。SSH接続中の誤設定は締め出しにつながります。",
+        output: "-t成功時は通常無表示です。異常時はファイル・行・理由、-Tでは有効設定が表示されます。",
+        related: ["ssh", "systemctl", "journalctl", "ss"]
+      })
+    );
+
+    commands.push(
+      historicalCommand({
+        name: "install", category: "ファイル", summary: "ファイルやディレクトリを作成・配置し、同時に権限を設定する",
+        keywords: "coreutils copy directory permission mode owner deploy", risk: "change", riskLabel: "ファイルを配置・上書き",
+        syntax: "install [オプション] コピー元 コピー先",
+        tokens: [["コピー元", "配置する元ファイルです。"], ["コピー先", "配置先のファイル名またはディレクトリです。"], ["-d", "ファイルをコピーせず、指定ディレクトリを作成します。"], ["-m 権限", "作成時の権限を755や640などで指定します。既定は755です。"], ["-o ユーザー", "配置後の所有ユーザーを指定します。通常はroot権限が必要です。"], ["-g グループ", "配置後の所有グループを指定します。"], ["-D", "コピー先までの親ディレクトリも必要に応じて作ります。"], ["-p", "元ファイルのアクセス・更新時刻を可能な範囲で保持します。"], ["-v", "作成・配置した対象を表示します。"], ["-b", "上書き前の既存ファイルをバックアップします。"], ["-T", "コピー先を常に1つのファイルとして扱います。"]],
+        examples: [["install -d -m 700 ~/.ssh", ".sshディレクトリを権限700で作成"], ["sudo install -m 755 app /usr/local/bin/app", "appを権限755で配置"], ["sudo install -o root -g root -m 640 config /etc/app.conf", "所有者と権限を指定して設定を配置"]],
+        changes: "コピー先へファイルまたはディレクトリを作成し、同名ファイルは通常上書きします。所有者・グループ・権限も指定できます。",
+        caution: "apt install、pip install、make installとは別のコマンドです。システム領域へ配置する前にコピー先と既存ファイルを確認します。",
+        output: "成功時は通常何も表示しません。-vを付けると作成・配置した対象が表示されます。",
+        related: ["cp", "mkdir", "chmod"]
+      })
+    );
+
+    function gitCommand({ name, summary, syntax, tokens, examples, changes, caution, output, related = [], risk = "change", riskLabel = "Gitの状態を変更" }) {
+      return historicalCommand({
+        name, category: "Git", summary,
+        keywords: `${name} repository worktree staging commit branch remote history`,
+        risk, riskLabel, syntax, tokens, examples, changes, caution, output, related
+      });
+    }
+
+    commands.push(
+      gitCommand({
+        name: "git add", summary: "変更を次のcommit候補であるstaging areaへ追加する", syntax: "git add [オプション] 対象...",
+        tokens: [["対象", "追加するファイルやディレクトリです。"], ["-p", "変更を小さな単位で確認し、選んで追加します。"], ["-u", "追跡済みファイルの変更・削除を追加します。新規ファイルは含みません。"], ["-A", "新規・変更・削除を含むすべての変更を追加します。"], ["-n", "実際には追加せず対象予定を表示します。"], ["--", "以降をオプションではなくパスとして扱います。"]],
+        examples: [["git add README.md", "README.mdだけをstagingへ追加"], ["git add -p", "変更部分を選びながら追加"]],
+        changes: "作業ファイルは変えず、Git index（staging area）へ次のcommitに含める内容を記録します。",
+        caution: "中央repositoryへはまだ送られません。git diff --cachedで内容を確認してからcommitします。",
+        output: "成功時は通常何も表示しません。git statusでstagingされた対象を確認できます。",
+        related: ["git status", "git diff", "git commit"]
+      }),
+      gitCommand({
+        name: "git branch", summary: "branchの一覧表示・作成・名前変更・削除を行う", syntax: "git branch [オプション] [branch名]",
+        tokens: [["引数なし", "local branch一覧を表示します。*は現在のbranchです。"], ["branch名", "現在のcommitから新しいbranchを作成します。切替はしません。"], ["-a", "localとremote追跡branchをすべて表示します。"], ["-vv", "upstreamと先行・遅れ情報を詳しく表示します。"], ["-m 新名前", "現在のbranch名を変更します。"], ["-d 名前", "merge済みのbranchを安全確認付きで削除します。"], ["-D 名前", "未mergeでも強制削除します。要注意です。"]],
+        examples: [["git branch -vv", "branchとupstream状態を確認"], ["git branch feature/docs", "新しいbranchを作成"]],
+        changes: "一覧表示は確認のみです。作成・名前変更・削除はlocalのbranch参照を変更します。作業内容は自動で切り替わりません。",
+        caution: "-Dは未mergeの履歴を見失う可能性があります。通常は-dを使い、削除前にlogを確認します。",
+        output: "branch名、現在位置、upstream、先行・遅れ、最新commitなどが表示されます。",
+        related: ["git switch", "git merge", "git log"]
+      }),
+      gitCommand({
+        name: "git clone", summary: "既存repositoryを新しい作業フォルダーとして複製する", syntax: "git clone [オプション] repository [保存先]",
+        tokens: [["repository", "HTTPS・SSH URLまたはlocal pathの複製元です。"], ["保存先", "作成するフォルダー名です。省略時はrepository名から決まります。"], ["-b 名前", "最初にcheckoutするbranchやtagを指定します。"], ["--depth 数", "取得する履歴の深さを制限します。"], ["--single-branch", "1つのbranchだけを取得します。"], ["--bare", "作業ファイルを持たないbare repositoryとして複製します。"], ["--recurse-submodules", "submoduleも初期化・取得します。"]],
+        examples: [["git clone git@example.com:repo.git", "SSH経由でrepositoryを複製"], ["git clone --depth 1 URL project", "最新履歴だけをprojectへ複製"]],
+        changes: "保存先ディレクトリを新規作成し、履歴・設定・通常は作業ファイルを配置します。複製元は変更しません。",
+        caution: "既存の同名フォルダー、接続先、保存場所を確認します。秘密鍵や認証情報はrepositoryへ含めません。",
+        output: "取得したobject数、転送量、展開進捗、checkout結果などが表示されます。",
+        related: ["git remote", "git pull", "git status"]
+      }),
+      gitCommand({
+        name: "git commit", summary: "stagingされた内容をlocal履歴へ1つのcommitとして記録する", syntax: "git commit [オプション]",
+        tokens: [["-m 文章", "editorを開かずcommit messageを指定します。"], ["-v", "editor内にcommit予定の差分も表示します。"], ["--amend", "直前のcommitを現在のstaging内容で作り直します。"], ["--no-edit", "amend時などに既存messageをそのまま使います。"], ["-a", "追跡済みファイルの変更・削除を自動stagingしてcommitします。新規は含みません。"], ["--dry-run", "commitせず対象予定を表示します。"]],
+        examples: [["git commit -m 'Add command reference'", "staging内容をmessage付きで記録"], ["git commit -v", "差分を見ながらmessageを編集"]],
+        changes: "現在のbranchに新しいlocal commitを作成します。中央repositoryはまだ変わりません。",
+        caution: "commit前にgit diff --cachedで対象を確認します。--amendは既に共有済みのcommitには慎重に使います。",
+        output: "branch名、commit ID、message、変更ファイル数、追加・削除行数が表示されます。",
+        related: ["git add", "git diff", "git status", "git push"]
+      }),
+      gitCommand({
+        name: "git config", summary: "Gitの名前・メール・動作設定を表示・変更する", syntax: "git config [範囲] [オプション] 名前 [値]",
+        tokens: [["--local", "現在のrepositoryだけに設定します。通常の既定です。"], ["--global", "現在のユーザー全体の設定へ保存します。"], ["--system", "端末全体の設定を対象にします。通常は管理権限が必要です。"], ["--list", "有効な設定を一覧表示します。"], ["--show-origin", "各設定がどのファイル由来か表示します。"], ["--get 名前", "指定項目の値を表示します。"], ["--unset 名前", "指定項目を削除します。"]],
+        examples: [["git config --global user.name 'Name'", "全repository共通の名前を設定"], ["git config --show-origin --list", "値と設定元を確認"]],
+        changes: "表示操作は確認のみです。値指定や--unsetはlocal・global・systemいずれかの設定ファイルを変更します。",
+        caution: "--globalと--localを区別します。user.emailは公開履歴へ記録され得るため、使用する値を確認します。",
+        output: "指定値、設定一覧、または成功時は何も表示されません。",
+        related: ["git init", "git commit"]
+      }),
+      gitCommand({
+        name: "git diff", summary: "作業内容・staging・commit間の差分を表示する", syntax: "git diff [オプション] [比較対象] [-- パス]",
+        risk: "safe", riskLabel: "確認のみ・変更なし",
+        tokens: [["引数なし", "作業ツリーとstaging areaの差分を表示します。"], ["--cached", "staging areaと直前commitの差分を表示します。"], ["HEAD", "作業ツリーと現在のcommitとの差分を表示します。"], ["--stat", "内容ではなくファイル別の変更量を表示します。"], ["--name-only", "変更ファイル名だけを表示します。"], ["--word-diff", "単語単位で差分を表示します。"], ["-- パス", "指定ファイル・ディレクトリだけに絞ります。"]],
+        examples: [["git diff", "まだstagingしていない変更を確認"], ["git diff --cached", "次のcommitに入る内容を確認"]],
+        changes: "履歴・staging・作業ファイルを読み取るだけで変更しません。",
+        caution: "git diffだけではstaging済み変更が出ません。commit前はgit diff --cachedも確認します。",
+        output: "削除行は-、追加行は+、変更位置は@@を付けたpatch形式で表示されます。",
+        related: ["git status", "git add", "git commit"]
+      }),
+      gitCommand({
+        name: "git fetch", summary: "remoteの新しい履歴を取得するが作業branchへは統合しない", syntax: "git fetch [オプション] [remote] [refspec]",
+        tokens: [["remote", "取得元です。省略時は設定された既定先です。"], ["--all", "登録済みの全remoteから取得します。"], ["--prune", "remoteで削除済みの追跡参照を整理します。"], ["--tags", "すべてのtagを明示的に取得します。"], ["--dry-run", "参照を更新せず予定だけ確認します。"], ["-v", "取得処理を詳しく表示します。"]],
+        examples: [["git fetch origin", "originの新しい履歴を取得"], ["git fetch --all --prune", "全remoteを取得し不要参照を整理"]],
+        changes: "remote追跡branchやobject databaseを更新します。現在のbranchと作業ファイルは変更しません。",
+        caution: "取得しただけでは作業内容は最新になりません。logやdiffで比較後、merge・rebase・pullを判断します。",
+        output: "取得・更新・削除されたremote参照やtagが表示されます。",
+        related: ["git remote", "git pull", "git log"]
+      }),
+      gitCommand({
+        name: "git init", summary: "ディレクトリを新しいGit repositoryとして初期化する", syntax: "git init [オプション] [ディレクトリ]",
+        tokens: [["ディレクトリ", "repositoryにする場所です。省略時は現在地です。"], ["--initial-branch 名前", "最初のbranch名を指定します。"], ["--bare", "作業ツリーを持たない中央repository向け形式で作ります。"], ["--shared", "複数ユーザーで共有しやすい権限設定にします。"], ["--separate-git-dir パス", ".gitの実体を別の場所へ置きます。"]],
+        examples: [["git init --initial-branch=main", "現在地をmainで初期化"], ["git init --bare project.git", "bare repositoryを作成"]],
+        changes: "通常は対象に.gitディレクトリを作ります。--bareでは履歴管理用ファイルを対象ディレクトリへ直接作ります。",
+        caution: "pwdで対象場所を確認します。bare repositoryは直接編集する作業フォルダーではありません。",
+        output: "初期化または再初期化したrepositoryの.gitパスが表示されます。",
+        related: ["git config", "git add", "git remote"]
+      }),
+      gitCommand({
+        name: "git log", summary: "commit履歴を表示・検索する", syntax: "git log [オプション] [範囲] [-- パス]",
+        risk: "safe", riskLabel: "確認のみ・変更なし",
+        tokens: [["--oneline", "1commitを短いIDとmessageの1行で表示します。"], ["--graph", "branch・merge構造を文字の線で表示します。"], ["--all", "全branch・参照の履歴を対象にします。"], ["-n 数", "表示するcommit数を制限します。"], ["--author 文字", "authorで絞ります。"], ["--since 日時", "指定日時以降に絞ります。"], ["--stat", "各commitのファイル別変更量も表示します。"], ["-p", "各commitの差分も表示します。"]],
+        examples: [["git log --oneline --graph --all", "履歴とbranch構造を短く表示"], ["git log -n 5 --stat", "最近5件と変更量を表示"]],
+        changes: "commit・branch・tag情報を読み取るだけで変更しません。",
+        caution: "短いcommit IDはrepository内で一意な長さまで必要です。履歴の到達範囲は指定branchにより異なります。",
+        output: "commit ID、author、日時、message、指定に応じてgraph・統計・差分が表示されます。",
+        related: ["git status", "git branch", "git diff"]
+      }),
+      gitCommand({
+        name: "git merge", summary: "別branchの履歴を現在のbranchへ統合する", syntax: "git merge [オプション] branch",
+        tokens: [["branch", "現在のbranchへ取り込むbranchやcommitです。"], ["--ff-only", "fast-forwardだけを許可し、分岐があれば停止します。"], ["--no-ff", "fast-forward可能でもmerge commitを作ります。"], ["--no-commit", "merge commit作成前に停止して確認します。"], ["--abort", "競合中のmergeを開始前の状態へ戻します。"], ["--continue", "競合解消・staging後にmergeを続行します。"]],
+        examples: [["git merge --ff-only origin/main", "分岐がない場合だけorigin/mainを統合"], ["git merge --abort", "競合したmergeを中止"]],
+        changes: "現在のbranch参照と作業ツリーを更新し、場合によりmerge commitを作ります。",
+        caution: "実行前にgit statusで未commit変更を確認します。競合は内容を理解して解消し、無理なら--abortします。",
+        output: "fast-forward、変更ファイル、merge結果、競合ファイルなどが表示されます。",
+        related: ["git branch", "git switch", "git status", "git pull"]
+      }),
+      gitCommand({
+        name: "git pull", summary: "remote履歴を取得し、現在のbranchへ統合する", syntax: "git pull [オプション] [remote] [branch]",
+        tokens: [["--ff-only", "fast-forwardできる場合だけ更新し、分岐していれば停止します。"], ["--rebase", "merge commitを作らず、local commitをremote履歴の上へ載せ直します。"], ["--no-rebase", "取得後にmerge方式で統合します。"], ["--no-commit", "merge commit作成前に停止します。"], ["remote", "取得元です。例：origin。"], ["branch", "取得・統合するremote branchです。例：main。"]],
+        examples: [["git pull --ff-only", "設定済みupstreamから安全に早送り更新"], ["git pull --ff-only origin main", "origin/mainを明示して更新"]],
+        changes: "fetchでremote追跡履歴を取得し、成功すれば現在のbranchと作業ファイルを更新します。",
+        caution: "未commit変更を確認してから使います。MacとUbuntuの別worktreeでは、push後に受信側でpullが必要です。",
+        output: "取得object、更新範囲、fast-forward結果、変更ファイル、分岐・競合エラーなどが表示されます。",
+        related: ["git fetch", "git status", "git push"]
+      }),
+      gitCommand({
+        name: "git push", summary: "localのcommitと参照をremote repositoryへ送る", syntax: "git push [オプション] [remote] [branch]",
+        tokens: [["remote", "送信先です。例：origin。"], ["branch", "送信するlocal branchです。例：main。"], ["-u", "送信と同時にupstream関係を設定します。"], ["--dry-run", "実際には送らず、送信予定を確認します。"], ["--tags", "すべてのtagを送信します。"], ["--delete remoteBranch", "remote branchを削除します。"], ["--force-with-lease", "remoteが想定状態のときだけ履歴を書き換えます。通常pushでは使いません。"]],
+        examples: [["git push origin main", "local mainをoriginへ送信"], ["git push --dry-run origin main", "送信予定を確認"]],
+        changes: "送信先remote repositoryのbranchやobjectを更新します。別の作業ツリーは自動更新しません。",
+        caution: "git push --forceは他者の履歴を失わせ得るため使いません。送信前にstatus・logと送信先branchを確認します。",
+        output: "圧縮・転送進捗、更新前後の範囲、送信先URL、拒否理由などが表示されます。",
+        related: ["git commit", "git pull", "git remote", "git status"]
+      }),
+      gitCommand({
+        name: "git remote", summary: "remote repositoryの名前とURLを表示・管理する", syntax: "git remote [オプション] [サブコマンド]",
+        tokens: [["-v", "fetch用・push用URLも含めて一覧表示します。"], ["add 名前 URL", "新しいremoteを登録します。"], ["get-url 名前", "指定remoteのURLを表示します。"], ["set-url 名前 URL", "remote URLを変更します。"], ["rename 旧 新", "remote名を変更します。"], ["remove 名前", "remote登録を削除します。repository本体は削除しません。"], ["show 名前", "branch・追跡関係などを詳しく表示します。"]],
+        examples: [["git remote -v", "登録先とfetch・push URLを確認"], ["git remote add origin URL", "originを登録"]],
+        changes: "一覧・showは確認です。add・set-url・rename・removeは.git/configのremote設定を変更します。",
+        caution: "Git remoteはCodex RemoteやSambaとは別です。URL変更前に現在値と接続先を確認します。",
+        output: "remote名、URL、追跡branch、HEAD branchなどが表示されます。",
+        related: ["git clone", "git fetch", "git pull", "git push"]
+      }),
+      gitCommand({
+        name: "git restore", summary: "作業ファイルまたはstaging内容を指定状態へ戻す", syntax: "git restore [オプション] パス...",
+        risk: "danger", riskLabel: "未保存の変更を失う可能性",
+        tokens: [["パス", "戻すファイルやディレクトリです。"], ["--staged", "stagingから外します。作業ファイルの変更は残します。"], ["--worktree", "作業ファイルを戻します。通常の既定です。"], ["--source commit", "戻し元のcommitやbranchを指定します。"], ["-p", "変更部分を選びながら戻します。"], ["--", "以降をpathとして扱います。"]],
+        examples: [["git restore --staged file.txt", "file.txtをstagingから外す"], ["git restore -p file.txt", "不要な変更部分だけ選んで戻す"]],
+        changes: "--stagedはindexを、通常実行は作業ファイルを指定状態へ置き換えます。commit済み履歴は変更しません。",
+        caution: "通常のgit restoreは未commitの作業変更を失わせます。先にgit diffで対象を確認します。",
+        output: "成功時は通常何も表示しません。git statusとgit diffで結果を確認します。",
+        related: ["git status", "git diff", "git add"]
+      }),
+      gitCommand({
+        name: "git stash", summary: "未commit変更を一時退避し、後で戻す", syntax: "git stash [サブコマンド] [オプション]",
+        tokens: [["push", "現在の変更を新しいstashへ退避します。"], ["-m 文章", "stashに説明を付けます。"], ["-u", "未追跡ファイルも含めて退避します。"], ["list", "stash一覧を表示します。"], ["show -p", "stashの差分を表示します。"], ["apply", "stashを戻しますが一覧には残します。"], ["pop", "stashを戻し、成功すれば一覧から削除します。"], ["drop", "指定stashを削除します。"]],
+        examples: [["git stash push -u -m 'before pull'", "未追跡も含めて説明付き退避"], ["git stash list", "退避一覧を確認"]],
+        changes: "pushは変更をstashへ保存して作業ツリーから外します。apply・popは作業ツリーへ戻し、dropはstashを削除します。",
+        caution: "stashはbackupや中央共有ではありません。popで競合する可能性があり、dropした内容は戻しにくくなります。",
+        output: "保存したstash名、一覧、差分、復元結果、競合などが表示されます。",
+        related: ["git status", "git diff", "git pull"]
+      }),
+      gitCommand({
+        name: "git status", summary: "作業ツリー・staging・branchの現在状態を表示する", syntax: "git status [オプション]",
+        risk: "safe", riskLabel: "確認のみ・変更なし",
+        tokens: [["-s", "1ファイル1行の短い形式で表示します。"], ["-b", "短い形式にbranch・upstream情報も追加します。"], ["--porcelain", "scriptで解析しやすい安定した形式で表示します。"], ["--ignored", "無視されているファイルも表示します。"], ["--untracked-files=no", "未追跡ファイルの列挙を省略します。"], ["--show-stash", "stash数も表示します。"]],
+        examples: [["git status", "現在の状態を詳しく確認"], ["git status -sb", "branchを含め短く表示"]],
+        changes: "作業ファイル、index、branch、upstream状態を読み取るだけで変更しません。",
+        caution: "clean表示は追跡対象に未記録変更がないという意味です。無視ファイルやremote側の新履歴までは別途確認します。",
+        output: "branch、upstreamとの先行・遅れ、staging済み、未staging、未追跡ファイルが区別して表示されます。",
+        related: ["git diff", "git add", "git commit"]
+      }),
+      gitCommand({
+        name: "git switch", summary: "branchを切り替える、または新しく作って切り替える", syntax: "git switch [オプション] branch",
+        tokens: [["branch", "切り替え先のlocal branchです。"], ["-c 新branch", "現在位置から新しいbranchを作って切り替えます。"], ["-C 新branch", "同名があれば強制的に作り直して切り替えます。要注意です。"], ["--detach commit", "branchに属さず指定commitを直接表示します。"], ["-", "直前にいたbranchへ戻ります。"], ["--track remote/branch", "remote追跡branchに対応するlocal branchを作成します。"]],
+        examples: [["git switch main", "mainへ切り替え"], ["git switch -c feature/docs", "branchを作成して切り替え"]],
+        changes: "現在branchと、通常は作業ツリーのファイル内容を切り替えます。",
+        caution: "未commit変更が切替先と衝突すると停止します。強制指定で変更を失わず、statusで先に確認します。",
+        output: "切り替え先branch、追跡設定、阻害する変更などが表示されます。",
+        related: ["git branch", "git status", "git merge"]
+      }),
+      gitCommand({
+        name: "git tag", summary: "特定commitへversion名などの印を付ける", syntax: "git tag [オプション] [tag名] [commit]",
+        tokens: [["引数なし", "tag一覧を表示します。"], ["tag名", "現在のcommitへ軽量tagを付けます。"], ["-a 名前", "author・日時・messageを持つ注釈付きtagを作ります。"], ["-m 文章", "注釈付きtagのmessageを指定します。"], ["-l パターン", "名前を絞って一覧表示します。"], ["-d 名前", "local tagを削除します。"], ["--sort=version:refname", "versionらしい順序で並べます。"]],
+        examples: [["git tag -a v1.0.0 -m 'Release 1.0.0'", "注釈付きversion tagを作成"], ["git tag --sort=version:refname", "version順に一覧表示"]],
+        changes: "一覧は確認のみです。作成・削除はlocalのtag参照を変更します。remoteへ送るには別途pushが必要です。",
+        caution: "共有済みtagの付け替えは混乱の原因です。対象commitをgit logで確認してから作ります。",
+        output: "一覧時はtag名、作成時は通常無表示、異常時は重複などの理由が表示されます。",
+        related: ["git log", "git push"]
+      })
+    );
+
+    commands.sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
+
+    const categories = [
+      "内部コマンド",
+      "Git",
+      "仮想環境",
+      "すべて",
+      ...new Set(commands.map(command => command.category).filter(category => category !== "内部コマンド" && category !== "Git" && category !== "仮想環境"))
+    ];
+    function loadFavorites() {
+      try {
+        const stored = JSON.parse(window.localStorage.getItem("linux-command-favorites") || "[]");
+        return Array.isArray(stored) ? stored : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function storeFavorites(favorites) {
+      try {
+        window.localStorage.setItem("linux-command-favorites", JSON.stringify(favorites));
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    const state = {
+      category: "内部コマンド",
+      query: "",
+      favoritesOnly: false,
+      favorites: new Set(loadFavorites()),
+      activeCommand: null
+    };
+
+    const filters = document.querySelector("#filters");
+    const commandList = document.querySelector("#commandList");
+    const resultCount = document.querySelector("#resultCount");
+    const sectionTitle = document.querySelector("#sectionTitle");
+    const searchInput = document.querySelector("#searchInput");
+    const dialog = document.querySelector("#detailDialog");
+    const detailBody = document.querySelector("#detailBody");
+    const favoriteButton = document.querySelector("#favoriteButton");
+    const toast = document.querySelector("#toast");
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+      })[character]);
+    }
+
+    function renderFilters() {
+      filters.innerHTML = categories.map(category => `
+        <button class="filter" type="button" data-category="${category}" aria-pressed="${state.category === category}">
+          ${category}
+        </button>
+      `).join("");
+    }
+
+    function normalized(value) {
+      return value.toLocaleLowerCase("ja").replace(/\s+/g, " ").trim();
+    }
+
+    function visibleCommands() {
+      const query = normalized(state.query);
+      return commands.filter(command => {
+        const inCategory = state.category === "すべて" || command.category === state.category;
+        const inFavorites = !state.favoritesOnly || state.favorites.has(command.name);
+        const haystack = normalized(`${command.name} ${command.category} ${command.summary} ${command.keywords}`);
+        return inCategory && inFavorites && (!query || haystack.includes(query));
+      });
+    }
+
+    function renderList() {
+      const shown = visibleCommands();
+      sectionTitle.textContent = state.favoritesOnly
+        ? "お気に入り"
+        : (state.category === "すべて" ? "コマンド一覧" : state.category);
+      resultCount.textContent = `${shown.length}件`;
+
+      if (!shown.length) {
+        commandList.innerHTML = `<div class="empty">該当するコマンドがありません。<br>別の言葉でも検索してみてください。</div>`;
+        return;
+      }
+
+      commandList.innerHTML = shown.map(command => `
+        <button class="command-card" type="button" data-command="${command.name}">
+          <span>
+            <span class="command-name">
+              <code>${command.name}</code>
+              <span class="category">${command.category}</span>
+            </span>
+            <span class="summary">${command.summary}</span>
+          </span>
+          <span class="chevron" aria-hidden="true">›</span>
+        </button>
+      `).join("");
+    }
+
+    function renderDetail(command) {
+      state.activeCommand = command;
+      const isFavorite = state.favorites.has(command.name);
+      favoriteButton.textContent = isFavorite ? "★" : "☆";
+      favoriteButton.setAttribute("aria-label", isFavorite ? "お気に入りから外す" : "お気に入りに追加");
+
+      detailBody.innerHTML = `
+        <header class="detail-head">
+          <span class="category">${command.category}</span>
+          <h2 id="detailTitle">${command.name}</h2>
+          <p>${command.summary}</p>
+          <span class="risk ${command.risk}">${command.riskLabel}</span>
+        </header>
+
+        <div class="syntax-card">
+          <code>${escapeHtml(command.syntax)}</code>
+          <button class="copy-button" type="button" data-copy="${escapeHtml(command.syntax)}">コピー</button>
+        </div>
+
+        <details open>
+          <summary>引数・オプションを分解</summary>
+          <div class="detail-content token-list">
+            ${command.tokens.map(([token, description]) => `
+              <div class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></div>
+            `).join("")}
+          </div>
+        </details>
+
+        <details>
+          <summary>実行例</summary>
+          <div class="detail-content">
+            ${command.examples.map(([example, description]) => `
+              <div class="example"><code>$ ${escapeHtml(example)}</code><small>${description}</small></div>
+            `).join("")}
+          </div>
+        </details>
+
+        <details>
+          <summary>何が変わる？</summary>
+          <div class="detail-content"><p>${command.changes}</p></div>
+        </details>
+
+        <details>
+          <summary>実行結果の読み方</summary>
+          <div class="detail-content"><p>${command.output}</p></div>
+        </details>
+
+        <details>
+          <summary>注意点</summary>
+          <div class="detail-content"><p>${command.caution}</p></div>
+        </details>
+
+        ${command.related.length ? `
+          <details>
+            <summary>関連コマンド</summary>
+            <div class="detail-content related">
+              ${command.related.map(name => `<button type="button" data-related="${name}">${name}</button>`).join("")}
+            </div>
+          </details>
+        ` : ""}
+      `;
+    }
+
+    function openCommand(name) {
+      const command = commands.find(item => item.name === name);
+      if (!command) return;
+      renderDetail(command);
+      if (!dialog.open) {
+        if (typeof dialog.showModal === "function") {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute("open", "");
+          dialog.style.display = "block";
+        }
+      }
+      dialog.scrollTop = 0;
+    }
+
+    function saveFavorites() {
+      storeFavorites([...state.favorites]);
+      renderList();
+    }
+
+    function closeDialog() {
+      if (typeof dialog.close === "function") {
+        dialog.close();
+      } else {
+        dialog.removeAttribute("open");
+        dialog.style.display = "none";
+      }
+    }
+
+    async function copyText(value) {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        try {
+          await navigator.clipboard.writeText(value);
+          return;
+        } catch (error) {
+          // file://ではClipboard APIが拒否されることがあるため、下の方法へ切り替えます。
+        }
+      }
+
+      const textArea = document.createElement("textarea");
+      textArea.value = value;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      textArea.setSelectionRange(0, textArea.value.length);
+      const copied = document.execCommand("copy");
+      textArea.remove();
+      if (!copied) throw new Error("copy failed");
+    }
+
+    let toastTimer;
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("show");
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    filters.addEventListener("click", event => {
+      const button = event.target.closest("[data-category]");
+      if (!button) return;
+      state.category = button.dataset.category;
+      state.favoritesOnly = false;
+      document.querySelector("#favoriteNav").classList.remove("active");
+      document.querySelector("#allNav").classList.add("active");
+      renderFilters();
+      renderList();
+    });
+
+    searchInput.addEventListener("input", event => {
+      state.query = event.target.value;
+      renderList();
+    });
+
+    commandList.addEventListener("click", event => {
+      const card = event.target.closest("[data-command]");
+      if (card) openCommand(card.dataset.command);
+    });
+
+    document.querySelector("#closeDetail").addEventListener("click", closeDialog);
+
+    dialog.addEventListener("click", event => {
+      const copyButton = event.target.closest("[data-copy]");
+      if (copyButton) {
+        copyText(copyButton.dataset.copy).then(
+          () => showToast("コピーしました"),
+          () => showToast("コピーできませんでした")
+        );
+      }
+
+      const relatedButton = event.target.closest("[data-related]");
+      if (relatedButton) openCommand(relatedButton.dataset.related);
+    });
+
+    favoriteButton.addEventListener("click", () => {
+      if (!state.activeCommand) return;
+      const name = state.activeCommand.name;
+      if (state.favorites.has(name)) {
+        state.favorites.delete(name);
+        showToast("お気に入りから外しました");
+      } else {
+        state.favorites.add(name);
+        showToast("お気に入りに追加しました");
+      }
+      saveFavorites();
+      renderDetail(state.activeCommand);
+    });
+
+    document.querySelector("#allNav").addEventListener("click", () => {
+      state.favoritesOnly = false;
+      document.querySelector("#allNav").classList.add("active");
+      document.querySelector("#favoriteNav").classList.remove("active");
+      renderList();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    document.querySelector("#favoriteNav").addEventListener("click", () => {
+      state.favoritesOnly = true;
+      document.querySelector("#favoriteNav").classList.add("active");
+      document.querySelector("#allNav").classList.remove("active");
+      renderList();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    dialog.addEventListener("cancel", event => {
+      event.preventDefault();
+      closeDialog();
+    });
+
+    renderFilters();
+    renderList();
+
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {
+          // 辞典本体はService Workerなしでも利用できます。
+        });
+      });
+    }
+  </script>
+</body>
+</html>
