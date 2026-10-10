@@ -527,6 +527,10 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script>
+    // 目的：表示を作り替える前のHTMLを覚え、新しい辞典が公開されたら通知する。
+    // 学べること：表示中の内容と配信中の内容を比べ、利用者が選んだ時点で更新する方法。
+    const pageMarkup = doc => `${doc.head.innerHTML.trim()}\n${doc.body.innerHTML.trim()}`; // 文末の空白だけを除き、比較する文字列を作る。
+    const loadedMarkup = pageMarkup(document); // 検索結果などが画面に追加される前の内容を保存する。
     const commands = [
       {
         name: "ls",
@@ -2091,11 +2095,41 @@
     renderList();
 
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(() => {
-          // 辞典本体はService Workerなしでも利用できます。
-        });
-      });
+      // 目的：起動・復帰・通信回復時に更新を確認し、読みかけの画面は勝手に閉じない。
+      const updateButton = document.createElement("button"); // 更新を反映するボタンを作る。
+      updateButton.type = "button"; // フォームの送信ボタンにはしない。
+      updateButton.textContent = "新しい辞典があります。タップして更新"; // 利用者へ次の操作を伝える。
+      updateButton.hidden = true; // 更新が見つかるまでは表示しない。
+      updateButton.style.cssText = "width:100%;padding:12px;margin:12px 0;color:#071018;background:#86efac;border:0;border-radius:8px;font:inherit;cursor:pointer"; // スマートフォンで押しやすくする。
+      updateButton.setAttribute("aria-live", "polite"); // 読み上げを妨げずに通知する。
+      document.querySelector("header").appendChild(updateButton); // 辞典の見出しの下に置く。
+      updateButton.addEventListener("click", () => location.reload()); // 押された時だけ再表示し、お気に入りの保存は維持する。
+      let checkingUpdate = false; // 同時にいくつも通信しないための目印。
+      let registration; // 登録したService Workerの情報を覚える。
+      const checkForUpdate = async () => { // 現在配信されているHTMLと画面の起動時のHTMLを比較する。
+        if (checkingUpdate || document.visibilityState !== "visible" || !navigator.onLine) return; // 非表示中や通信不可のときは待つ。
+        checkingUpdate = true; // 確認中にする。
+        const controller = new AbortController(); // 通信が止まった場合に備える。
+        const timer = setTimeout(() => controller.abort(), 7000); // 確認を無期限に続けない。
+        try { // 通信失敗で辞典の操作を止めない。
+          registration?.update().catch(() => {}); // HTMLとは別に、通信を担当するプログラムの新版も確認する。
+          const response = await fetch("./index.html", { cache: "no-store", signal: controller.signal }); // 通常の通信キャッシュを避けてHTMLを取得する。
+          if (!response.ok || response.redirected || !response.headers.get("content-type")?.includes("text/html")) return; // 正常なHTMLだけを比較する。
+          const latest = new DOMParser().parseFromString(await response.text(), "text/html"); // 取得したHTMLを実行せず、比較できる形にする。
+          if (pageMarkup(latest) !== loadedMarkup) updateButton.hidden = false; // 辞典や画面が変わったら更新ボタンを出す。
+        } catch { /* 通信できなくても現在の辞典を使い続ける。 */ } // 自動再読み込みはしない。
+        finally { clearTimeout(timer); checkingUpdate = false; } // 次回の確認ができる状態へ戻す。
+      }; // 更新確認の定義の終わり。
+      navigator.serviceWorker.addEventListener("controllerchange", checkForUpdate); // 新しい通信処理に切り替わった後も確認する。
+      window.addEventListener("online", checkForUpdate); // 圏外から戻ったときに確認する。
+      document.addEventListener("visibilitychange", checkForUpdate); // ホーム画面のアプリに戻ったときに確認する。
+      setInterval(checkForUpdate, 5 * 60 * 1000); // 開いたままでも5分ごとに確認する。
+      window.addEventListener("load", async () => { // 画面の読み込み後に登録する。
+        try { // 登録できない環境でも辞典自体は使える。
+          registration = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" }); // 更新確認で古い通信キャッシュを使わない。
+          await checkForUpdate(); // 初回の確認を行う。
+        } catch { /* 登録できなくても辞典本体を表示する。 */ } // 利用中の内容は消さない。
+      }); // 起動時の処理の終わり。
     }
   </script>
 </body>
