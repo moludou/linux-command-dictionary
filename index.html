@@ -475,6 +475,35 @@
 
     .token-output-guide-content p { margin: 2px 0; }
 
+    .token-shell-label {
+      display: block;
+      margin: 2px 0 5px;
+      color: #c2d2d1;
+      font-weight: 800;
+    }
+
+    .token-shell-output {
+      margin: 0;
+      padding: 9px 10px;
+      border: 1px solid rgba(32, 55, 69, .9);
+      border-radius: 8px;
+      background: #050d13;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .token-shell-output code {
+      color: #d7e5e4;
+      font-weight: 500;
+    }
+
+    .token-output-notes {
+      margin: 9px 0 0;
+      padding-left: 1.15rem;
+    }
+
+    .token-output-notes li + li { margin-top: 5px; }
+
     .token-example-entry + .token-example-entry {
       margin-top: 10px;
       padding-top: 10px;
@@ -2030,6 +2059,23 @@
       "gcc|-O0〜-O3": "gcc -O2 main.c -o app"
     };
 
+    const tokenOutputExamples = {
+      "git|status": {
+        shell: `On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+        modified:   README.md
+
+no changes added to commit (use "git add" and/or "git commit -a")`,
+        notes: [
+          ["On branch main", "現在いるbranchはmainです。"],
+          ["Changes not staged for commit", "変更はありますが、まだstagingされていません。"],
+          ["modified: README.md", "README.mdが変更されています。"],
+          ["no changes added to commit", "このままcommitしても、この変更は含まれません。"]
+        ]
+      }
+    };
+
     const argumentExampleOverrides = {
       "activate|source": "source .venv/bin/activate",
       "activate|.venv": "python3 -m venv .venv",
@@ -2269,6 +2315,7 @@
           <div class="detail-content token-list">
             ${command.tokens.map(([token, description, tokenExample], tokenIndex) => {
               const itemExample = tokenExampleFor(command, token, tokenIndex, tokenExample);
+              const outputExample = tokenOutputExamples[`${command.name}|${token}`];
               return `
               <details class="token-item">
                 <summary class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></summary>
@@ -2279,7 +2326,15 @@
                     <small>${description}</small>
                     <details class="token-output-guide">
                       <summary>実行結果の読み方</summary>
-                      <div class="token-output-guide-content"><p>${command.output}</p></div>
+                      <div class="token-output-guide-content">
+                        ${outputExample ? `
+                          <span class="token-shell-label">シェルに表示される例</span>
+                          <pre class="token-shell-output"><code>${escapeHtml(outputExample.shell)}</code></pre>
+                          <ul class="token-output-notes">
+                            ${outputExample.notes.map(([line, meaning]) => `<li><code>${escapeHtml(line)}</code>：${meaning}</li>`).join("")}
+                          </ul>
+                        ` : `<p>${command.output}</p>`}
+                      </div>
                     </details>
                   </div>
                 </div>
