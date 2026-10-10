@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v5";
+const CACHE_NAME = "linux-command-dictionary-v6";
 const APP_FILES = [
   "./",
   "./index.html",
