@@ -1933,6 +1933,270 @@
       });
     }
 
+    const tokenExampleProfiles = {
+      "aa-status": ["sudo aa-status", ""], "adduser": ["sudo adduser", "alice"],
+      "awk": ["awk", "'{print $1}' data.txt"], "blkid": ["sudo blkid", "/dev/sda1"],
+      "build": ["python3 -m build", "."], "cat": ["cat", "file.txt"], "cd": ["cd", "/var/log"],
+      "chage": ["sudo chage", "alice"], "chmod": ["chmod", "755 project"], "cmake": ["cmake", "."],
+      "command": ["command", "ls"], "cp": ["cp", "source.txt backup.txt"], "crontab": ["crontab", ""],
+      "df": ["df", "/"], "dpkg": ["sudo dpkg", ""], "env": ["env", "DEBUG=1 printenv DEBUG"],
+      "export": ["export", ""], "find": ["find .", ""], "findmnt": ["findmnt", "/"],
+      "free": ["free", ""], "g++": ["g++", "main.cpp"], "gcc": ["gcc", "main.c"],
+      "getent": ["getent", "passwd"], "git add": ["git add", "README.md"], "git branch": ["git branch", ""],
+      "git clone": ["git clone", "https://github.com/example/project.git"], "git commit": ["git commit", ""],
+      "git config": ["git config", "user.name 'Alice'"], "git diff": ["git diff", ""],
+      "git fetch": ["git fetch", "origin"], "git init": ["git init", "project"], "git log": ["git log", ""],
+      "git merge": ["git merge", "main"], "git pull": ["git pull", "origin main"],
+      "git push": ["git push", "origin main"], "git remote": ["git remote", ""],
+      "git restore": ["git restore", "README.md"], "git stash": ["git stash", ""],
+      "git status": ["git status", ""], "git switch": ["git switch", "main"], "git tag": ["git tag", ""],
+      "grep": ["grep", "'error' app.log"], "groupadd": ["sudo groupadd", "developers"],
+      "help": ["help", "cd"], "history": ["history", ""], "hostname": ["hostname", ""],
+      "hostnamectl": ["hostnamectl", "status"], "id": ["id", "alice"],
+      "install": ["install", "source.txt /tmp/example.txt"], "ip": ["ip", "address show"],
+      "journalctl": ["journalctl", ""], "ls": ["ls", "/var/log"], "lsblk": ["lsblk", "/dev/sda"],
+      "make": ["make", "all"], "man": ["man", "ls"], "mkdir": ["mkdir", "project"],
+      "mount": ["sudo mount", "/dev/sdb1 /mnt/data"], "mv": ["mv", "old.txt new.txt"],
+      "ninja": ["ninja", "all"], "nmcli": ["nmcli", "device status"], "passwd": ["sudo passwd", "alice"],
+      "pip": ["python3 -m pip install", "requests"], "pkg-config": ["pkg-config", "glib-2.0"],
+      "pwd": ["pwd", ""], "python3": ["python3", "script.py"], "read": ["read", "name"],
+      "reboot": ["sudo reboot", ""], "rm": ["rm", "file.txt"],
+      "scp": ["scp", "source.txt alice@example.com:/tmp/"], "sed": ["sed", "'s/old/new/' file.txt"],
+      "sha256sum": ["sha256sum", "file.iso"], "smbclient": ["smbclient //server/share", ""],
+      "ss": ["ss", ""], "ssh": ["ssh", "alice@example.com"], "ssh-keygen": ["ssh-keygen", ""],
+      "sshd": ["sudo sshd", ""], "stat": ["stat", "file.txt"], "sudo": ["sudo", "ls /root"],
+      "systemctl": ["sudo systemctl", "status ssh"], "tail": ["tail", "app.log"],
+      "tailscale": ["tailscale status", ""], "tee": ["echo hello | tee", "note.txt"],
+      "testparm": ["testparm", "/etc/samba/smb.conf"], "type": ["type", "ls"],
+      "unalias": ["unalias", ""], "uname": ["uname", ""], "uptime": ["uptime", ""],
+      "usermod": ["sudo usermod", "alice"], "venv": ["python3 -m venv", ".venv"],
+      "visudo": ["sudo visudo", ""], "wc": ["wc", "file.txt"], "which": ["which", "python3"],
+      "whoami": ["whoami", ""]
+    };
+
+    const tokenExampleOverrides = {
+      "chmod|--reference=参照元": "chmod --reference=reference.txt target.txt",
+      "cmake|--build DIR": "cmake --build build",
+      "cmake|--target 名前": "cmake --build build --target test",
+      "cmake|-j 数": "cmake --build build -j 4",
+      "cmake|--install DIR": "cmake --install build",
+      "crontab|-u ユーザー": "sudo crontab -u alice -l",
+      "find|-size": "find . -size +10M",
+      "find|-mtime": "find . -mtime -7",
+      "git config|--local": "git config --local user.name 'Alice'",
+      "git config|--global": "git config --global user.name 'Alice'",
+      "git config|--system": "sudo git config --system core.editor nano",
+      "git config|--list": "git config --list",
+      "git config|--show-origin": "git config --show-origin --list",
+      "git config|--get 名前": "git config --get user.name",
+      "git config|--unset 名前": "git config --unset user.name",
+      "pip|--upgrade": "python3 -m pip install --upgrade requests",
+      "pip|--no-deps": "python3 -m pip install --no-deps requests",
+      "pip|--dry-run": "python3 -m pip install --dry-run requests",
+      "python3|-V / --version": "python3 --version",
+      "reboot|--boot-loader-entry": "sudo reboot --boot-loader-entry=help",
+      "ssh|-L": "ssh -L 8080:localhost:80 alice@example.com",
+      "stat|%A": "stat -c '%A' file.txt",
+      "stat|%a": "stat -c '%a' file.txt",
+      "stat|%U:%G": "stat -c '%U:%G' file.txt",
+      "stat|%s": "stat -c '%s' file.txt",
+      "stat|%n": "stat -c '%n' file.txt",
+      "systemctl|--now": "sudo systemctl enable --now ssh",
+      "tail|--pid PID": "tail -f --pid 1234 app.log",
+      "usermod|-L / -U": "sudo usermod -L alice",
+      "g++|-O0〜-O3": "g++ -O2 main.cpp -o app",
+      "gcc|-O0〜-O3": "gcc -O2 main.c -o app"
+    };
+
+    const argumentExampleOverrides = {
+      "activate|source": "source .venv/bin/activate",
+      "activate|.venv": "python3 -m venv .venv",
+      "activate|bin/activate": "source .venv/bin/activate",
+      "activate|VIRTUAL_ENV": "echo \"$VIRTUAL_ENV\"",
+      "activate|PATH": "printf '%s\\n' \"$PATH\"",
+      "awk|'...'": "awk '{print $1}' data.txt",
+      "awk|$1, $2": "awk '{print $1, $2}' data.txt",
+      "awk|$0": "awk '{print $0}' data.txt",
+      "awk|NR": "awk '{print NR, $0}' data.txt",
+      "awk|NF": "awk '{print NF}' data.txt",
+      "awk|printf": "awk '{printf \"%s\\n\", $1}' data.txt",
+      "deactivate|deactivate": "deactivate",
+      "deactivate|PATH": "printf '%s\\n' \"$PATH\"",
+      "deactivate|VIRTUAL_ENV": "printf '%s\\n' \"${VIRTUAL_ENV:-未設定}\"",
+      "deactivate|prompt": "printf '%s\\n' \"$PS1\"",
+      "chmod|対象": "chmod 755 target.txt",
+      "cp|cp": "cp source.txt backup.txt",
+      "cp|コピー元": "cp source.txt backup.txt",
+      "cp|コピー先": "cp source.txt backup.txt",
+      "cp|複数のコピー元": "cp first.txt second.txt backup/",
+      "env|名前=値": "env DEBUG=1 printenv DEBUG",
+      "env|コマンド": "env DEBUG=1 python3 app.py",
+      "exit|exit": "exit",
+      "exit|0": "exit 0",
+      "exit|1〜255": "exit 1",
+      "exit|終了ステータス": "exit 2",
+      "export|名前=値": "export EDITOR=nano",
+      "export|名前": "export EDITOR",
+      "export|PATH": "export PATH=\"$HOME/bin:$PATH\"",
+      "git branch|branch名": "git branch feature/example",
+      "git diff|HEAD": "git diff HEAD~1 HEAD",
+      "git pull|branch": "git pull origin main",
+      "git push|branch": "git push origin main",
+      "grep|grep": "grep error app.log",
+      "grep|検索文字列": "grep 'error' app.log",
+      "help|help": "help",
+      "help|パターン": "help cd",
+      "ip|ip": "ip help",
+      "ip|address": "ip address show",
+      "ip|show": "ip route show",
+      "ls|対象": "ls /var/log",
+      "make|target": "make all",
+      "make|名前=値": "make CC=clang",
+      "mkdir|mkdir": "mkdir notes",
+      "mkdir|親/子": "mkdir -p parent/child",
+      "mv|mv": "mv old.txt new.txt",
+      "mv|移動元": "mv report.txt archive/",
+      "mv|移動先": "mv report.txt archive/",
+      "mv|複数の移動元": "mv first.txt second.txt archive/",
+      "python3|script.py": "python3 script.py",
+      "pwd|pwd": "pwd",
+      "pwd|PWD": "printf '%s\\n' \"$PWD\"",
+      "source|source": "source ~/.bashrc",
+      "source|ファイル": "source ./env.sh",
+      "source|引数": "source ./setup.sh development",
+      "source|. ファイル": ". ./env.sh",
+      "source|PATH": "PATH=\"$HOME/bin:$PATH\"; source ~/.bashrc",
+      "read|変数名": "read name",
+      "sed|s/旧/新/": "sed 's/old/new/' file.txt",
+      "sed|s/旧/新/g": "sed 's/old/new/g' file.txt",
+      "unalias|名前": "unalias ll",
+      "unalias|unalias": "help unalias",
+      "which|コマンド名": "which python3",
+      "which|PATH": "printf '%s\\n' \"$PATH\"",
+      "which|終了状態 0": "which python3; echo $?",
+      "which|終了状態 1": "which command-that-does-not-exist; echo $?"
+    };
+
+    function concreteToken(token) {
+      const firstAlternative = token.includes(" / ") ? token.split(" / ")[0] : token;
+      return firstAlternative
+        .replace("-O0〜-O3", "-O2")
+        .replace("-行数", "-20")
+        .replace(/パス/g, "/tmp/example")
+        .replace(/ユーザー名|ユーザー/g, "alice")
+        .replace(/グループ一覧|グループ名|グループ/g, "developers")
+        .replace(/文字列|文章|コメント/g, "'example'")
+        .replace(/名前=値/g, "limit=10")
+        .replace(/新branch|branch名|branch/g, "feature/example")
+        .replace(/新名前/g, "new-name")
+        .replace(/名前/g, "example")
+        .replace(/区切り/g, "':'")
+        .replace(/タグ/g, "UUID")
+        .replace(/ラベル/g, "DATA")
+        .replace(/UUID/g, "1234-ABCD")
+        .replace(/DIR/g, "build")
+        .replace(/日数/g, "30")
+        .replace(/日付/g, "2026-12-31")
+        .replace(/日時|時刻/g, "'1 hour ago'")
+        .replace(/参照元/g, "reference.txt")
+        .replace(/生成器/g, "Ninja")
+        .replace(/回数/g, "3")
+        .replace(/行数/g, "20")
+        .replace(/文字数/g, "10")
+        .replace(/byte数/g, "1024")
+        .replace(/秒/g, "5")
+        .replace(/数/g, "4")
+        .replace(/種類/g, "ext4")
+        .replace(/列/g, "NAME,SIZE,FSTYPE")
+        .replace(/権限/g, "755")
+        .replace(/番号/g, "3")
+        .replace(/ポート/g, "2222")
+        .replace(/鍵ファイル|鍵/g, "~/.ssh/id_ed25519")
+        .replace(/GID/g, "1001")
+        .replace(/KEY=VALUE/g, "PASS_MAX_DAYS=90")
+        .replace(/shell/g, "/bin/bash")
+        .replace(/ホーム/g, "/home/alice")
+        .replace(/パターン/g, "'*.log'")
+        .replace(/サービス/g, "files")
+        .replace(/機器名/g, "eth0")
+        .replace(/インターフェース/g, "eth0")
+        .replace(/相手/g, "example-host")
+        .replace(/PID/g, "1234")
+        .replace(/版/g, "1.2.0");
+    }
+
+    function generatedArgumentExample(command, token) {
+      const override = argumentExampleOverrides[`${command.name}|${token}`];
+      if (override) return override;
+
+      const value = concreteToken(token)
+        .replace(/URL/g, "https://github.com/example/project.git")
+        .replace(/メッセージ/g, "'Update notes'")
+        .replace(/対象/g, "README.md")
+        .replace(/宛先/g, "8.8.8.8")
+        .replace(/IP/g, "192.0.2.10")
+        .replace(/PORT/g, "22");
+
+      if (command.name === "apt") {
+        return ["update", "upgrade", "autoremove"].includes(token)
+          ? `sudo apt ${value}` : `sudo apt ${value} nginx`;
+      }
+      if (command.name === "git") return `git ${value}`;
+      if (command.name === "git remote") return `git remote ${value}`;
+      if (command.name === "git stash") return `git stash ${value}`;
+      if (command.name === "systemctl") {
+        if (token === "systemctl") return "systemctl --version";
+        if (token === "サービス名") return "systemctl status ssh";
+        return `sudo systemctl ${value} ssh`;
+      }
+      if (command.name === "ufw") return `sudo ufw ${value}`;
+      if (command.name === "tailscale") return `tailscale ${value}`;
+      if (command.name === "pip") return `python3 -m pip ${value}`;
+      if (command.name === "nmcli") return `nmcli ${value}`;
+      if (command.name === "hostnamectl") return `hostnamectl ${value}`;
+      if (command.name === "getent") return token === "キー" ? "getent passwd alice" : `getent ${value}`;
+      if (command.name === "cd") return token === "cd" ? "cd" : `cd ${value}`;
+      if (command.name === "chmod" && /^(640|u\+x|g-w|o=r|a\+r)$/.test(token)) return `chmod ${value} file.txt`;
+      if (command.name === "ip") {
+        if (["address", "route", "link", "neighbour"].includes(token)) return `ip ${value} show`;
+        if (token === "show") return "ip address show";
+        if (token === "ip") return "ip address show";
+        if (token.startsWith("get ")) return `ip route ${value}`;
+        if (token.startsWith("dev ")) return `ip address show ${value}`;
+      }
+      if (command.name === "git branch" && token === "引数なし") return "git branch";
+      if (command.name === "git diff" && token === "引数なし") return "git diff";
+      if (command.name === "git tag" && token === "引数なし") return "git tag";
+      return null;
+    }
+
+    function tokenExampleFor(command, token, index, explicitExample) {
+      if (explicitExample) return explicitExample;
+
+      const override = tokenExampleOverrides[`${command.name}|${token}`];
+      if (override) return [override, `${token}を指定した実行例です。`];
+
+      const isOption = token.trim().startsWith("-");
+      if (isOption && tokenExampleProfiles[command.name]) {
+        const [prefix, suffix] = tokenExampleProfiles[command.name];
+        const example = [prefix, concreteToken(token), suffix].filter(Boolean).join(" ");
+        return [example, `${token}を指定した実行例です。`];
+      }
+
+      const generatedArgument = generatedArgumentExample(command, token);
+      if (generatedArgument) return [generatedArgument, `${token}を指定した実行例です。`];
+
+      const tokenWords = token.toLocaleLowerCase("ja").match(/[a-z0-9_.:@/+~-]+/g) || [];
+      const matchingExample = command.examples.find(([example]) => {
+        const normalizedExample = example.toLocaleLowerCase("ja");
+        return tokenWords.some(word => word.length > 1 && normalizedExample.includes(word));
+      });
+      if (matchingExample) return [matchingExample[0], `${token}が使われている実行例です。`];
+
+      const fallback = command.examples[index % command.examples.length];
+      return [fallback[0], `このコマンド内での${token}の位置を確認する例です。`];
+    }
+
     function renderList() {
       const shown = visibleCommands();
       sectionTitle.textContent = state.favoritesOnly
@@ -1981,20 +2245,20 @@
         <details open>
           <summary>引数・オプションを分解</summary>
           <div class="detail-content token-list">
-            ${command.tokens.map(([token, description, tokenExample]) => `
+            ${command.tokens.map(([token, description, tokenExample], tokenIndex) => {
+              const itemExample = tokenExampleFor(command, token, tokenIndex, tokenExample);
+              return `
               <details class="token-item">
                 <summary class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></summary>
                 <div class="token-example">
-                  <span class="token-example-label">${tokenExample ? "この項目の実行例" : "関連する実行例"}</span>
-                  ${(tokenExample ? [tokenExample] : command.examples).map(([example, exampleDescription]) => `
-                    <div class="token-example-entry">
-                      <code>$ ${escapeHtml(example)}</code>
-                      <small>${exampleDescription}</small>
-                    </div>
-                  `).join("")}
+                  <span class="token-example-label">この引数・オプションの実行例</span>
+                  <div class="token-example-entry">
+                    <code>$ ${escapeHtml(itemExample[0])}</code>
+                    <small>${itemExample[1]}</small>
+                  </div>
                 </div>
               </details>
-            `).join("")}
+            `}).join("")}
           </div>
         </details>
 
