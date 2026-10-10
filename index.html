@@ -403,6 +403,56 @@
     .token-row:last-child { border-bottom: 0; }
     .token-row code { color: var(--accent); font-weight: 800; overflow-wrap: anywhere; }
 
+    .token-item {
+      margin: 0;
+      border: 0;
+      border-bottom: 1px solid rgba(32, 55, 69, .75);
+      border-radius: 0;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .token-item:last-child { border-bottom: 0; }
+
+    .token-item > .token-row {
+      width: 100%;
+      grid-template-columns: minmax(76px, auto) 1fr auto;
+      padding: 9px 2px;
+      border-bottom: 0;
+      text-align: left;
+    }
+
+    .token-item > .token-row::after {
+      align-self: center;
+      margin-left: 4px;
+    }
+
+    .token-item[open] > .token-row { padding-bottom: 7px; }
+
+    .token-example {
+      margin: 0 0 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      background: #07151d;
+    }
+
+    .token-example-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    .token-example code {
+      display: block;
+      color: var(--accent);
+      font: 700 .86rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .token-example small { display: block; margin-top: 5px; color: var(--muted); }
+
     .example {
       margin: 9px 0;
       padding: 12px;
@@ -1333,7 +1383,7 @@
         name: "alias", category: "内部コマンド", summary: "長いコマンドに短い別名を付ける",
         keywords: "shell builtin 別名 shortcut bash", risk: "change", riskLabel: "現在のshell内を変更",
         syntax: "alias [名前[=値] ...]",
-        tokens: [["alias", "引数なしで現在の別名一覧を表示します。"], ["名前=値", "名前に実行内容を割り当てます。全体を引用符で囲みます。"], ["alias 名前", "指定した別名の定義だけを表示します。"], ["unalias 名前", "別名を削除する別の内部コマンドです。"], ["unalias -a", "現在のshellの別名をすべて削除します。"]],
+        tokens: [["alias", "引数なしで現在の別名一覧を表示します。", ["alias", "現在定義されている別名をすべて表示"]], ["名前=値", "名前に実行内容を割り当てます。全体を引用符で囲みます。", ["alias ll='ls -alF'", "llを入力するとls -alFが実行される別名を登録"]], ["alias 名前", "指定した別名の定義だけを表示します。", ["alias ll", "llに登録されている定義だけを確認"]], ["unalias 名前", "別名を削除する別の内部コマンドです。", ["unalias ll", "llという別名だけを現在のshellから削除"]], ["unalias -a", "現在のshellの別名をすべて削除します。", ["unalias -a", "現在のshellにある全aliasを削除。実行前にaliasで一覧を確認します"]]],
         examples: [["alias", "現在の別名を一覧表示"], ["alias ll='ls -alF'", "llという別名を現在のshellへ登録"]],
         changes: "定義すると現在のshellの別名一覧が変わります。通常はshell終了で消え、設定ファイルへ書けば次回も有効です。",
         caution: "既存コマンドと同じ名前のaliasは本来の動作を隠すため、typeで実体を確認します。",
@@ -1925,7 +1975,16 @@
         <details open>
           <summary>引数・オプションを分解</summary>
           <div class="detail-content token-list">
-            ${command.tokens.map(([token, description]) => `
+            ${command.tokens.map(([token, description, tokenExample]) => tokenExample ? `
+              <details class="token-item">
+                <summary class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></summary>
+                <div class="token-example">
+                  <span class="token-example-label">実行例</span>
+                  <code>$ ${escapeHtml(tokenExample[0])}</code>
+                  <small>${tokenExample[1]}</small>
+                </div>
+              </details>
+            ` : `
               <div class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></div>
             `).join("")}
           </div>
