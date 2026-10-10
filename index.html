@@ -934,10 +934,10 @@
     ];
 
     function historicalCommand({
-      name, category, summary, keywords, risk = "safe", riskLabel = "確認のみ・変更なし",
+      name, category, relatedCategories = [], summary, keywords, risk = "safe", riskLabel = "確認のみ・変更なし",
       syntax, tokens, examples, changes, caution, output, related = []
     }) {
-      return { name, category, summary, keywords, risk, riskLabel, syntax, tokens, examples, changes, caution, output, related };
+      return { name, category, relatedCategories, summary, keywords, risk, riskLabel, syntax, tokens, examples, changes, caution, output, related };
     }
 
     commands.push(
@@ -1519,7 +1519,7 @@
         output: "通常は入力待ちになり、成功時に値そのものは自動表示されません。"
       }),
       historicalCommand({
-        name: "source", category: "内部コマンド", summary: "ファイルを現在のshell環境で読み込んで実行する",
+        name: "source", category: "内部コマンド", relatedCategories: ["仮想環境"], summary: "ファイルを現在のshell環境で読み込んで実行する",
         keywords: "shell builtin dot config bashrc execute", risk: "change", riskLabel: "現在のshellを直接変更可能",
         syntax: "source ファイル [引数...]",
         tokens: [["source", ". と同じ働きをするBashの内部コマンドです。"], ["ファイル", "現在のshellで実行するscriptや設定ファイルです。"], ["引数", "読み込むファイル内の$1、$2などへ渡します。"], [". ファイル", "POSIX shellでも使われるsourceの別表記です。"], ["PATH", "ファイル名に/がなければPATHなどから検索します。"]],
@@ -1539,7 +1539,7 @@
         related: ["command", "help"]
       }),
       historicalCommand({
-        name: "which", category: "検索", summary: "実行される外部コマンドの場所をPATHから探す",
+        name: "which", category: "検索", relatedCategories: ["仮想環境"], summary: "実行される外部コマンドの場所をPATHから探す",
         keywords: "executable command path PATH locate binary virtual environment Python", syntax: "which [-a] コマンド名...",
         tokens: [["コマンド名", "場所を調べるコマンドの名前です。複数指定できます。"], ["-a", "PATH内で見つかる同名の候補をすべて表示します。"], ["PATH", "実行ファイルを探すディレクトリと、その検索順序を保持する環境変数です。"], ["終了状態 0", "指定したコマンドがすべて見つかったことを表します。"], ["終了状態 1", "1つ以上のコマンドが見つからなかったことを表します。"]],
         examples: [["which python", "現在優先されるPython実行ファイルの場所を確認"], ["which -a python3", "PATH内にあるpython3の候補をすべて表示"]],
@@ -1596,7 +1596,7 @@
         related: ["activate", "venv"]
       }),
       historicalCommand({
-        name: "env", category: "内部コマンド", summary: "環境変数を表示、または一時設定してコマンドを実行する",
+        name: "env", category: "内部コマンド", relatedCategories: ["仮想環境"], summary: "環境変数を表示、または一時設定してコマンドを実行する",
         keywords: "environment variable .env PATH command", risk: "change", riskLabel: "子プロセスの環境を一時変更",
         syntax: "env [オプション] [名前=値 ...] [コマンド [引数...]]",
         tokens: [["env", "引数なしで現在の環境変数を一覧表示します。"], ["名前=値", "後ろのコマンドにだけ渡す環境変数を設定します。"], ["-i", "現在の環境変数を引き継がず、空の環境から始めます。"], ["-u 名前", "指定変数を取り除いてコマンドを実行します。"], ["-C DIR", "指定ディレクトリへ移動してからコマンドを実行します。"], ["コマンド", "指定した一時環境で実行する外部・内部処理です。"]],
@@ -1607,7 +1607,7 @@
         related: ["export", "source"]
       }),
       historicalCommand({
-        name: "pip", category: "Python", summary: "Pythonパッケージを導入・確認・削除する",
+        name: "pip", category: "Python", relatedCategories: ["仮想環境"], summary: "Pythonパッケージを導入・確認・削除する",
         keywords: "pip3 package install uninstall requirements freeze PyPI", risk: "change", riskLabel: "Python環境へパッケージを変更",
         syntax: "python3 -m pip サブコマンド [オプション] [対象]",
         tokens: [["install パッケージ", "指定パッケージと依存関係を導入します。"], ["install -r requirements.txt", "一覧ファイルに記載されたパッケージを導入します。"], ["uninstall パッケージ", "指定パッケージを削除します。"], ["list", "現在の環境に導入済みの一覧を表示します。"], ["show パッケージ", "版、場所、依存関係などを表示します。"], ["freeze", "導入済みパッケージをrequirements形式で表示します。"], ["check", "導入済み依存関係の不整合を検査します。"], ["--upgrade", "既存パッケージをより新しい版へ更新します。"], ["--no-deps", "依存パッケージを自動導入しません。"], ["--dry-run", "対応版では導入せず予定内容だけ確認します。"]],
@@ -1618,7 +1618,7 @@
         related: ["python3", "venv", "activate", "build"]
       }),
       historicalCommand({
-        name: "python3", category: "Python", summary: "Python 3のコード・script・moduleを実行する",
+        name: "python3", category: "Python", relatedCategories: ["仮想環境"], summary: "Python 3のコード・script・moduleを実行する",
         keywords: "python interpreter script module version REPL", risk: "change", riskLabel: "実行するコードの内容による",
         syntax: "python3 [オプション] [script.py | -m module] [引数...]",
         tokens: [["script.py", "指定したPythonファイルを実行します。"], ["-m module", "moduleをPythonの検索規則に従って実行します。"], ["-c 'code'", "引数に書いた短いPythonコードを実行します。"], ["-V / --version", "Pythonのバージョンを表示します。"], ["-i", "script実行後も対話モードを続けます。"], ["-B", "__pycache__や.pycを作成しません。"], ["-u", "標準入出力をbufferせず扱います。"], ["-X dev", "追加の警告や検査を有効にする開発モードです。"], ["引数", "script内ではsys.argvから受け取れます。"]],
@@ -1977,9 +1977,11 @@
     function visibleCommands() {
       const query = normalized(state.query);
       return commands.filter(command => {
-        const inCategory = state.category === "すべて" || command.category === state.category;
+        const inCategory = state.category === "すべて"
+          || command.category === state.category
+          || command.relatedCategories?.includes(state.category);
         const inFavorites = !state.favoritesOnly || state.favorites.has(command.name);
-        const haystack = normalized(`${command.name} ${command.category} ${command.summary} ${command.keywords}`);
+        const haystack = normalized(`${command.name} ${command.category} ${(command.relatedCategories || []).join(" ")} ${command.summary} ${command.keywords}`);
         return inCategory && inFavorites && (!query || haystack.includes(query));
       });
     }
