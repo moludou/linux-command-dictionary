@@ -2076,6 +2076,125 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       }
     };
 
+    const commandShellSamples = {
+      "aa-status": "apparmor module is loaded.\n42 profiles are loaded.\n40 profiles are in enforce mode.",
+      "activate": "（何も表示されません）\n(.venv) user@host:~/project$",
+      "adduser": "Adding user 'alice' ...\nAdding new group 'alice' (1001) ...\nNew password:",
+      "alias": "alias ll='ls -alF'\nalias grep='grep --color=auto'",
+      "apt": "Reading package lists... Done\nBuilding dependency tree... Done\n0 upgraded, 1 newly installed, 0 to remove.",
+      "awk": "alice\nbob\ncarol",
+      "blkid": "/dev/sda1: UUID=\"1234-ABCD\" TYPE=\"ext4\" PARTUUID=\"abcd-01\"",
+      "build": "* Building wheel...\nSuccessfully built example-1.0.0-py3-none-any.whl",
+      "cat": "first line\nsecond line\nthird line",
+      "cd": "（成功時は何も表示されません）",
+      "chage": "Last password change : Oct 10, 2026\nPassword expires : Jan 08, 2027",
+      "chmod": "（成功時は何も表示されません）",
+      "cmake": "-- The C compiler identification is GNU 13.2.0\n-- Configuring done\n-- Build files have been written to: /home/user/project/build",
+      "command": "/usr/bin/ls",
+      "cp": "（成功時は何も表示されません）",
+      "crontab": "0 3 * * * /home/user/backup.sh",
+      "deactivate": "（何も表示されません）\nuser@host:~/project$",
+      "df": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda2       100G   42G   53G  45% /",
+      "dpkg": "ii  bash  5.2.21-2ubuntu4  amd64  GNU Bourne Again SHell",
+      "env": "USER=user\nHOME=/home/user\nPATH=/usr/local/bin:/usr/bin:/bin",
+      "exit": "（通常は何も表示されず、shellまたは接続が終了します）",
+      "export": "declare -x HOME=\"/home/user\"\ndeclare -x PATH=\"/usr/local/bin:/usr/bin:/bin\"",
+      "find": "./README.md\n./docs/guide.md",
+      "findmnt": "TARGET SOURCE    FSTYPE OPTIONS\n/      /dev/sda2 ext4   rw,relatime",
+      "free": "               total        used        free      shared  buff/cache   available\nMem:           15Gi       4.2Gi       6.1Gi       512Mi       5.0Gi        10Gi",
+      "g++": "（成功時は何も表示されません）",
+      "gcc": "（成功時は何も表示されません）",
+      "getent": "alice:x:1001:1001:Alice:/home/alice:/bin/bash",
+      "git": "On branch main\nnothing to commit, working tree clean",
+      "git add": "（成功時は何も表示されません）",
+      "git branch": "* main\n  feature/docs",
+      "git clone": "Cloning into 'project'...\nReceiving objects: 100% (42/42), done.",
+      "git commit": "[main a1b2c3d] Update notes\n 1 file changed, 3 insertions(+), 1 deletion(-)",
+      "git config": "user.name=Alice\nuser.email=alice@example.com",
+      "git diff": "diff --git a/README.md b/README.md\n-old line\n+new line",
+      "git fetch": "From github.com:example/project\n   a1b2c3d..d4e5f6a  main -> origin/main",
+      "git init": "Initialized empty Git repository in /home/user/project/.git/",
+      "git log": "a1b2c3d Update notes\nd4e5f6a Initial commit",
+      "git merge": "Updating a1b2c3d..d4e5f6a\nFast-forward\n README.md | 2 ++",
+      "git pull": "Updating a1b2c3d..d4e5f6a\nFast-forward\n README.md | 2 ++",
+      "git push": "To github.com:example/project.git\n   a1b2c3d..d4e5f6a  main -> main",
+      "git remote": "origin  git@github.com:example/project.git (fetch)\norigin  git@github.com:example/project.git (push)",
+      "git restore": "（成功時は何も表示されません）",
+      "git stash": "Saved working directory and index state WIP on main: a1b2c3d Update notes",
+      "git status": "On branch main\nChanges not staged for commit:\n        modified:   README.md",
+      "git switch": "Switched to branch 'main'\nYour branch is up to date with 'origin/main'.",
+      "git tag": "v1.0.0\nv1.1.0",
+      "grep": "app.log:42:ERROR connection refused",
+      "groupadd": "（成功時は何も表示されません）",
+      "help": "cd: cd [-L|[-P [-e]] [-@]] [dir]\n    Change the shell working directory.",
+      "history": "  101  pwd\n  102  git status\n  103  history",
+      "hostname": "server01",
+      "hostnamectl": " Static hostname: server01\nOperating System: Ubuntu 24.04 LTS\nKernel: Linux 6.8.0",
+      "id": "uid=1000(user) gid=1000(user) groups=1000(user),27(sudo)",
+      "install": "（成功時は何も表示されません）",
+      "ip": "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP>\n    inet 192.0.2.10/24 scope global eth0",
+      "journalctl": "Oct 10 12:34:56 server01 sshd[1234]: Accepted publickey for alice",
+      "ls": "-rw-r--r-- 1 user user  128 Oct 10 12:00 README.md\ndrwxr-xr-x 2 user user 4096 Oct 10 11:30 docs",
+      "lsblk": "NAME   SIZE FSTYPE MOUNTPOINTS\nsda    100G\n└─sda2  99G ext4   /",
+      "make": "cc -Wall -o app main.c\nBuild complete.",
+      "man": "LS(1)  User Commands  LS(1)\nNAME\n       ls - list directory contents",
+      "mkdir": "（成功時は何も表示されません）",
+      "mount": "/dev/sda2 on / type ext4 (rw,relatime)",
+      "mv": "（成功時は何も表示されません）",
+      "ninja": "[1/3] Building C object main.o\n[3/3] Linking target app",
+      "nmcli": "DEVICE  TYPE      STATE      CONNECTION\neth0    ethernet  connected  Wired connection 1",
+      "passwd": "New password:\nRetype new password:\npasswd: password updated successfully",
+      "pip": "Collecting requests\nInstalling collected packages: requests\nSuccessfully installed requests-2.32.3",
+      "pkg-config": "-I/usr/include/glib-2.0 -lglib-2.0",
+      "pwd": "/home/user/project",
+      "python3": "Hello, world!",
+      "read": "（入力待ちになります。入力値は自動表示されません）",
+      "reboot": "Broadcast message from root@server01\nThe system will reboot now!",
+      "rm": "（成功時は何も表示されません）",
+      "scp": "README.md  100%  128KB  1.2MB/s  00:00",
+      "sed": "new value\nsecond line",
+      "sha256sum": "d2a84f4b8b650937ec8f73cd8be2c74add5a911ba64df27458ed8229da804a26  file.iso",
+      "smbclient": "Sharename       Type      Comment\n---------       ----      -------\nshared          Disk      Shared files",
+      "source": "（読み込んだscriptが出力しなければ何も表示されません）",
+      "ss": "State  Recv-Q Send-Q Local Address:Port Peer Address:Port\nLISTEN 0      128    0.0.0.0:22       0.0.0.0:*",
+      "ssh": "Welcome to Ubuntu 24.04 LTS\nalice@server01:~$",
+      "ssh-keygen": "Your public key has been saved in /home/user/.ssh/id_ed25519.pub\nThe key fingerprint is: SHA256:example alice@host",
+      "sshd": "（-tで設定が正常なら何も表示されません）",
+      "stat": "  File: README.md\n  Size: 128        Blocks: 8          IO Block: 4096 regular file\nAccess: (0644/-rw-r--r--)",
+      "sudo": "[sudo] password for user:",
+      "systemctl": "● ssh.service - OpenBSD Secure Shell server\n     Loaded: loaded (/usr/lib/systemd/system/ssh.service; enabled)\n     Active: active (running)",
+      "tail": "Oct 10 12:34:54 request started\nOct 10 12:34:55 request completed",
+      "tailscale": "100.64.0.1  server01  user@  linux  active; direct",
+      "tee": "hello",
+      "testparm": "Load smb config files from /etc/samba/smb.conf\nLoaded services file OK.",
+      "type": "ls is aliased to 'ls --color=auto'",
+      "ufw": "Status: active\nTo                         Action      From\n22/tcp                     ALLOW       192.0.2.0/24",
+      "unalias": "（成功時は何も表示されません）",
+      "uname": "Linux server01 6.8.0-85-generic x86_64 GNU/Linux",
+      "uptime": "12:34:56 up 3 days,  2:15,  1 user,  load average: 0.15, 0.10, 0.08",
+      "usermod": "（成功時は何も表示されません）",
+      "venv": "（成功時は何も表示されません）",
+      "visudo": "/etc/sudoers: parsed OK",
+      "wc": "  42  120  860 README.md",
+      "which": "/usr/bin/python3",
+      "whoami": "user"
+    };
+
+    function outputExampleFor(command, token, description) {
+      const specific = tokenOutputExamples[`${command.name}|${token}`];
+      if (specific) return specific;
+
+      const shell = commandShellSamples[command.name];
+      const firstLine = shell.split("\n").find(line => line.trim()) || "（何も表示されません）";
+      return {
+        shell,
+        notes: [
+          [token, description],
+          [firstLine.trim(), command.output]
+        ]
+      };
+    }
+
     const argumentExampleOverrides = {
       "activate|source": "source .venv/bin/activate",
       "activate|.venv": "python3 -m venv .venv",
@@ -2315,7 +2434,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
           <div class="detail-content token-list">
             ${command.tokens.map(([token, description, tokenExample], tokenIndex) => {
               const itemExample = tokenExampleFor(command, token, tokenIndex, tokenExample);
-              const outputExample = tokenOutputExamples[`${command.name}|${token}`];
+              const outputExample = outputExampleFor(command, token, description);
               return `
               <details class="token-item">
                 <summary class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></summary>
@@ -2327,13 +2446,11 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
                     <details class="token-output-guide">
                       <summary>実行結果の読み方</summary>
                       <div class="token-output-guide-content">
-                        ${outputExample ? `
-                          <span class="token-shell-label">シェルに表示される例</span>
-                          <pre class="token-shell-output"><code>${escapeHtml(outputExample.shell)}</code></pre>
-                          <ul class="token-output-notes">
-                            ${outputExample.notes.map(([line, meaning]) => `<li><code>${escapeHtml(line)}</code>：${meaning}</li>`).join("")}
-                          </ul>
-                        ` : `<p>${command.output}</p>`}
+                        <span class="token-shell-label">シェルに表示される例</span>
+                        <pre class="token-shell-output"><code>${escapeHtml(outputExample.shell)}</code></pre>
+                        <ul class="token-output-notes">
+                          ${outputExample.notes.map(([line, meaning]) => `<li><code>${escapeHtml(line)}</code>：${meaning}</li>`).join("")}
+                        </ul>
                       </div>
                     </details>
                   </div>
