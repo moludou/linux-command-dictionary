@@ -453,6 +453,12 @@
 
     .token-example small { display: block; margin-top: 5px; color: var(--muted); }
 
+    .token-example-entry + .token-example-entry {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(32, 55, 69, .75);
+    }
+
     .example {
       margin: 9px 0;
       padding: 12px;
@@ -1975,17 +1981,19 @@
         <details open>
           <summary>引数・オプションを分解</summary>
           <div class="detail-content token-list">
-            ${command.tokens.map(([token, description, tokenExample]) => tokenExample ? `
+            ${command.tokens.map(([token, description, tokenExample]) => `
               <details class="token-item">
                 <summary class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></summary>
                 <div class="token-example">
-                  <span class="token-example-label">実行例</span>
-                  <code>$ ${escapeHtml(tokenExample[0])}</code>
-                  <small>${tokenExample[1]}</small>
+                  <span class="token-example-label">${tokenExample ? "この項目の実行例" : "関連する実行例"}</span>
+                  ${(tokenExample ? [tokenExample] : command.examples).map(([example, exampleDescription]) => `
+                    <div class="token-example-entry">
+                      <code>$ ${escapeHtml(example)}</code>
+                      <small>${exampleDescription}</small>
+                    </div>
+                  `).join("")}
                 </div>
               </details>
-            ` : `
-              <div class="token-row"><code>${escapeHtml(token)}</code><span>${description}</span></div>
             `).join("")}
           </div>
         </details>
