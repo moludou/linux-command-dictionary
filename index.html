@@ -1911,6 +1911,34 @@
       })
     );
 
+    const relatedCategoryGroups = {
+      "内部コマンド": ["activate", "deactivate"],
+      "Git": ["ssh", "ssh-keygen"],
+      "仮想環境": ["env", "pip", "python3", "source", "which"],
+      "セキュリティ": ["chage", "chmod", "passwd", "sha256sum", "ssh", "sshd", "sudo", "usermod", "visudo"],
+      "ユーザー": ["env", "export", "sudo", "visudo"],
+      "パッケージ": ["build", "install", "pip", "pkg-config"],
+      "テキスト": ["find", "git diff", "git log", "grep", "help", "history", "journalctl", "man"],
+      "ストレージ": ["cp", "find", "install", "ls", "mkdir", "mv", "rm", "stat"],
+      "Python": ["activate", "deactivate", "env", "source", "venv", "which"],
+      "ファイル": ["cat", "find", "grep", "ls", "pwd", "tail", "tee"],
+      "権限": ["aa-status", "adduser", "chage", "getent", "groupadd", "id", "ls", "passwd", "ssh-keygen", "stat", "usermod"],
+      "ビルド": ["build", "install", "pip", "python3"],
+      "システム": ["aa-status", "df", "hostname", "ip", "journalctl", "lsblk", "mount", "nmcli", "ss", "ufw", "visudo"],
+      "検索": ["command", "getent", "git log", "git status", "help", "journalctl", "ls", "man", "type"],
+      "ネットワーク": ["git clone", "git fetch", "git pull", "git push", "git remote", "hostnamectl", "journalctl", "systemctl", "ufw"],
+      "ログ": ["awk", "cat", "git log", "grep", "history", "sed", "sshd", "systemctl", "tail", "ufw"],
+      "ヘルプ": ["apt", "command", "git", "help", "ip", "nmcli", "pip", "systemctl", "type", "which"]
+    };
+
+    Object.entries(relatedCategoryGroups).forEach(([category, names]) => {
+      names.forEach(name => {
+        const command = commands.find(item => item.name === name);
+        if (!command || command.category === category) return;
+        command.relatedCategories = [...new Set([...(command.relatedCategories || []), category])];
+      });
+    });
+
     commands.sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
 
     const categories = [
