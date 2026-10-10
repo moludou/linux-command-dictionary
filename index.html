@@ -1432,6 +1432,16 @@
         related: ["command", "help"]
       }),
       historicalCommand({
+        name: "which", category: "検索", summary: "実行される外部コマンドの場所をPATHから探す",
+        keywords: "executable command path PATH locate binary virtual environment Python", syntax: "which [-a] コマンド名...",
+        tokens: [["コマンド名", "場所を調べるコマンドの名前です。複数指定できます。"], ["-a", "PATH内で見つかる同名の候補をすべて表示します。"], ["PATH", "実行ファイルを探すディレクトリと、その検索順序を保持する環境変数です。"], ["終了状態 0", "指定したコマンドがすべて見つかったことを表します。"], ["終了状態 1", "1つ以上のコマンドが見つからなかったことを表します。"]],
+        examples: [["which python", "現在優先されるPython実行ファイルの場所を確認"], ["which -a python3", "PATH内にあるpython3の候補をすべて表示"]],
+        changes: "PATHを検索して結果を表示するだけで、ファイルやshell環境は変更しません。",
+        caution: "主に外部実行ファイルを調べるコマンドです。alias・関数・内部コマンドを含むshellの実際の名前解決は type や command -V で確認します。",
+        output: "見つかると /usr/bin/python3 や /home/user/project/.venv/bin/python のようなパスを表示します。見つからない場合は通常何も表示せず、終了状態が0以外になります。",
+        related: ["type", "command", "venv", "activate"]
+      }),
+      historicalCommand({
         name: "unalias", category: "内部コマンド", summary: "現在のshellからalias定義を削除する",
         keywords: "shell builtin alias remove", risk: "change", riskLabel: "現在のshell内を変更",
         syntax: "unalias [-a] 名前...",
