@@ -373,7 +373,7 @@
 
     summary::-webkit-details-marker { display: none; }
     summary::after { color: var(--accent); content: "+"; font-size: 1.25rem; }
-    details[open] summary::after { content: "−"; }
+    details[open] > summary::after { content: "−"; }
 
     .detail-content {
       padding: 0 16px 16px;
@@ -452,6 +452,28 @@
     }
 
     .token-example small { display: block; margin-top: 5px; color: var(--muted); }
+
+    .token-output-guide {
+      margin: 10px 0 0;
+      border: 1px solid rgba(32, 55, 69, .9);
+      border-radius: 10px;
+      background: rgba(13, 25, 35, .72);
+    }
+
+    .token-output-guide > summary {
+      min-height: 42px;
+      padding: 0 10px;
+      color: #c2d2d1;
+      font-size: .78rem;
+    }
+
+    .token-output-guide-content {
+      padding: 0 10px 10px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .token-output-guide-content p { margin: 2px 0; }
 
     .token-example-entry + .token-example-entry {
       margin-top: 10px;
@@ -2255,6 +2277,10 @@
                   <div class="token-example-entry">
                     <code>$ ${escapeHtml(itemExample[0])}</code>
                     <small>${description}</small>
+                    <details class="token-output-guide">
+                      <summary>実行結果の読み方</summary>
+                      <div class="token-output-guide-content"><p>${command.output}</p></div>
+                    </details>
                   </div>
                 </div>
               </details>
