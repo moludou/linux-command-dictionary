@@ -943,13 +943,33 @@
     commands.push(
       historicalCommand({
         name: "aa-status", category: "セキュリティ", summary: "AppArmorの読み込み・適用状態を表示する",
-        keywords: "AppArmor profile enforce complain セキュリティ",
-        syntax: "sudo aa-status [オプション]",
-        tokens: [["aa-status", "AppArmor全体とプロファイルの状態を表示します。"], ["--enabled", "AppArmorが有効なら成功終了します。"], ["--profiled", "読み込まれたプロファイル数を表示します。"], ["--enforced", "強制モードのプロファイル数を表示します。"], ["--complaining", "記録だけ行うcomplainモードの数を表示します。"], ["--json", "対応版では結果をJSON形式で表示します。"]],
+        keywords: "AppArmor profile enforce complain kill prompt unconfined mixed セキュリティ",
+        syntax: "sudo aa-status [--show=対象] [--count] [--filter.項目=条件] [--json|--pretty-json]",
+        tokens: [
+          ["aa-status", "AppArmor全体を詳しく表示します。プロファイルはプログラムごとの許可・拒否ルールです。"],
+          ["--enabled", "AppArmorが有効なら終了状態0、無効なら0以外を返します。通常は結果文を表示しません。"],
+          ["--show=profiles", "読み込まれたプロファイルと、その動作モードを表示対象にします。"],
+          ["--show=processes", "AppArmorのプロファイルが関係する実行中プロセスを表示対象にします。"],
+          ["--count", "一覧の代わりに、選択・絞り込み後の件数だけを表示します。"],
+          ["--filter.mode=モード", "enforce・complain・kill・prompt・unconfined・mixedなど、指定した動作モードに絞ります。"],
+          ["--filter.profiles=条件", "プロファイル名を正規表現で絞ります。"],
+          ["--filter.pid=条件", "プロセスID（PID）を正規表現で絞ります。"],
+          ["--filter.exe=条件", "実行ファイルのパスを正規表現で絞ります。"],
+          ["--json", "結果をプログラムが読み取りやすい1行のJSON形式で表示します。"],
+          ["--pretty-json", "--jsonと同じ情報を、改行・字下げした読みやすいJSONで表示します。"],
+          ["--quiet", "エラーメッセージを抑制します。確認に必要な情報まで見落とさないよう注意します。"],
+          ["--profiled", "読み込まれたプロファイル総数だけを表示する旧形式の短縮指定です。"],
+          ["--enforced", "enforceモードのプロファイル数だけを表示します。違反操作は拒否され、記録されます。"],
+          ["--complaining", "complainモードのプロファイル数だけを表示します。違反操作は原則拒否せず、記録してルール作成に使います。"],
+          ["--kill", "killモードのプロファイル数だけを表示します。違反を検出すると対象へ終了用シグナルを送るモードです。"],
+          ["--prompt", "promptモードのプロファイル数だけを表示します。違反時の判断を、対応する利用者空間の確認機能へ委ねるモードです。"],
+          ["--special-unconfined", "unconfinedモードのプロファイル数だけを表示します。プロファイルは存在しますが、通常の強制制限を行わない特殊モードです。"],
+          ["--process-mixed", "mixed状態のプロセス数だけを表示します。同じプロセス階層内で、スレッドなどの適用状態が一様でないことを表します。"]
+        ],
         examples: [["sudo aa-status", "AppArmorの全体状態を確認"], ["aa-status --enabled", "AppArmorが有効か終了ステータスで確認"]],
         changes: "AppArmorの状態を読み取るだけで、プロファイルや設定は変更しません。",
-        caution: "サービスがactiveでも、個々のプロファイルがenforceとは限りません。両方を分けて確認します。",
-        output: "moduleの読込状態、profile総数、enforce・complain・unconfinedの内訳が表示されます。",
+        caution: "サービスがactiveでも、個々のプロファイルがenforceとは限りません。プロファイル一覧の読み取りにはroot権限が必要な環境があり、権限不足では終了状態4などで失敗します。promptは対応する利用者空間の確認機能も必要です。",
+        output: "moduleはAppArmorのカーネル機能、profileはプログラムごとの規則です。enforceは違反を拒否、complainは原則記録のみ、killは違反時に終了用シグナル、promptは利用者空間へ判断を委任、unconfinedは通常の強制制限なし、mixedはプロセス階層内の適用状態が一様でない状態を表します。",
         related: ["systemctl"]
       }),
       historicalCommand({
@@ -2056,6 +2076,25 @@
     };
 
     const tokenExampleOverrides = {
+      "aa-status|aa-status": "sudo aa-status",
+      "aa-status|--enabled": "sudo aa-status --enabled; echo $?",
+      "aa-status|--show=profiles": "sudo aa-status --show=profiles",
+      "aa-status|--show=processes": "sudo aa-status --show=processes",
+      "aa-status|--count": "sudo aa-status --show=profiles --count",
+      "aa-status|--filter.mode=モード": "sudo aa-status --show=profiles --filter.mode=enforce",
+      "aa-status|--filter.profiles=条件": "sudo aa-status --show=profiles --filter.profiles='^/usr/sbin/'",
+      "aa-status|--filter.pid=条件": "sudo aa-status --show=processes --filter.pid='^1234$'",
+      "aa-status|--filter.exe=条件": "sudo aa-status --show=processes --filter.exe='sshd'",
+      "aa-status|--json": "sudo aa-status --json",
+      "aa-status|--pretty-json": "sudo aa-status --pretty-json",
+      "aa-status|--quiet": "sudo aa-status --quiet",
+      "aa-status|--profiled": "sudo aa-status --profiled",
+      "aa-status|--enforced": "sudo aa-status --enforced",
+      "aa-status|--complaining": "sudo aa-status --complaining",
+      "aa-status|--kill": "sudo aa-status --kill",
+      "aa-status|--prompt": "sudo aa-status --prompt",
+      "aa-status|--special-unconfined": "sudo aa-status --special-unconfined",
+      "aa-status|--process-mixed": "sudo aa-status --process-mixed",
       "chmod|--reference=参照元": "chmod --reference=reference.txt target.txt",
       "cmake|--build DIR": "cmake --build build",
       "cmake|--target 名前": "cmake --build build --target test",
@@ -2090,6 +2129,83 @@
     };
 
     const tokenOutputExamples = {
+      "aa-status|aa-status": {
+        shell: `apparmor module is loaded.
+42 profiles are loaded.
+40 profiles are in enforce mode.
+1 profile is in complain mode.
+0 profiles are in kill mode.
+0 profiles are in prompt mode.
+1 profile is in special unconfined mode.`,
+        notes: [
+          ["apparmor module is loaded.", "AppArmorのカーネル側の機能が読み込まれています。"],
+          ["42 profiles are loaded.", "42個のプロファイル（プログラムごとの許可・拒否ルール）が読み込まれています。"],
+          ["enforce", "違反する操作を拒否し、その出来事をログへ記録します。"],
+          ["complain", "違反を原則拒否せずログへ記録し、プロファイル作成や調整に使います。"],
+          ["kill / prompt / special unconfined", "違反時に終了用シグナルを送る／利用者空間へ判断を委ねる／通常の強制制限を行わない、という別の状態です。"]
+        ]
+      },
+      "aa-status|--enabled": {
+        shell: `0`,
+        notes: [["0", "直前のaa-status --enabledが成功し、AppArmorが有効であることを示す終了状態です。コマンド自体は通常、文を表示しません。"]]
+      },
+      "aa-status|--show=profiles": {
+        shell: `42 profiles are loaded.
+   /usr/sbin/sshd (enforce)
+   /usr/bin/example (complain)`,
+        notes: [["profiles", "読み込まれた規則を一覧にします。括弧内は各プロファイルの動作モードです。"], ["(enforce)", "このプロファイルでは違反操作が拒否されます。"], ["(complain)", "このプロファイルでは違反を原則拒否せず記録します。"]]
+      },
+      "aa-status|--show=processes": {
+        shell: `5 processes have profiles defined.
+   /usr/sbin/sshd (1234) /usr/sbin/sshd`,
+        notes: [["5 processes", "AppArmorのプロファイルが関係する実行中プロセスが5件あります。"], ["1234", "プロセスを識別するPIDの例です。"]]
+      },
+      "aa-status|--count": {
+        shell: `42`,
+        notes: [["42", "--showや--filterで選ばれた項目の件数だけを表示します。この例はプロファイル数です。"]]
+      },
+      "aa-status|--filter.mode=モード": {
+        shell: `40 profiles are in enforce mode.`,
+        notes: [["enforce mode", "違反を拒否するモードだけに絞った結果です。modeにはcomplain・kill・unconfined・mixedなども指定できます。"]]
+      },
+      "aa-status|--filter.profiles=条件": {
+        shell: `/usr/sbin/sshd (enforce)
+/usr/sbin/cupsd (enforce)`,
+        notes: [["/usr/sbin/", "正規表現に一致した名前のプロファイルだけが残ります。"]]
+      },
+      "aa-status|--filter.pid=条件": {
+        shell: `/usr/sbin/sshd (1234) /usr/sbin/sshd`,
+        notes: [["1234", "指定したPIDの条件に一致したプロセスだけが表示されています。"]]
+      },
+      "aa-status|--filter.exe=条件": {
+        shell: `/usr/sbin/sshd (1234) /usr/sbin/sshd`,
+        notes: [["sshd", "実行ファイルのパスが指定した正規表現に一致したプロセスです。"]]
+      },
+      "aa-status|--json": {
+        shell: `{"profiles":{"/usr/sbin/sshd":"enforce","/usr/bin/example":"complain"},"processes":{}}`,
+        notes: [["profiles", "プロファイル名と動作モードを機械処理しやすい形で保持します。"], ["1行表示", "改行や字下げを抑えたJSONです。スクリプトやjqでの処理に向きます。"]]
+      },
+      "aa-status|--pretty-json": {
+        shell: `{
+  "profiles": {
+    "/usr/sbin/sshd": "enforce",
+    "/usr/bin/example": "complain"
+  },
+  "processes": {}
+}`,
+        notes: [["改行・字下げ", "--jsonと同じ種類の情報を、人が読みやすい形に整えています。"]]
+      },
+      "aa-status|--quiet": {
+        shell: `（エラーがなければ、指定した表示内容だけが出ます）`,
+        notes: [["--quiet", "主にエラーメッセージを抑えます。失敗そのものが成功へ変わるわけではないため、終了状態も確認します。"]]
+      },
+      "aa-status|--profiled": { shell: `42`, notes: [["42", "読み込まれた全プロファイル数です。旧形式では --count --show=profiles に相当します。"]] },
+      "aa-status|--enforced": { shell: `40`, notes: [["40", "違反操作を拒否して記録するenforceモードのプロファイル数です。"]] },
+      "aa-status|--complaining": { shell: `1`, notes: [["1", "違反を原則拒否せず記録するcomplainモードのプロファイル数です。"]] },
+      "aa-status|--kill": { shell: `0`, notes: [["0", "違反時に対象へ終了用シグナルを送るkillモードのプロファイルはありません。"]] },
+      "aa-status|--prompt": { shell: `0`, notes: [["0", "利用者空間の確認機能へ判断を委ねるpromptモードのプロファイルはありません。"]] },
+      "aa-status|--special-unconfined": { shell: `1`, notes: [["1", "プロファイルは存在するものの、通常の強制制限を行わないunconfinedモードが1件あります。"]] },
+      "aa-status|--process-mixed": { shell: `0`, notes: [["0", "同じプロセス階層内で適用状態が一様でないmixed状態のプロセスはありません。"]] },
       "git|status": {
         shell: `On branch main
 Changes not staged for commit:
