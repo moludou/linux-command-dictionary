@@ -1209,13 +1209,14 @@
       }),
       historicalCommand({
         name: "ssh", category: "ネットワーク", summary: "リモートホストへ暗号化して接続する",
-        keywords: "remote login secure shell port key Tailscale",
+        keywords: "remote login secure shell port key Tailscale 公開鍵 秘密鍵",
         risk: "change", riskLabel: "接続先での操作内容による", syntax: "ssh [オプション] [ユーザー@]ホスト [リモートコマンド]",
-        tokens: [["ユーザー@ホスト", "接続先のアカウント名とホスト名・IPです。"], ["-p ポート", "接続先SSHポートを指定します。"], ["-i 鍵ファイル", "認証に使う秘密鍵を指定します。"], ["-v", "接続処理の詳細を表示します。-vv、-vvvでさらに詳しくします。"], ["-T", "対話端末を割り当てません。データ転送や自動処理向けです。"], ["-L", "ローカルポート転送を設定します。"], ["-o 名前=値", "PreferredAuthenticationsなど個別設定を指定します。"], ["リモートコマンド", "ログインシェルの代わりに接続先で1コマンドを実行します。"]],
+        tokens: [["ユーザー@ホスト", "接続先のアカウント名とホスト名・IPです。"], ["-p ポート", "接続先SSHポートを指定します。"], ["-i 秘密鍵", "認証に使う秘密鍵を指定します。.pubの公開鍵ではありません。"], ["-v", "接続処理の詳細を表示します。-vv、-vvvでさらに詳しくします。"], ["-T", "対話端末を割り当てません。データ転送や自動処理向けです。"], ["-L", "ローカルポート転送を設定します。"], ["-o 名前=値", "PreferredAuthenticationsなど個別設定を指定します。"], ["リモートコマンド", "ログインシェルの代わりに接続先で1コマンドを実行します。"]],
         examples: [["ssh -p 4242 alice@127.0.0.1", "4242番でaliceとして接続"], ["ssh -v ubuntu-home", "SSH設定の別名へ詳細表示付きで接続"]],
         changes: "接続開始自体はローカル設定を変えません。接続先で実行したコマンドにより変更が起こります。",
         caution: "初回のホスト鍵は接続先の正当性を確認してから承認します。秘密鍵の内容は共有しません。",
-        output: "認証要求、警告、接続先のshell、または-v指定時の接続診断が表示されます。"
+        output: "認証要求、警告、接続先のshell、または-v指定時の接続診断が表示されます。",
+        related: ["ssh-keygen", "scp"]
       }),
       historicalCommand({
         name: "sudo", category: "権限", summary: "許可された1コマンドを別ユーザー権限で実行する",
@@ -1414,13 +1415,25 @@
       }),
       historicalCommand({
         name: "ssh-keygen", category: "セキュリティ", summary: "SSH鍵ペアと鍵の指紋を生成・管理する",
-        keywords: "private public key fingerprint ed25519 RSA", risk: "change", riskLabel: "鍵ファイルを作成・変更可能",
+        keywords: "private public key fingerprint ed25519 RSA 公開鍵 秘密鍵 鍵ペア 照合", risk: "change", riskLabel: "鍵ファイルを作成・変更可能",
         syntax: "ssh-keygen [オプション]",
-        tokens: [["-t ed25519", "生成する鍵方式をEd25519にします。"], ["-f パス", "読み書きする鍵ファイルを指定します。"], ["-C コメント", "公開鍵末尾の識別コメントを設定します。"], ["-l", "指定鍵の指紋を表示します。"], ["-y", "秘密鍵から対応する公開鍵だけを出力します。"], ["-p", "秘密鍵のパスフレーズを変更します。"], ["-R ホスト", "known_hostsから指定ホストの鍵を削除します。"]],
-        examples: [["ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519", "Ed25519鍵ペアを作成"], ["ssh-keygen -lf ~/.ssh/id_ed25519.pub", "公開鍵の指紋を表示"]],
+        tokens: [
+          ["-t ed25519", "Ed25519方式の鍵ペアを生成します。秘密鍵と、末尾が.pubの公開鍵が作られます。"],
+          ["-f パス", "生成・確認・変更する鍵ファイルのパスを指定します。"],
+          ["-C コメント", "公開鍵末尾の識別コメントを設定します。認証に使う鍵データそのものではありません。"],
+          ["秘密鍵（.pubなし）", "例は~/.ssh/id_ed25519です。本人だけが保持し、SSHの-iにはこちらを指定します。内容は表示・共有しません。"],
+          ["公開鍵（.pub）", "例は~/.ssh/id_ed25519.pubです。接続先のauthorized_keysへ登録する、共有可能な側です。"],
+          ["ls -l ~/.ssh", "鍵のファイル名と権限を確認します。秘密鍵は通常600（-rw-------）です。"],
+          ["file 鍵ファイル", "内容を表示せず、OpenSSH private keyまたはpublic keyと種類を判定します。"],
+          ["-l -f 鍵ファイル", "鍵の指紋を表示します。秘密鍵と公開鍵の指紋が同じなら、同じ鍵ペアです。"],
+          ["-y -f 秘密鍵", "秘密鍵から対応する公開鍵を標準出力へ導出します。秘密鍵ファイル自体は変更しません。"],
+          ["-p -f 秘密鍵", "秘密鍵のパスフレーズを変更します。鍵ファイルが更新されます。"],
+          ["-R ホスト", "known_hostsから接続先のホスト鍵を削除します。利用者認証用の公開鍵・秘密鍵とは別物です。"]
+        ],
+        examples: [["ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519", "Ed25519鍵ペアを作成"], ["ssh-keygen -lf ~/.ssh/id_ed25519", "秘密鍵の指紋を表示"], ["ssh-keygen -lf ~/.ssh/id_ed25519.pub", "公開鍵の指紋を表示し、秘密鍵側と一致するか確認"]],
         changes: "-l・-yは確認です。鍵生成、-p、-Rは鍵関連ファイルを作成・変更します。",
-        caution: "秘密鍵の内容は表示・共有しません。既存パスを指定すると上書き確認が出るため慎重に判断します。",
-        output: "生成先、指紋、randomart、または公開鍵が表示されます。",
+        caution: "秘密鍵の内容は表示・共有しません。catで秘密鍵を確認する必要はありません。既存パスを指定すると上書き確認が出るため慎重に判断します。ホスト鍵と利用者の認証鍵も区別します。",
+        output: "指紋は「256 SHA256:... コメント (ED25519)」の形です。秘密鍵と公開鍵にssh-keygen -lfを実行し、SHA256:以降が一致すれば同じ鍵ペアです。",
         related: ["ssh"]
       }),
       historicalCommand({
@@ -2076,6 +2089,18 @@
     };
 
     const tokenExampleOverrides = {
+      "ssh|-i 秘密鍵": "ssh -i ~/.ssh/id_ed25519 alice@example.com",
+      "ssh-keygen|-t ed25519": "ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519",
+      "ssh-keygen|-f パス": "ssh-keygen -lf ~/.ssh/id_ed25519.pub",
+      "ssh-keygen|-C コメント": "ssh-keygen -t ed25519 -C 'alice@laptop'",
+      "ssh-keygen|秘密鍵（.pubなし）": "ls -l ~/.ssh/id_ed25519",
+      "ssh-keygen|公開鍵（.pub）": "ls -l ~/.ssh/id_ed25519.pub",
+      "ssh-keygen|ls -l ~/.ssh": "ls -l ~/.ssh",
+      "ssh-keygen|file 鍵ファイル": "file ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub",
+      "ssh-keygen|-l -f 鍵ファイル": "ssh-keygen -lf ~/.ssh/id_ed25519; ssh-keygen -lf ~/.ssh/id_ed25519.pub",
+      "ssh-keygen|-y -f 秘密鍵": "ssh-keygen -y -f ~/.ssh/id_ed25519",
+      "ssh-keygen|-p -f 秘密鍵": "ssh-keygen -p -f ~/.ssh/id_ed25519",
+      "ssh-keygen|-R ホスト": "ssh-keygen -R server.example.com",
       "aa-status|aa-status": "sudo aa-status",
       "aa-status|--enabled": "sudo aa-status --enabled; echo $?",
       "aa-status|--show=profiles": "sudo aa-status --show=profiles",
@@ -2129,6 +2154,60 @@
     };
 
     const tokenOutputExamples = {
+      "ssh-keygen|-t ed25519": {
+        shell: `Your identification has been saved in /home/alice/.ssh/id_ed25519
+Your public key has been saved in /home/alice/.ssh/id_ed25519.pub
+The key fingerprint is:
+SHA256:AbCdEfExample alice@host`,
+        notes: [["identification", "本人だけが保持する秘密鍵の保存先です。"], ["public key", ".pubが付いた公開鍵の保存先です。"], ["fingerprint", "鍵を短く識別するSHA256指紋です。"]]
+      },
+      "ssh-keygen|-f パス": {
+        shell: `256 SHA256:AbCdEfExample alice@host (ED25519)`,
+        notes: [["-f", "この例では、確認対象の鍵ファイルを指定しています。"], ["ED25519", "鍵の方式です。"]]
+      },
+      "ssh-keygen|-C コメント": {
+        shell: `The key fingerprint is:
+SHA256:AbCdEfExample alice@laptop`,
+        notes: [["alice@laptop", "どの端末・利用者の鍵か見分けるためのコメントです。自由に変更でき、鍵の本人性を保証する値ではありません。"]]
+      },
+      "ssh-keygen|秘密鍵（.pubなし）": {
+        shell: `-rw------- 1 alice alice 399 Oct 11 14:41 /home/alice/.ssh/id_ed25519`,
+        notes: [["id_ed25519", ".pubが付かないため秘密鍵です。"], ["-rw-------", "所有者だけが読み書きできる600の権限です。"]]
+      },
+      "ssh-keygen|公開鍵（.pub）": {
+        shell: `-rw-r--r-- 1 alice alice 91 Oct 11 14:41 /home/alice/.ssh/id_ed25519.pub`,
+        notes: [["id_ed25519.pub", ".pubが付くため公開鍵です。"], ["-rw-r--r--", "一般的な644の例です。公開鍵は接続先へ登録できます。"]]
+      },
+      "ssh-keygen|ls -l ~/.ssh": {
+        shell: `-rw------- 1 alice alice 399 Oct 11 14:41 id_ed25519
+-rw-r--r-- 1 alice alice  91 Oct 11 14:41 id_ed25519.pub`,
+        notes: [[".pubなし", "秘密鍵です。外部へ送らず、権限600を保ちます。"], [".pubあり", "対応する公開鍵です。接続先へ登録するのはこちらです。"]]
+      },
+      "ssh-keygen|file 鍵ファイル": {
+        shell: `/home/alice/.ssh/id_ed25519:     OpenSSH private key
+/home/alice/.ssh/id_ed25519.pub: OpenSSH ED25519 public key`,
+        notes: [["OpenSSH private key", "秘密鍵と判定されています。内容を表示せず確認できます。"], ["OpenSSH ED25519 public key", "Ed25519の公開鍵と判定されています。"]]
+      },
+      "ssh-keygen|-l -f 鍵ファイル": {
+        shell: `256 SHA256:AbCdEfExample alice@host (ED25519)
+256 SHA256:AbCdEfExample alice@host (ED25519)`,
+        notes: [["同じSHA256指紋", "1行目が秘密鍵、2行目が公開鍵の結果です。SHA256:以降が同一なので、この2ファイルは同じ鍵ペアです。"], ["コメント", "末尾コメントが違っても、ペアの判定は指紋で行います。"]]
+      },
+      "ssh-keygen|-y -f 秘密鍵": {
+        shell: `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExample`,
+        notes: [["ssh-ed25519", "導出された公開鍵の方式です。"], ["AAAA...", "秘密鍵から得られた公開鍵本体です。秘密鍵の内容ではありません。"]]
+      },
+      "ssh-keygen|-p -f 秘密鍵": {
+        shell: `Enter old passphrase:
+Enter new passphrase (empty for no passphrase):
+Your identification has been saved with the new passphrase.`,
+        notes: [["old passphrase", "現在の秘密鍵を解除するパスフレーズです。"], ["new passphrase", "新しい保護用パスフレーズを設定します。画面には入力文字が表示されません。"]]
+      },
+      "ssh-keygen|-R ホスト": {
+        shell: `# Host server.example.com found: line 3
+/home/alice/.ssh/known_hosts updated.`,
+        notes: [["known_hosts updated", "接続先を識別するホスト鍵の記録を削除・更新しました。利用者の秘密鍵は削除していません。"]]
+      },
       "aa-status|aa-status": {
         shell: `apparmor module is loaded.
 42 profiles are loaded.
