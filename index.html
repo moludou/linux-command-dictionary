@@ -2405,18 +2405,124 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "whoami": "user"
     };
 
+    const commandOutputReadingGuides = {
+      "aa-status": [["profiles", "読み込まれたプロファイル数です。"], ["各mode", "enforceは拒否、complainは記録中心など、適用方法を表します。"]],
+      "activate": [["(.venv)", "prompt先頭の仮想環境名です。"], ["確認方法", "python3 -cやwhich python3で仮想環境内のPythonか確認します。"]],
+      "adduser": [["Adding user / group", "作成中のユーザー名と同名groupを示します。"], ["New password", "新規ユーザーのpassword入力待ちです。入力文字は表示されません。"]],
+      "alias": [["alias 名前=", "左が別名、引用符内が実際に展開されるcommandです。"], ["確認ポイント", "意図しないoptionが自動追加されないか右辺を確認します。"]],
+      "apt": [["Done", "一覧読込や依存関係計算が完了した段階です。"], ["upgraded / installed / remove", "更新・新規導入・削除される件数です。実行前に削除件数を確認します。"]],
+      "awk": [["各表示行", "条件に一致した入力行から、指定した列や計算結果が出力されています。"], ["空の結果", "一致行がないか、指定列が存在しない可能性があります。"]],
+      "blkid": [["UUID", "filesystemを安定して識別するIDです。"], ["TYPE / PARTUUID", "filesystem種類とpartition自体のIDで、UUIDとは用途が異なります。"]],
+      "build": [["Building wheel", "配布用wheelの生成処理中です。"], ["Successfully built", "生成成功と成果物名です。install済みという意味ではありません。"]],
+      "cat": [["各行", "指定ファイルの内容が保存順に表示されています。"], ["複数file", "fileごとの見出しは付かず、指定順に連続表示されます。"]],
+      "cd": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "pwdで移動後の絶対pathを確認します。"]],
+      "chage": [["Last password change", "最後にpasswordを変更した日です。"], ["Password expires", "現在の規則から計算されたpassword期限日です。"]],
+      "chmod": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "stat -c '%A %a %n' 対象 で文字形式と8進数の権限を確認します。"]],
+      "cmake": [["compiler identification", "検出したcompilerとversionです。"], ["Build files ...", "生成されたbuild用fileの保存先で、compile完了ではありません。"]],
+      "command": [["/usr/bin/ls", "shellが実行候補として解決した実体pathです。"], ["空の結果", "見つからない場合は終了状態も確認します。"]],
+      "cp": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "ls -lやcmpでコピー先の存在・属性・内容を確認します。"]],
+      "crontab": [["0 3 * * *", "分・時・日・月・曜日の順で、この例は毎日03:00です。"], ["末尾path", "その時刻に実行されるcommandまたはscriptです。"]],
+      "deactivate": [["promptから(.venv)が消える", "仮想環境が無効になった目印です。"], ["確認方法", "VIRTUAL_ENVが未設定になり、python3の解決先が元へ戻ったか確認します。"]],
+      "df": [["Size / Used / Avail", "filesystemの総量・使用量・利用可能量です。"], ["Use% / Mounted on", "使用率と、そのfilesystemが見えるmount先です。"]],
+      "dpkg": [["ii", "希望状態も現在状態もinstalledであることを表します。"], ["version / architecture", "導入版とCPU architectureです。"]],
+      "env": [["名前=値", "左が環境変数名、右がそのshellから渡される値です。"], ["PATH", ":で区切られ、左側のdirectoryからcommandを検索します。"]],
+      "exit": [["表示なし", "通常はmessageを出さずshellや接続が終了します。"], ["終了状態", "指定した数値は呼出元へ渡され、0は成功、0以外は失敗を表す慣例です。"]],
+      "export": [["declare -x", "子processへ引き継がれる環境変数であることを示します。"], ["名前=値", "引用符内が現在値です。秘密情報を含む変数は共有しません。"]],
+      "find": [["./", "検索開始地点からの相対pathです。"], ["各行", "検索条件に一致した対象が1件ずつ表示されます。何もなければ通常は空です。"]],
+      "findmnt": [["TARGET / SOURCE", "mount先と、その元device・filesystemです。"], ["FSTYPE / OPTIONS", "filesystem種類とrw・roなどのmount optionです。"]],
+      "free": [["total / used / free", "総memory、使用中、完全に未使用の量です。"], ["buff/cache / available", "cache量と、新規処理に実質利用できる推定量です。通常はavailableを重視します。"]],
+      "g++": [["表示なし", "compile成功時は通常何も表示されません。"], ["確認方法", "終了状態と、-oで指定した実行fileの存在を確認します。warningやerrorがあればその行を読みます。"]],
+      "gcc": [["表示なし", "compile成功時は通常何も表示されません。"], ["確認方法", "終了状態と出力fileを確認し、warningとerrorを区別します。"]],
+      "getent": [["alice", "検索に一致したaccount名です。"], ["UID:GID:home:shell", "数値ID、主group、home directory、login shellが:区切りで並びます。"]],
+      "git": [["On branch main", "現在checkoutしているbranchです。"], ["working tree clean", "追跡対象に未commitの変更がない状態です。未追跡除外設定までは保証しません。"]],
+      "git add": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "git diff --cachedでstageされた内容を必ず確認します。"]],
+      "git branch": [["* main", "*が現在のbranchを示します。"], ["その他の行", "localに存在する別branchです。remote branchは-rで確認します。"]],
+      "git clone": [["Cloning into", "作成されるlocal directory名です。"], ["100% ... done", "object取得完了です。checkout結果と接続先は別途確認します。"]],
+      "git commit": [["[main a1b2c3d]", "commit先branchと短縮commit IDです。"], ["insertions / deletions", "記録された追加・削除行数です。push済みとは限りません。"]],
+      "git config": [["user.name / user.email", "commitへ記録される作者情報の設定例です。"], ["確認ポイント", "--show-originで値の設定fileと優先順位も確認できます。"]],
+      "git diff": [["--- / +++", "変更前fileと変更後fileを示します。"], ["- / +", "-は削除行、+は追加行です。見出しの---・+++とは区別します。"]],
+      "git fetch": [["From", "取得元repositoryです。"], ["main -> origin/main", "remote追跡branchが更新されました。作業branchへの統合はまだです。"]],
+      "git init": [["Initialized ...", "repository管理用.git directoryを作成したpathです。"], ["確認ポイント", "既存directoryで実行した場合、作業file自体は自動commitされません。"]],
+      "git log": [["a1b2c3d", "commitを識別する短縮hashです。"], ["後続文字列", "commit messageの先頭です。新しい履歴から並びます。"]],
+      "git merge": [["Fast-forward", "分岐を新しいcommitまで直線的に進めた統合です。"], ["file | 2 ++", "変更fileと行数概要です。conflictが出た場合は完了していません。"]],
+      "git pull": [["Updating old..new", "localがどのcommit範囲へ更新されたかを示します。"], ["Fast-forward", "merge commitを作らず履歴を前進できたことを示します。"]],
+      "git push": [["To ...", "送信先remote repositoryです。"], ["main -> main", "local mainからremote mainへ更新されました。他のworktreeは別途pullが必要です。"]],
+      "git remote": [["origin", "remoteの登録名です。"], ["fetch / push", "取得用と送信用URLです。異なる場合があるため両方確認します。"]],
+      "git restore": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "git statusとgit diffで、意図した範囲だけ戻ったか確認します。"]],
+      "git stash": [["Saved working directory", "作業treeとindexの退避が作成されました。"], ["WIP on main", "退避元branchと基準commitです。git stash listで残存を確認します。"]],
+      "git status": [["On branch", "現在のbranchです。"], ["modified / staged / untracked", "変更済み・stage済み・未追跡を区別して次の操作を判断します。"]],
+      "git switch": [["Switched to branch", "切替後のbranchです。"], ["up to date with", "対応するremote追跡branchとの差がない状態です。"]],
+      "git tag": [["各行", "repositoryに存在するtag名です。"], ["確認ポイント", "一覧だけではtagが指すcommitやremote送信済みかは分かりません。"]],
+      "grep": [["app.log:42", "一致したfile名と行番号です。optionにより省略されます。"], ["ERROR ...", "検索文字列に一致した実際の行内容です。"]],
+      "groupadd": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "getent group group名でGIDとmemberを確認します。"]],
+      "help": [["cd: cd ...", "内部commandの名前と書式です。[]は省略可能部分を示します。"], ["説明行", "動作や引数の意味です。shell種類により内容が異なります。"]],
+      "history": [["101", "shell履歴内の通し番号です。"], ["後続command", "過去に記録された入力です。passwordなどが残っていないか注意します。"]],
+      "hostname": [["server01", "現在のhost名です。network上のDNS名と常に同じとは限りません。"], ["確認ポイント", "SSH操作時は操作元・接続先を取り違えないようpromptやhostnameで確認します。"]],
+      "hostnamectl": [["Static hostname", "保存され再起動後も使われるhost名です。"], ["Operating System / Kernel", "OS名称と動作中kernel versionです。"]],
+      "id": [["uid / gid", "user IDと主group IDです。"], ["groups", "所属する補助group一覧で、sudoなどの権限判断に関係します。"]],
+      "install": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "ls -lまたはstatで作成先、mode、ownerを確認します。"]],
+      "ip": [["2: eth0", "interface番号と名前です。"], ["UP / LOWER_UP / inet", "管理上有効・物理link有効・割り当てIPv4 addressを示します。"]],
+      "journalctl": [["Oct 10 12:34:56", "logが記録された日時です。"], ["sshd[1234] / Accepted publickey", "service・PIDと、公開鍵認証が成功したevent内容です。"]],
+      "ls": [["先頭1文字", "-は通常file、dはdirectoryです。"], ["rwx・owner・group・size・日時・名前", "権限、所有者、group、byte数、更新日時、file名の順です。"]],
+      "lsblk": [["NAME / SIZE", "block device名と容量です。tree記号は親子関係を表します。"], ["FSTYPE / MOUNTPOINTS", "filesystem種類と現在のmount先です。device名だけで同一性を断定しません。"]],
+      "make": [["cc -Wall ...", "makeが実際に起動したcompile commandです。"], ["Build complete", "ruleが最後まで成功した例です。生成物の存在も確認します。"]],
+      "man": [["LS(1)", "manual名とsection番号です。1は一般user commandです。"], ["NAME", "command名と短い役割です。/で検索しqで終了します。"]],
+      "mkdir": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "ls -ld 対象でdirectoryの存在・owner・権限を確認します。"]],
+      "mount": [["/dev/sda2 on /", "mount元deviceとmount先です。"], ["type ext4 (rw,...)", "filesystem種類と、rwなど現在のmount optionです。"]],
+      "mv": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "移動元が消え、移動先に目的の名前・内容で存在するか確認します。"]],
+      "ninja": [["[1/3]", "全3工程中の1工程目という進捗です。"], ["Building / Linking", "compile中かlink中かを示します。最後まで到達しても成果物を確認します。"]],
+      "nmcli": [["DEVICE / TYPE", "interface名と種類です。"], ["STATE / CONNECTION", "接続状態と適用中のconnection profile名です。"]],
+      "passwd": [["New / Retype", "新しいpasswordと確認入力の待受です。文字は画面表示されません。"], ["updated successfully", "password更新成功です。対象userを取り違えていないか確認します。"]],
+      "pip": [["Collecting", "packageと依存関係を取得対象として調査中です。"], ["Successfully installed", "実際に導入されたpackage名とversionです。実行したPython環境も確認します。"]],
+      "pkg-config": [["-I", "compilerへ渡すheader検索directoryです。"], ["-l", "link対象library名です。flagをshellへそのまま渡す用途があります。"]],
+      "pwd": [["/home/user/project", "現在いるdirectoryの絶対pathです。"], ["確認ポイント", "似た名前のrepositoryやhostを取り違えていないか確認します。"]],
+      "python3": [["標準出力", "scriptや-cでprintされた内容です。"], ["error時", "Tracebackの最下行に例外種類とmessage、上側に発生箇所が並びます。"]],
+      "read": [["入力待ち", "shellが標準入力から値を受け取るまで停止しています。"], ["確認ポイント", "-sでは入力が非表示です。終了状態や変数を後続commandで確認します。"]],
+      "reboot": [["Broadcast message", "login中の利用者へ再起動通知が送られています。"], ["接続終了", "SSHなどは切断され、同じshellでは完了確認できません。再接続後にuptime等で確認します。"]],
+      "rm": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "削除対象が存在しないことを確認します。通常は元へ戻せないため実行前確認が中心です。"]],
+      "scp": [["README.md", "転送中のfile名です。"], ["100% / size / speed / time", "進捗率、転送量、速度、所要時間です。転送先のhashやsizeも確認します。"]],
+      "sed": [["各行", "置換・抽出などの処理後文字列が標準出力へ出ています。"], ["-iなし", "画面に変換結果が出ても元fileは変更されません。"]],
+      "sha256sum": [["64桁hash", "file内容から計算されたSHA-256値です。"], ["file名 / OK / FAILED", "対象名と照合結果です。一致は同一byte列を意味します。"]],
+      "smbclient": [["Sharename / Type", "公開されている共有名とDisk等の種類です。"], ["Comment", "管理者が設定した説明で、接続権限の有無とは別です。"]],
+      "source": [["表示なし", "読込script自身が出力しなければ通常は何も表示されません。"], ["確認方法", "対象変数・alias・functionが現在のshellで変わったか個別に確認します。"]],
+      "ss": [["State", "LISTENは待受、ESTABは接続成立中です。"], ["Local Address:Port / Peer", "local側と相手側のaddress・portです。0.0.0.0は全IPv4 interfaceを表します。"]],
+      "ssh": [["Welcome ...", "接続先が出したlogin messageです。"], ["alice@server01", "接続後のuser名とhost名です。操作先を必ず確認します。"]],
+      "ssh-keygen": [["public key ... .pub", "公開鍵の保存先です。.pubなしの秘密鍵とは区別します。"], ["SHA256 fingerprint", "鍵を内容表示せず識別・照合する指紋です。"]],
+      "sshd": [["表示なし", "sshd -tで設定構文が正常なら通常何も表示されません。"], ["error時", "file名や行番号、無効な設定項目が表示されます。修正後に再検査します。"]],
+      "stat": [["Size / Blocks / IO Block", "byte数、割当block数、I/O単位です。"], ["Access (0644/-rw-r--r--)", "8進数と文字形式の権限です。時刻のAccessとは文脈で区別します。"]],
+      "sudo": [["[sudo] password for user", "現在のuser本人を確認するpassword入力です。root passwordとは限りません。"], ["入力非表示", "入力中は文字や*が表示されなくても正常です。後続出力は実行commandのものです。"]],
+      "systemctl": [["Loaded", "unit fileの読込状態とenable設定です。"], ["Active", "現在の稼働状態です。activeでも機能確認やlog確認が必要な場合があります。"]],
+      "tail": [["日時", "各log eventが記録された時刻です。"], ["後続message", "対象fileの末尾行です。-fでは追記が来るたび表示され、Ctrl+Cで終了します。"]],
+      "tailscale": [["100.64.0.1 / server01", "Tailscale IPと端末名です。"], ["active; direct", "現在通信可能で、relayではなく直接経路を使う例です。"]],
+      "tee": [["hello", "標準入力が画面へ複製された内容です。同じ内容が指定fileにも書かれます。"], ["確認ポイント", "-aなしは上書き、-aありは追記です。file側も確認します。"]],
+      "testparm": [["Load smb config files", "読み取ったSamba設定fileです。"], ["Loaded services file OK", "構文検査成功です。実際の認証・network接続成功までは保証しません。"]],
+      "type": [["is aliased to", "command名がaliasとして解決されることを示します。"], ["後続引用符", "実行時に展開される実体です。builtin・function・fileの場合は別の表現になります。"]],
+      "ufw": [["Status: active", "UFWが有効です。kernel側の全rule検証とは別です。"], ["To / Action / From", "宛先port、ALLOW・DENY、許可元address範囲です。"]],
+      "unalias": [["表示なし", "削除成功時は通常何も表示されません。"], ["確認方法", "type 名前またはalias 名前で、別名が残っていないか確認します。"]],
+      "uname": [["Linux / server01", "kernel名とhost名です。"], ["6.8... / x86_64 / GNU/Linux", "kernel release、machine architecture、OS系統です。"]],
+      "uptime": [["up 3 days", "最後の起動からの連続稼働時間です。"], ["load average", "直近1・5・15分の実行待ち負荷です。CPU使用率そのものではありません。"]],
+      "usermod": [["表示なし", "成功時は通常何も表示されません。"], ["確認方法", "id、getent passwd、getent groupで変更後のaccount・group状態を確認します。"]],
+      "venv": [["表示なし", "仮想環境作成成功時は通常何も表示されません。"], ["確認方法", "対象directory内のbin/pythonとpyvenv.cfgを確認し、activate後にPython解決先を確認します。"]],
+      "visudo": [["parsed OK", "sudoersの構文検査に成功しています。権限設計が適切という保証とは別です。"], ["file path", "検査したsudoers fileです。include fileも必要に応じて確認します。"]],
+      "wc": [["42 / 120 / 860", "行数・単語数・byte数の順です。指定optionにより列は変わります。"], ["README.md", "集計対象file名です。複数指定時はtotal行が加わります。"]],
+      "which": [["/usr/bin/python3", "PATH検索で最初に見つかった実行fileです。aliasやshell functionは正確に扱えない場合があります。"], ["空の結果", "見つからない場合は終了状態1です。typeやcommand -vも使い分けます。"]],
+      "whoami": [["user", "現在のprocessが実効userとして動作している名前です。"], ["確認ポイント", "sudoやSSH後に想定したuserか確認します。"]]
+    };
+
     function outputExampleFor(command, token, description) {
       const specific = tokenOutputExamples[`${command.name}|${token}`];
-      if (specific) return specific;
-
-      const shell = commandShellSamples[command.name];
-      const firstLine = shell.split("\n").find(line => line.trim()) || "（何も表示されません）";
+      const shell = specific?.shell || commandShellSamples[command.name];
+      const existingNotes = specific?.notes || [];
+      const readingGuide = commandOutputReadingGuides[command.name] || [];
+      const contextualNotes = [
+        ["この指定で変わる点", `${token}：${description}`],
+        ...readingGuide,
+        ["最終確認", command.output]
+      ];
+      const noteKeys = new Set(existingNotes.map(([line]) => line));
       return {
         shell,
-        notes: [
-          [token, description],
-          [firstLine.trim(), command.output]
-        ]
+        notes: [...existingNotes, ...contextualNotes.filter(([line]) => !noteKeys.has(line))]
       };
     }
 
@@ -2671,7 +2777,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
                     <details class="token-output-guide">
                       <summary>実行結果の読み方</summary>
                       <div class="token-output-guide-content">
-                        <span class="token-shell-label">シェルに表示される例</span>
+                        <span class="token-shell-label">シェルに表示される例（値や件数は環境により変わります）</span>
                         <pre class="token-shell-output"><code>${escapeHtml(outputExample.shell)}</code></pre>
                         <ul class="token-output-notes">
                           ${outputExample.notes.map(([line, meaning]) => `<li><code>${escapeHtml(line)}</code>：${meaning}</li>`).join("")}
