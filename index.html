@@ -1212,7 +1212,7 @@
         keywords: "remote login secure shell port key Tailscale 公開鍵 秘密鍵",
         risk: "change", riskLabel: "接続先での操作内容による", syntax: "ssh [オプション] [ユーザー@]ホスト [リモートコマンド]",
         tokens: [["ユーザー@ホスト", "接続先のアカウント名とホスト名・IPです。"], ["-p ポート", "接続先SSHポートを指定します。"], ["-i 秘密鍵", "認証に使う秘密鍵を指定します。.pubの公開鍵ではありません。"], ["-v", "接続処理の詳細を表示します。-vv、-vvvでさらに詳しくします。"], ["-T", "対話端末を割り当てません。データ転送や自動処理向けです。"], ["-L", "ローカルポート転送を設定します。"], ["-o 名前=値", "PreferredAuthenticationsなど個別設定を指定します。"], ["リモートコマンド", "ログインシェルの代わりに接続先で1コマンドを実行します。"]],
-        examples: [["ssh -p 4242 alice@127.0.0.1", "4242番でaliceとして接続"], ["ssh -v ubuntu-home", "SSH設定の別名へ詳細表示付きで接続"]],
+        examples: [["ssh ubuntu-home", "SSH設定に登録したubuntu-homeへ接続"], ["ssh -p 4242 alice@127.0.0.1", "4242番でaliceとして接続"], ["ssh -v ubuntu-home", "SSH設定の別名へ詳細表示付きで接続"]],
         changes: "接続開始自体はローカル設定を変えません。接続先で実行したコマンドにより変更が起こります。",
         caution: "初回のホスト鍵は接続先の正当性を確認してから承認します。秘密鍵の内容は共有しません。",
         output: "認証要求、警告、接続先のshell、または-v指定時の接続診断が表示されます。",
@@ -1484,11 +1484,11 @@
         name: "command", category: "内部コマンド", summary: "関数やaliasの影響を避けてコマンドを実行・確認する",
         keywords: "shell builtin lookup execute alias function", syntax: "command [オプション] 名前 [引数...]",
         tokens: [["名前", "検索または実行するコマンド名です。"], ["-v", "実行されるコマンドの名前やパスを表示します。"], ["-V", "種類を含む詳しい説明を表示します。"], ["-p", "標準的なPATHを使って外部コマンドを探します。"], ["--", "以降をオプションではなくコマンド名として扱います。"]],
-        examples: [["command -V cd", "cdが内部コマンドか詳しく確認"], ["command ls -l", "同名shell関数を避けてlsを実行"]],
+        examples: [["command -v codex", "codexがPATHから見つかるか確認"], ["command -V cd", "cdが内部コマンドか詳しく確認"], ["command ls -l", "同名shell関数を避けてlsを実行"]],
         changes: "-v・-Vは確認のみです。実行時の変更範囲は後ろのコマンドで決まります。",
         caution: "commandはsudoの代わりではなく、権限を高めません。shell内の名前解決を制御します。",
         output: "確認時はパス、alias定義、builtinなど名前の解決結果が表示されます。",
-        related: ["type"]
+        related: ["type", "which", "codex"]
       }),
       historicalCommand({
         name: "exit", category: "内部コマンド", summary: "現在のshellまたはSSHセッションを終了する",
@@ -1764,6 +1764,158 @@
         caution: "apt install、pip install、make installとは別のコマンドです。システム領域へ配置する前にコピー先と既存ファイルを確認します。",
         output: "成功時は通常何も表示しません。-vを付けると作成・配置した対象が表示されます。",
         related: ["cp", "mkdir", "chmod"]
+      })
+    );
+
+    commands.push(
+      historicalCommand({
+        name: "codex", category: "開発", relatedCategories: ["ネットワーク"], summary: "Codex CLIを起動・認証・診断する",
+        keywords: "OpenAI ChatGPT CLI terminal AI install login device auth version doctor SSH remote",
+        risk: "change", riskLabel: "操作内容によりファイルや認証情報を変更",
+        syntax: "codex [グローバルオプション] [サブコマンド] [引数]",
+        tokens: [
+          ["codex", "対話形式のCodex画面を現在のディレクトリで起動します。"],
+          ["--version", "導入されているCodex CLIのバージョンを表示して終了します。"],
+          ["--help", "利用できるオプションとサブコマンドの説明を表示します。"],
+          ["login", "ChatGPT OAuthなどを使ってCodex CLIへ認証します。"],
+          ["login --device-auth", "ブラウザを直接開きにくいSSH・ヘッドレス環境向けに、URLと一時コードを使って認証します。"],
+          ["login status", "保存済みの認証があるかと、現在の認証方式を表示します。認証済みなら終了状態0です。"],
+          ["logout", "端末に保存されているChatGPT認証またはAPIキー認証の資格情報を削除します。"],
+          ["doctor", "インストール、設定、認証、実行環境、Git、端末などの診断レポートを生成します。"],
+          ["exec 指示", "対話画面を開かず、指定した作業を実行します。自動処理向けです。"],
+          ["resume", "以前の対話セッションを選んで再開します。"],
+          ["update", "対応しているインストール形式では、更新を確認して適用します。"]
+        ],
+        examples: [
+          ["codex --version", "インストール後にCLIのバージョンを確認"],
+          ["codex login --device-auth", "SSH先のUbuntuからデバイスコード認証を開始"],
+          ["codex login status", "現在のログイン状態を確認"],
+          ["codex doctor", "接続や認証で問題があるときに診断情報を表示"]
+        ],
+        changes: "--version・--help・login statusは確認のみです。loginは認証情報を保存し、logoutは保存済み認証を削除します。対話操作・exec・updateの変更範囲は指示や更新内容で変わります。",
+        caution: "Codexは許可された範囲でファイル編集やコマンド実行を行えます。作業ディレクトリ、権限設定、表示される確認内容を見てから承認します。認証ファイルや一時コードは共有しません。",
+        output: "--versionはバージョン、loginは認証手順、login statusは認証方式、doctorは項目別の診断結果を表示します。引数なしでは対話画面が開きます。",
+        related: ["curl", "ssh", "command", "exec"]
+      }),
+      historicalCommand({
+        name: "curl", category: "ネットワーク", summary: "URLを指定してデータを送受信する",
+        keywords: "URL HTTP HTTPS download upload installer redirect pipe web",
+        risk: "change", riskLabel: "保存先や組み合わせにより変更",
+        syntax: "curl [オプション] URL",
+        tokens: [
+          ["URL", "取得・送信する相手のWebアドレスです。HTTPSでは通信が暗号化されます。"],
+          ["-f / --fail", "HTTP 400番台・500番台を成功扱いせず、エラー終了にします。"],
+          ["-s / --silent", "進行状況や通常のエラー表示を抑えます。"],
+          ["-S / --show-error", "-sと併用したときも、失敗理由は表示します。"],
+          ["-L / --location", "転送先を示すHTTPリダイレクトに追従します。"],
+          ["-o ファイル", "受信内容を指定した名前のファイルへ保存します。"],
+          ["-O / --remote-name", "URL末尾の名前を使って現在のディレクトリへ保存します。"],
+          ["-I / --head", "本文を取得せず、HTTPヘッダーだけを表示します。"],
+          ["|", "左側の標準出力を右側のコマンドの標準入力へ渡すshell演算子です。curlのオプションではありません。"],
+          ["sh", "curlの出力を | sh へ渡すと、取得したスクリプトを直ちに実行します。"]
+        ],
+        examples: [
+          ["curl -fsSL https://chatgpt.com/codex/install.sh | sh", "OpenAI公式スクリプトでCodex CLIをインストールまたは更新"],
+          ["curl -fsSL https://chatgpt.com/codex/install.sh -o /tmp/codex-install.sh", "スクリプトを実行せず一時ファイルへ保存"],
+          ["curl -I https://example.com", "本文を取らずHTTP応答ヘッダーを確認"]
+        ],
+        changes: "画面へ表示するだけなら通常ファイルは変更しません。-o・-Oはファイルを作成または上書きします。| shでは取得したスクリプトの内容に従ってシステムやユーザー環境が変更されます。",
+        caution: "curlの取得結果をそのままshへ渡す操作は、内容を確認する前に実行します。配布元のURLとHTTPS証明書を確認し、信頼できないスクリプトには使いません。必要なら-oで保存し、内容を確認してから実行します。",
+        output: "既定では取得した本文を標準出力へ表示します。-o・-Oではファイルへ保存し、-IではHTTP状態やヘッダーを表示します。-fsSLでは成功時の表示が少ない場合があります。",
+        related: ["sh", "codex", "wget"]
+      }),
+      historicalCommand({
+        name: "exec", category: "内部コマンド", summary: "現在のshellを別のコマンドで置き換える",
+        keywords: "shell builtin replace process login reload zsh bash",
+        risk: "change", riskLabel: "現在のshellプロセスを置換",
+        syntax: "exec [オプション] コマンド [引数...]",
+        tokens: [
+          ["exec", "新しい子プロセスを増やさず、現在のshellプロセスを指定コマンドへ置き換えます。"],
+          ["コマンド", "現在のshellの代わりに実行するプログラムです。終了すると元のshellへは戻りません。"],
+          ["zsh", "Z shellを起動します。exec zshとすると現在のshellが新しいzshへ置き換わります。"],
+          ["-l", "execではなく後ろのzshへ渡すオプションで、ログインshellとして起動します。"],
+          ["-a 名前", "実行するコマンドへ渡すargv[0]の名前を指定します。shellにより対応状況が異なります。"]
+        ],
+        examples: [
+          ["exec zsh -l", "現在のshellを新しいzshログインshellへ置き換え、ログイン設定を読み直す"],
+          ["exec bash -l", "現在のshellをBashログインshellへ置き換える"]
+        ],
+        changes: "ファイルを直接変更しませんが、現在のshellプロセス、変数、関数、alias、実行中の対話状態が新しいコマンドへ置き換わります。",
+        caution: "置換後は元のshellへ戻れません。未保存のshell変数やジョブを確認します。単に設定ファイルだけを反映したい場合はsourceも検討します。",
+        output: "exec自体の成功メッセージは通常ありません。置き換え先のコマンドやshellの画面・プロンプトへ切り替わります。",
+        related: ["zsh", "source", "exit"]
+      }),
+      historicalCommand({
+        name: "sh", category: "シェル", summary: "POSIX系のshellとしてコマンドやスクリプトを実行する",
+        keywords: "shell script standard input pipe dash bash interpreter",
+        risk: "change", riskLabel: "実行するスクリプト内容による",
+        syntax: "sh [オプション] [スクリプト [引数...]]",
+        tokens: [
+          ["sh", "システムの標準的なshellを起動します。Ubuntuでは通常/bin/shがdashを指します。"],
+          ["スクリプト", "読み込んで実行するshellスクリプトのファイルです。"],
+          ["-c 文字列", "引数の文字列をshellコマンドとして実行します。"],
+          ["-n", "コマンドを実行せず、構文を読み取って検査します。"],
+          ["-x", "展開後のコマンドを表示しながら実行します。秘密値が表示される場合があります。"],
+          ["標準入力", "スクリプト名を省略すると、パイプやキーボードから受け取った内容を実行します。"]
+        ],
+        examples: [
+          ["sh script.sh", "script.shをshで実行"],
+          ["sh -n script.sh", "実行せず構文だけを確認"],
+          ["curl -fsSL https://chatgpt.com/codex/install.sh | sh", "curlが取得した公式インストールスクリプトを標準入力から実行"]
+        ],
+        changes: "sh自体よりも、渡したコマンドやスクリプトの内容が変更を決めます。インストールスクリプトはファイルの配置やshell設定の更新を行う場合があります。",
+        caution: "標準入力やスクリプトの内容を実行するコマンドです。出所が不明な内容を渡しません。-xはtokenやパスワードなども表示し得るため、認証処理には安易に使いません。",
+        output: "実行したスクリプトの標準出力と標準エラーが表示されます。成功時に何も表示しない処理もあります。",
+        related: ["curl", "zsh", "source"]
+      }),
+      historicalCommand({
+        name: "zsh", category: "シェル", relatedCategories: ["内部コマンド"], summary: "Z shellを起動して対話操作やスクリプトを実行する",
+        keywords: "Z shell login interactive startup zshrc zprofile PATH",
+        risk: "change", riskLabel: "shell環境や実行内容による",
+        syntax: "zsh [オプション] [スクリプト [引数...]]",
+        tokens: [
+          ["zsh", "Z shellの新しいプロセスを起動します。引数なしでは通常、対話shellになります。"],
+          ["-l", "ログインshellとして起動し、ログイン時の設定ファイルを読み込みます。"],
+          ["-i", "対話shellとして起動します。"],
+          ["-c 文字列", "文字列をzshコマンドとして実行して終了します。"],
+          ["-f", "通常のユーザー設定ファイルを読み込まずに起動します。設定問題の切り分けに使えます。"],
+          ["~/.zshrc", "主に対話shellで読み込まれるユーザー設定ファイルです。"],
+          ["~/.zprofile", "主にログインshellで読み込まれるユーザー設定ファイルです。"]
+        ],
+        examples: [
+          ["exec zsh -l", "現在のshellをzshログインshellへ置き換えてPATHなどを読み直す"],
+          ["zsh -f", "ユーザー設定を避けて最小構成のzshを起動"],
+          ["zsh -c 'command -v codex'", "新しいzshでcodexの検索結果を確認"]
+        ],
+        changes: "起動だけでは通常ファイルを変更しません。新しいshell内の変数、PATH、aliasなどは読み込んだ設定に従って変わります。実行したコマンドによってはファイルも変更されます。",
+        caution: "-lはログイン用設定も読みます。設定ファイルに誤りがあるとPATHやpromptが変わるため、問題時はzsh -fで切り分けます。execと組み合わせると元のshellへは戻りません。",
+        output: "対話起動ではプロンプトが表示されます。-cでは指定コマンドの結果を表示して終了します。設定エラーがあれば起動時にファイル名や行番号が表示されます。",
+        related: ["exec", "sh", "source", "command"]
+      }),
+      historicalCommand({
+        name: "wget", category: "ネットワーク", summary: "URLからファイルをダウンロードする",
+        keywords: "URL HTTP HTTPS download recursive resume output curl",
+        risk: "change", riskLabel: "ファイルを作成・上書き",
+        syntax: "wget [オプション] URL",
+        tokens: [
+          ["URL", "ダウンロードするファイルやページのWebアドレスです。"],
+          ["-O ファイル", "保存先の名前を指定します。-O -なら標準出力へ送ります。"],
+          ["-c / --continue", "途中まで保存されたファイルがあれば、対応するサーバーから続きを取得します。"],
+          ["-q / --quiet", "通常の進行状況を表示しません。エラーも見えにくくなるため注意します。"],
+          ["-S / --server-response", "HTTPサーバーから返されたヘッダーを表示します。"],
+          ["--spider", "本文を保存せず、URLへ到達できるかを確認します。"],
+          ["-P ディレクトリ", "ダウンロードしたファイルを置くディレクトリを指定します。"],
+          ["--limit-rate=速度", "ダウンロード速度の上限を指定します。例：1m。"]
+        ],
+        examples: [
+          ["wget https://example.com/file.tar.gz", "URL末尾の名前で現在のディレクトリへ保存"],
+          ["wget -O /tmp/codex-install.sh https://chatgpt.com/codex/install.sh", "Codexインストーラーを実行せず一時ファイルへ保存"],
+          ["wget --spider https://example.com", "ページを保存せず到達可能か確認"]
+        ],
+        changes: "通常は現在のディレクトリへファイルを作成します。-Oで既存ファイルを指定すると上書きする場合があります。--spiderは本文を保存しません。",
+        caution: "同名ファイル、保存先、空き容量を確認します。ダウンロードしたスクリプトは出所と内容を確認するまで実行しません。再帰取得オプションは多数のファイルを保存し得ます。",
+        output: "接続先、HTTP応答、保存名、サイズ、進行状況、転送速度などが表示されます。-qでは通常表示を抑えます。",
+        related: ["curl", "sh"]
       })
     );
 
