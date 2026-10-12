@@ -610,7 +610,7 @@
     <section class="command-list" id="commandList" aria-live="polite">
       <div class="empty" id="staticFallback">
         <strong style="color: var(--text)">内部コマンド</strong><br>
-        alias / cd / command / env / exit / export / help / history / pwd / read / source / type / unalias
+        alias / cd / command / echo / env / exit / export / help / history / pwd / read / source / type / unalias
         <br><small>この表示のまま操作できない場合は、スマホのファイルプレビューがJavaScriptを制限しています。HTMLをSafariまたはChromeで開いてください。</small>
       </div>
     </section>
@@ -1501,6 +1501,22 @@
         output: "通常は何も表示せず、親shellへ戻るかターミナル接続が終了します。"
       }),
       historicalCommand({
+        name: "echo", category: "内部コマンド", summary: "文字列やPATHなどのshell変数の値を表示する",
+        keywords: "shell builtin print variable environment PATH パス 確認 検索順序 コロン 1行ずつ", syntax: "echo [オプション] [文字列 ...]",
+        tokens: [
+          ["文字列", "指定した文字列を標準出力へ表示します。", ["echo hello", "helloという文字列を表示"]],
+          ["$変数名", "$を付けると、shellが変数を現在の値へ展開してからechoへ渡します。", ["echo \"$USER\"", "現在のUSER変数の値を表示"]],
+          ["$PATH", "外部コマンドを探すディレクトリ一覧です。:で区切られ、左から右の順に検索されます。", ["echo \"$PATH\"", "現在のPATH全体を確認"]],
+          ["| tr ':' '\\n'", "PATHの区切り文字:を改行へ置き換え、検索対象を優先順に1行ずつ表示します。", ["echo \"$PATH\" | tr ':' '\\n'", "PATHを左から検索される順に1行ずつ表示"]],
+          ["-n", "出力末尾の改行を付けません。", ["echo -n '続けて表示'", "改行せず文字列を表示"]]
+        ],
+        examples: [["echo \"$PATH\"", "現在のPATHを:区切りのまま表示"], ["echo \"$PATH\" | tr ':' '\\n'", "PATHを検索順に1行ずつ表示"], ["which python3", "PATHの先頭から検索し、実際に採用されるpython3を確認"], ["which -a python3", "PATH内で見つかるpython3の候補をすべて表示"]],
+        changes: "値を読み取って表示するだけで、PATHやファイル、shell設定は変更しません。",
+        caution: "変数名は大文字・小文字を区別します。PATH以外の変数には秘密情報が入る場合があるため、出力を共有する前に内容を確認します。値を安全に1行表示する用途では printf '%s\\n' \"$PATH\" も使えます。",
+        output: "echo \"$PATH\"では:区切りの一覧が表示されます。左端が最初に検索されます。trを組み合わせると、同じ順序のまま1ディレクトリずつ改行して表示されます。",
+        related: ["which", "env", "export", "type"]
+      }),
+      historicalCommand({
         name: "export", category: "内部コマンド", summary: "shell変数を子プロセスへ渡す環境変数にする",
         keywords: "shell builtin environment variable PATH", risk: "change", riskLabel: "現在のshell環境を変更",
         syntax: "export [オプション] [名前[=値] ...]",
@@ -2205,7 +2221,7 @@
       "build": ["python3 -m build", "."], "cat": ["cat", "file.txt"], "cd": ["cd", "/var/log"],
       "chage": ["sudo chage", "alice"], "chmod": ["chmod", "755 project"], "cmake": ["cmake", "."],
       "command": ["command", "ls"], "cp": ["cp", "source.txt backup.txt"], "crontab": ["crontab", ""],
-      "df": ["df", "/"], "dpkg": ["sudo dpkg", ""], "env": ["env", "DEBUG=1 printenv DEBUG"],
+      "df": ["df", "/"], "dpkg": ["sudo dpkg", ""], "echo": ["echo", "\"$PATH\""], "env": ["env", "DEBUG=1 printenv DEBUG"],
       "export": ["export", ""], "find": ["find .", ""], "findmnt": ["findmnt", "/"],
       "free": ["free", ""], "g++": ["g++", "main.cpp"], "gcc": ["gcc", "main.c"],
       "getent": ["getent", "passwd"], "git add": ["git add", "README.md"], "git branch": ["git branch", ""],
@@ -2306,6 +2322,16 @@
     };
 
     const tokenOutputExamples = {
+      "echo|$PATH": {
+        shell: `/usr/local/bin:/usr/bin:/bin`,
+        notes: [["各 : の間", "PATHへ登録された1つのdirectoryです。"], ["左から右", "同名commandがある場合、通常は左側で先に見つかったものが使われます。"]]
+      },
+      "echo|| tr ':' '\\n'": {
+        shell: `/usr/local/bin
+/usr/bin
+/bin`,
+        notes: [["1行目", "最初に検索されるdirectoryです。"], ["2行目以降", "上から下へ順番に検索されます。"]]
+      },
       "ssh-keygen|-t ed25519": {
         shell: `Your identification has been saved in /home/alice/.ssh/id_ed25519
 Your public key has been saved in /home/alice/.ssh/id_ed25519.pub
@@ -2473,6 +2499,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "deactivate": "（何も表示されません）\nuser@host:~/project$",
       "df": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda2       100G   42G   53G  45% /",
       "dpkg": "ii  bash  5.2.21-2ubuntu4  amd64  GNU Bourne Again SHell",
+      "echo": "/usr/local/bin:/usr/bin:/bin",
       "env": "USER=user\nHOME=/home/user\nPATH=/usr/local/bin:/usr/bin:/bin",
       "exit": "（通常は何も表示されず、shellまたは接続が終了します）",
       "export": "declare -x HOME=\"/home/user\"\ndeclare -x PATH=\"/usr/local/bin:/usr/bin:/bin\"",
@@ -2577,6 +2604,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "deactivate": [["promptから(.venv)が消える", "仮想環境が無効になった目印です。"], ["確認方法", "VIRTUAL_ENVが未設定になり、python3の解決先が元へ戻ったか確認します。"]],
       "df": [["Size / Used / Avail", "filesystemの総量・使用量・利用可能量です。"], ["Use% / Mounted on", "使用率と、そのfilesystemが見えるmount先です。"]],
       "dpkg": [["ii", "希望状態も現在状態もinstalledであることを表します。"], ["version / architecture", "導入版とCPU architectureです。"]],
+      "echo": [["各 : の間", "PATHへ登録されたdirectoryです。"], ["左から右", "外部commandを探す優先順位です。最初に見つかった実行fileが使われます。"]],
       "env": [["名前=値", "左が環境変数名、右がそのshellから渡される値です。"], ["PATH", ":で区切られ、左側のdirectoryからcommandを検索します。"]],
       "exit": [["表示なし", "通常はmessageを出さずshellや接続が終了します。"], ["終了状態", "指定した数値は呼出元へ渡され、0は成功、0以外は失敗を表す慣例です。"]],
       "export": [["declare -x", "子processへ引き継がれる環境変数であることを示します。"], ["名前=値", "引用符内が現在値です。秘密情報を含む変数は共有しません。"]],
