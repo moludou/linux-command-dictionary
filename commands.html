@@ -2152,6 +2152,68 @@
     commands.find(command => command.name === "git fetch").related.push("git restore --source");
     commands.find(command => command.name === "cd").related.push("pwd", "code", "git restore --source");
 
+    const uvEntries = [
+      {name: "uv", summary: "Pythonのパッケージ・仮想環境・プロジェクトを管理する外部コマンド", syntax: "uv [オプション] サブコマンド",
+        tokens: [["uv", "Astralが開発する外部ツール。Pythonの構文や標準搭載のコマンドではありません。"], ["--version", "uv自体のバージョンを表示します。", "uv --version"], ["--help", "使えるサブコマンドとオプションを表示します。", "uv --help"]],
+        examples: [["command -v uv", "シェルがuvを見つけられるか確認"], ["uv --version", "インストール済みのバージョンを確認"], ["uv --help", "ヘルプを読む"]],
+        changes: "ここに示した確認コマンドはプロジェクトを変更しません。uvはサブコマンドによって、ファイル作成・パッケージ取得・プログラム実行も行います。",
+        caution: "command not found: uvは、未インストールまたはPATHから見つからない状態です。公式の導入手順とcommand -v uvで確認します。",
+        output: "uv --versionはuvとバージョン番号を表示します。番号は環境により変わります。", risk: "safe", riskLabel: "ヘルプ・バージョン確認",
+        lesson: [
+          {title: "1. pip・venvとの関係", text: "pipはパッケージのインストール、python3 -m venvは仮想環境の作成に使います。uvはこれらに相当する機能と、プロジェクトの依存関係管理をまとめて提供します。uvそのものはPythonとは別に導入する道具です。", code: "uv --version\nuv --help"},
+          {title: "2. 新しい練習用プロジェクトで試す", text: "未使用のフォルダー名で作成し、その中で実行します。pandasを追加すると設定・ロックファイル・環境が更新されます。最後のコマンドはpandasが読み込めることを確かめます。", code: "uv init uv-practice\ncd uv-practice\nuv add pandas\nuv run python -c \"import pandas as pd; print(pd.__version__)\""},
+          {title: "3. ファイルの役割", text: "pyproject.tomlはプロジェクト情報と必要な依存関係、uv.lockは解決した具体的なバージョン、.venvは実際に動かす仮想環境です。.python-versionは使うPythonの指定です。uv.lockは通常Gitで共有し、.venvは各端末で作ります。", code: "pyproject.toml  # 設定と依存関係\nuv.lock         # 解決済みバージョン\n.venv/          # 実行環境\n.python-version # Pythonの指定"},
+          {title: "4. uv addとuv pip installを区別する", text: "uv管理のプロジェクトへ継続して依存関係を追加するならuv addを使います。uv pip installは環境へ直接インストールする操作で、プロジェクトの依存関係やロックファイルを自動更新しません。", code: "# uvプロジェクトで依存関係として登録\nuv add pandas\n\n# 別の、仮想環境を手動管理する作業の例\nuv venv\nuv pip install pandas"}
+        ]},
+      {name: "uv init", summary: "Pythonプロジェクトの設定とひな型を作成する", syntax: "uv init [フォルダー名]",
+        tokens: [["フォルダー名", "新しく作るプロジェクトの場所。省略時は現在地です。", "uv init uv-practice"], ["--help", "作成モードなどの詳細を確認します。", "uv init --help"]],
+        examples: [["uv init uv-practice", "新しい練習用フォルダーに作成"], ["cd uv-practice", "作成したプロジェクトへ移動"]],
+        changes: "pyproject.tomlなどのひな型を作成します。構成や設定によってGitリポジトリも初期化されます。生成ファイルはuvのバージョン・作成モードで異なります。",
+        caution: "既存のpyproject.tomlがある場所では初期化済みとしてエラーになる場合があります。既存プロジェクトを使うときは、まず設定を確認します。",
+        output: "作成したプロジェクト名や場所が表示されます。initだけでpandasが入るわけではありません。"},
+      {name: "uv venv", summary: "Pythonの仮想環境を作成する", syntax: "uv venv [環境のパス]",
+        tokens: [["環境のパス", "省略すると.venvに作成します。", "uv venv"], ["--python 3.12", "使用するPythonを指定します。設定により未導入のPythonを取得することがあります。", "uv venv --python 3.12"]],
+        examples: [["uv venv", "現在地に.venvを作成"], ["source .venv/bin/activate", "Mac・Linuxのbash/zshで環境を有効化"], ["python --version", "有効化したPythonを確認"]],
+        changes: "仮想環境のディレクトリを作成します。シェルの有効化やプロジェクト設定の作成は別の操作です。",
+        caution: "既存の環境がある場合は、内容を確認してから実行します。uv runを使うプロジェクト操作では、通常手動のactivateは不要です。",
+        output: "使用したPythonや作成先が表示されます。エラー例：要求したPythonが見つからず、取得もできない場合は作成できません。"},
+      {name: "uv add", summary: "パッケージをプロジェクトの依存関係に追加する", syntax: "uv add パッケージ名",
+        tokens: [["パッケージ名", "必要なパッケージを指定します。", "uv add pandas"], ["--dev", "開発用の依存関係に追加します。", "uv add --dev pytest"]],
+        examples: [["uv add pandas", "pandasを依存関係として登録・インストール"], ["uv run python -c \"import pandas as pd; print(pd.__version__)\"", "プロジェクト環境で読み込みを確認"]],
+        changes: "通常はpyproject.toml・uv.lock・プロジェクト環境を更新し、必要なパッケージを取得します。",
+        caution: "エラー例：プロジェクトが見つからない場合は現在地を確認します。新規作成が目的ならuv initを先に実行します。名前やPythonバージョンの条件が合わないと依存関係を解決できないこともあります。",
+        output: "解決・取得・インストールしたパッケージの情報が表示されます。キャッシュや環境の状態により表示は変わります。"},
+      {name: "uv run", summary: "Python環境を整えてスクリプトやコマンドを実行する", syntax: "uv run [オプション] コマンド [引数...]",
+        tokens: [["python main.py", "Pythonでファイルを実行します。main.pyは自分で用意します。", "uv run python main.py"], ["--locked", "ロックファイルの更新が必要ならエラーにします。環境の同期と実行は行います。", "uv run --locked python main.py"]],
+        examples: [["uv run python --version", "実行環境のPythonを確認"], ["uv run python -c \"print('Hello, uv!')\"", "短いコードを実行。Hello, uv!と表示される"], ["uv run python main.py", "用意したmain.pyを実行"]],
+        changes: "プロジェクト内では通常、ロックファイルと環境を必要に応じて更新してからコマンドを実行します。実行するプログラム自身もファイルを変更し得ます。",
+        caution: "エラー例：main.pyが存在しなければファイルを開けません。pwdとlsで場所・名前を確認します。uv runは単なる閲覧コマンドではありません。",
+        output: "環境準備のメッセージと、実行したプログラムの出力が表示されます。プロジェクト外や単独スクリプトでは環境の扱いが異なります。"},
+      {name: "uv sync", summary: "プロジェクトの依存関係に仮想環境を合わせる", syntax: "uv sync [オプション]",
+        tokens: [["指定なし", "通常はロック情報を確認・更新して環境を同期します。", "uv sync"], ["--locked", "既存のロック情報の更新が必要ならエラーにします。", "uv sync --locked"], ["--inexact", "必要なものを追加し、余分なパッケージは削除せず残します。", "uv sync --inexact"]],
+        examples: [["uv sync", "プロジェクトの環境を作成・更新"], ["uv sync --locked", "ロックファイルを変更せず同期。不整合時はエラー"]],
+        changes: "通常はuv.lockを必要に応じて更新し、.venv内のパッケージを同期します。既定では同期対象にないパッケージを削除することがあります。",
+        caution: "--lockedで失敗したらpyproject.tomlとuv.lockの整合を確認します。uv pip installで直接入れたパッケージも、依存関係に記録されていなければ通常のsyncで削除されることがあります。",
+        output: "解決・インストール・削除・確認したパッケージの情報が表示されます。GitHubのファイルを取得するコマンドではありません。"},
+      {name: "uv pip install", summary: "指定環境へパッケージを直接インストールする", syntax: "uv pip install [オプション] パッケージ名",
+        tokens: [["パッケージ名", "環境にインストールするパッケージです。", "uv pip install pandas"], ["-r ファイル", "requirements.txtなどの一覧からインストールします。", "uv pip install -r requirements.txt"]],
+        examples: [["uv venv", "手動管理用の仮想環境を用意"], ["uv pip install pandas", "仮想環境にpandasを追加"], [".venv/bin/python -c \"import pandas as pd; print(pd.__version__)\"", "Mac・Linuxでその環境から読み込みを確認"]],
+        changes: "選択された環境のパッケージを変更します。pyproject.tomlやuv.lockへの依存関係登録は行いません。",
+        caution: "エラー例：仮想環境が見つからない場合はuv venvなどで用意します。有効化済みの環境があれば、その環境が対象になる場合もあるため現在の環境を確認してください。",
+        output: "解決やインストール結果が表示されます。uv管理のプロジェクトに依存関係を記録したい場合はuv addを使用します。"}
+    ];
+    for (const item of uvEntries) {
+      const command = historicalCommand({ ...item, category: "Python", relatedCategories: ["仮想環境", "開発", "パッケージ"],
+        keywords: `${item.name} Astral Python pip venv pandas uv.lock pyproject.toml 仮想環境 依存関係 パッケージ エラー`,
+        risk: item.risk || "change", riskLabel: item.riskLabel || "環境・ファイルを変更",
+        related: ["uv", "uv init", "uv venv", "uv add", "uv run", "uv sync", "uv pip install", "pip", "venv"].filter(name => name !== item.name)
+      });
+      if (item.lesson) { command.lesson = item.lesson; command.lessonTitle = "uvの基本と使い分け"; }
+      command.sources = [["uv公式：プロジェクト", "https://docs.astral.sh/uv/guides/projects/"], ["uv公式：仮想環境", "https://docs.astral.sh/uv/pip/environments/"], ["uv公式：同期", "https://docs.astral.sh/uv/concepts/projects/sync/"], ["uv公式：インストール", "https://docs.astral.sh/uv/getting-started/installation/"]];
+      commands.push(command);
+    }
+    for (const name of ["pip", "venv", "python3"]) commands.find(command => command.name === name).related.push("uv");
+
     const relatedCategoryGroups = {
       "内部コマンド": ["activate", "deactivate"],
       "Git": ["ssh", "ssh-keygen"],
@@ -2520,6 +2582,13 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
     };
 
     const commandShellSamples = {
+      "uv": "uv x.y.z（バージョン番号は環境により変わります）",
+      "uv init": "（プロジェクト名と作成先が表示されます）",
+      "uv venv": "（使用するPythonと仮想環境の作成先が表示されます）",
+      "uv add": "（依存関係の解決・インストール結果が表示されます）",
+      "uv run": "Hello, uv!（短いprintの実行例。コマンドにより結果は異なります）",
+      "uv sync": "（環境の同期結果が表示されます）",
+      "uv pip install": "（対象環境へのインストール結果が表示されます）",
       "code": "（VS Codeで指定したフォルダーが開きます）",
       "git restore --source": "（成功時は通常何も表示されません）\n$ echo $?\n0",
       "aa-status": "apparmor module is loaded.\n42 profiles are loaded.\n40 profiles are in enforce mode.",
@@ -2985,7 +3054,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
         </div>
 
         ${command.lesson ? `<details open>
-          <summary>実際の操作から学ぶ：フォルダーを指定して取得</summary>
+          <summary>${escapeHtml(command.lessonTitle || "実際の操作から学ぶ：フォルダーを指定して取得")}</summary>
           <div class="detail-content">
             ${command.lesson.map(step => `<section><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.text)}</p><pre class="token-shell-output"><code>${escapeHtml(step.code)}</code></pre></section>`).join("")}
           </div>
