@@ -1,10 +1,15 @@
-const CACHE_NAME = "linux-command-dictionary-v20-uv";
+const CACHE_NAME = "linux-command-dictionary-v21-mac";
 const APP_FILES = [
   "./",
   "./index.html",
   "./commands.html",
   "./hub.css",
   "./hub.js",
+  "./mac/",
+  "./mac/index.html",
+  "./mac/styles.css",
+  "./mac/data.js",
+  "./mac/app.js",
   "./python/",
   "./python/index.html",
   "./python/styles.css",

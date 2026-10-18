@@ -1,7 +1,7 @@
 {
   "name": "コードとコマンドの辞典",
   "short_name": "コード辞典",
-  "description": "スマホで引ける、コマンド・Python・Cの日本語辞典",
+  "description": "スマホで引ける、コマンド・Mac・Python・Cの日本語辞典",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
