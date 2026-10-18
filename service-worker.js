@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v22-typing-lessons";
+const CACHE_NAME = "linux-command-dictionary-v23-global-search";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -12,10 +12,13 @@ const APP_FILES = [
   "./mac/app.js",
   "./python/",
   "./python/index.html",
-  "./python/styles.css",
-  "./python/app.js",
+  "./python/styles.css?v=23",
+  "./python/app.js?v=23",
   "./python/module-catalog.js",
-  "./python/api-lessons.js",
+  "./python/api-lessons.js?v=23",
+  "./python/core-lessons.js?v=23",
+  "./python/csv-lessons.js?v=23",
+  "./python/search.js?v=23",
   "./python/legal.html",
   "./c/",
   "./c/index.html",

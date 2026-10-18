@@ -439,7 +439,34 @@ function saveFavorites() {
 }
 
 function normalize(value) {
-  return value.toLocaleLowerCase("ja").replace(/[()._\s]/g, "");
+  return window.PYTHON_SEARCH.normalize(value);
+}
+
+const searchRecords = [
+  ...entries.map(entry=>({kind:'entry',id:entry.id,title:entry.title,summary:entry.summary,text:JSON.stringify(entry)})),
+  ...moduleCatalog.modules.flatMap(module=>[
+    {kind:'module',module:module.name,title:module.name,summary:module.summary,text:`${module.name} ${module.summary}`},
+    ...module.api.map(item=>{
+      const title=`${module.name}.${item.name}`;
+      const lesson=window.PYTHON_API_LESSONS?.[title];
+      return {kind:'api',module:module.name,name:item.name,title,summary:lesson?.summary || item.summary || '解説を整備中の項目',text:`${title} ${JSON.stringify(item)} ${lesson ? JSON.stringify(lesson) : ''}`};
+    })
+  ])
+];
+let searchLimit = 60;
+let searchResults = [];
+function renderGlobalSearch() {
+  const active = !!state.query.trim();
+  document.querySelector('#globalSearchResults').hidden = !active;
+  document.querySelector('#modules').hidden = active;
+  document.querySelector('#learningTitle').closest('section').hidden = active;
+  document.querySelector('#resultTitle').closest('section').hidden = active;
+  if (!active) return;
+  searchResults = window.PYTHON_SEARCH.find(searchRecords,state.query);
+  const shown=searchResults.slice(0,searchLimit);
+  document.querySelector('#globalSearchCount').textContent = `${searchResults.length}件中 ${shown.length}件を表示（モジュール・関数・クラス・入門記事を横断検索）`;
+  document.querySelector('#globalSearchGrid').innerHTML = shown.map((record,index)=>`<button class="module-card" type="button" data-search-index="${index}"><span class="module-source">${record.kind==='module'?'モジュール':record.kind==='entry'?'入門記事':'関数・クラス・定数'}</span><h3>${escapeHTML(record.title)}</h3><p>${escapeHTML(record.summary)}</p></button>`).join('') || '<p>一致する項目がありません。名前の一部や用途の言葉で検索してください。</p>';
+  document.querySelector('#moreSearchResults').hidden = searchResults.length <= shown.length;
 }
 
 function escapeHTML(value) {
@@ -459,7 +486,7 @@ function visibleEntries() {
     const guide = learningGuides[entry.id];
     const guideText = guide ? `${guide.flow.join(" ")} ${guide.tests.join(" ")} ${guide.note}` : "";
     const haystack = normalize(`${entry.title} ${entry.category} ${entry.path} ${entry.summary} ${entry.keywords} ${entry.errorOutput} ${guideText}`);
-    return categoryMatch && favoriteMatch && (!query || haystack.includes(query));
+    return categoryMatch && favoriteMatch && (!query || window.PYTHON_SEARCH.matches(haystack, query));
   });
 }
 
@@ -480,6 +507,7 @@ function renderEntries() {
   elements.emptyState.hidden = visible.length !== 0;
   elements.resultGrid.hidden = visible.length === 0;
   elements.resultTitle.textContent = state.favoritesOnly ? "お気に入り" : state.query ? `「${state.query}」の検索結果` : state.category === "all" ? "実行例・エラー例つき学習辞書" : state.category;
+  renderGlobalSearch();
 }
 
 function visibleModules() {
@@ -488,7 +516,7 @@ function visibleModules() {
     const categoryMatch = state.moduleCategory === "all" || module.category === state.moduleCategory || module.source === state.moduleCategory;
     const apiNames = query ? module.api.map((item) => item.name).join(" ") : "";
     const haystack = normalize(`${module.name} ${module.source} ${module.category} ${module.summary} ${apiNames}`);
-    return categoryMatch && (!query || haystack.includes(query));
+    return categoryMatch && (!query || window.PYTHON_SEARCH.matches(haystack, query));
   });
 }
 
@@ -528,13 +556,13 @@ function renderApiItems() {
   const visible = state.currentModule.api.filter((item) => {
     const kindMatch = state.apiKind === "all" || item.kind === state.apiKind;
     const lesson = window.PYTHON_API_LESSONS?.[`${state.currentModule.name}.${item.name}`];
-    const textMatch = !query || normalize(`${item.name} ${item.signature} ${item.summary} ${lesson ? JSON.stringify(lesson) : ""}`).includes(query);
+    const textMatch = !query || window.PYTHON_SEARCH.matches(`${state.currentModule.name}.${item.name} ${item.signature} ${item.summary} ${lesson ? JSON.stringify(lesson) : ""}`,query);
     return kindMatch && textMatch;
   });
   elements.apiList.innerHTML = visible.map((item) => {
     const lesson = window.PYTHON_API_LESSONS?.[`${state.currentModule.name}.${item.name}`];
     return `
-    <details class="api-item">
+    <details class="api-item" data-api-name="${escapeHTML(item.name)}">
       <summary>
         <span class="api-item-name"><span class="api-kind">${apiKindLabels[item.kind]}</span>${escapeHTML(item.name)}</span>
       </summary>
@@ -546,6 +574,7 @@ function renderApiItems() {
           <p class="api-summary">${escapeHTML(lesson.explanation)}</p>
           <h4>実行例</h4><pre class="api-signature">${escapeHTML(lesson.code)}</pre>
           <h4>実行結果</h4><pre class="api-signature">${escapeHTML(lesson.output)}</pre>
+          ${lesson.errorCode ? `<h4>エラーになる例</h4><pre class="api-signature">${escapeHTML(lesson.errorCode)}</pre><h4>エラーの種類</h4><pre class="api-signature">${escapeHTML(lesson.errorType)}</pre><h4>直した例</h4><pre class="api-signature">${escapeHTML(lesson.fixCode)}</pre>` : ''}
           <h4>間違いやすい点・エラーと対処</h4><p class="api-summary">${escapeHTML(lesson.caution)}</p>
         ` : `
           <p class="lesson-status pending">索引のみ · 日本語学習解説は未掲載</p>
@@ -589,6 +618,7 @@ function closeModule() {
 
 function scrollToModules() {
   closeDrawer();
+  state.query='';elements.searchInput.value='';renderGlobalSearch();
   document.querySelector("#modules").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -704,17 +734,34 @@ document.querySelector("#bottomSearchButton").addEventListener("click", () => {
   setTimeout(() => elements.searchInput.focus(), 250);
 });
 
-document.querySelector("#searchForm").addEventListener("submit", (event) => event.preventDefault());
+document.querySelector("#searchForm").addEventListener("submit", (event) => {event.preventDefault(); renderGlobalSearch(); if(state.query) document.querySelector('#globalSearchTitle').scrollIntoView({block:'start'});});
 elements.searchInput.addEventListener("input", (event) => {
   state.query = event.target.value.trim();
   state.favoritesOnly = false;
+  state.category = 'all';
+  searchLimit = 60;
   renderEntries();
 });
+
+document.querySelector('#globalSearchGrid').addEventListener('click',event=>{
+  const button=event.target.closest('[data-search-index]');if(!button)return;
+  const record=searchResults[Number(button.dataset.searchIndex)];if(!record)return;
+  if(record.kind==='entry'){openEntry(entries.find(entry=>entry.id===record.id));return;}
+  const module=moduleCatalog.modules.find(module=>module.name===record.module);
+  openModule(module);
+  if(record.kind==='api'){
+    state.apiQuery=record.name;elements.apiSearchInput.value=record.name;renderApiItems();
+    const detail=[...elements.apiList.querySelectorAll('details')].find(detail=>detail.dataset.apiName===record.name);
+    if(detail){detail.open=true;detail.scrollIntoView({block:'start'});}
+  }
+});
+document.querySelector('#moreSearchResults').addEventListener('click',()=>{searchLimit+=60;renderGlobalSearch();});
+document.querySelector('#clearGlobalSearch').addEventListener('click',()=>{elements.searchInput.value='';elements.searchInput.dispatchEvent(new Event('input'));elements.searchInput.focus();});
 
 document.querySelectorAll("[data-query]").forEach((button) => button.addEventListener("click", () => {
   elements.searchInput.value = button.dataset.query;
   elements.searchInput.dispatchEvent(new Event("input"));
-  document.querySelector("#resultTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.querySelector("#globalSearchTitle").scrollIntoView({ behavior: "smooth", block: "start" });
 }));
 
 elements.moduleSearchInput.addEventListener("input", (event) => {
@@ -760,6 +807,7 @@ document.querySelector("#copyModuleImportButton").addEventListener("click", () =
 
 document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => {
   state.category = button.dataset.filter;
+  state.query = '';elements.searchInput.value = '';
   state.favoritesOnly = false;
   document.querySelectorAll("[data-filter]").forEach((item) => item.classList.toggle("active", item === button));
   closeDrawer();
@@ -818,7 +866,7 @@ document.querySelector("#resetSearchButton").addEventListener("click", () => {
 document.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
     event.preventDefault();
-    elements.searchInput.focus();
+    (elements.moduleDialog.open ? elements.apiSearchInput : elements.searchInput).focus();
   }
   if (event.key === "Escape" && elements.drawer.classList.contains("open")) closeDrawer();
 });

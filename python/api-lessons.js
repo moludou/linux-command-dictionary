@@ -3,9 +3,14 @@ window.PYTHON_API_LESSONS = {};
 (() => {
   const lessons = window.PYTHON_API_LESSONS;
   function add(name, summary, syntax, explanation, code, output, caution) {
-    lessons[`typing.${name}`] = {summary, syntax, explanation, code, output, caution};
+    if (['IO','TextIO','BinaryIO'].includes(name)) {
+      const label = name==='IO'?'IO[str]':name;
+      const content = name==='BinaryIO'?'バイト列':'文字';
+      explanation = explanation.replace(ioNotes,'').trim() + ` たとえば file: ${label} は「fileには${content}を読み書きするファイルを渡す」という意味です。この名前を書くだけではファイルは開きません。開く処理はopen()、読む処理はread()で別に書きます。`;
+    }
+    lessons[`typing.${name}`] = {summary: `${name}は、${summary}`, syntax, explanation, code, output, caution};
   }
-  const ioNotes = '「型ヒント」は、変数や引数がどんな値かを人や型検査ツールに伝える注釈です。コロンの右側に書きます。注釈だけでは、実行時に値を変換したり型の間違いを止めたりしません。';
+  const ioNotes = 'たとえば file: TextIO は「fileには文字を読み書きするファイルを渡す予定」という説明です。この記号だけでファイルを開くことはできません。実際に開く処理はopen()、読む処理はread()で書きます。';
   add('IO', '読み書きするファイルのようなオブジェクトを表す型です。ファイル名の文字列ではありません。', 'file: IO[str]  /  file: IO[bytes]',
     `${ioNotes} IOはInput / Output（入力・出力）の略です。IO[str]は文字を、IO[bytes]はバイト列を読み書きするものを表します。実際のファイルはopen()などで開き、IO()で開くわけではありません。`,
     'from typing import IO\nfrom io import StringIO\n\ndef read_title(file: IO[str]) -> str:\n    return file.readline().strip()\n\nwith StringIO("Python入門\\n第1章") as file:\n    print(read_title(file))', 'Python入門',

@@ -76,8 +76,10 @@ icons/                アプリアイコン
 ```
 # Pythonの学習解説と索引の区別
 
-`python/api-lessons.js` に独自の日本語学習解説を管理しています。現在はカタログに収録された `typing` の43項目に、用途・書き方の意味・実行例・出力・間違いやすい点と対処を掲載しています。参考仕様は [Python 3.12 typing](https://docs.python.org/3.12/library/typing.html) です。型検査ツールによる診断と実行時の例外を区別します。
+`python/api-lessons.js`、`core-lessons.js`、`csv-lessons.js` に独自の日本語学習解説を管理しています。現在はカタログ収録の `typing` 43項目、`json` 7項目、`csv` 21項目、`pathlib` 6項目、`math` 56項目、合計133項目に用途・書き方・実行例・出力・注意点を掲載しています。今回追加した90項目はエラーコード・例外の種類・修正コードも実行テストしています。参考仕様はPython 3.12公式資料（[typing](https://docs.python.org/3.12/library/typing.html)、[json](https://docs.python.org/3.12/library/json.html)、[csv](https://docs.python.org/3.12/library/csv.html)、[pathlib](https://docs.python.org/3.12/library/pathlib.html)、[math](https://docs.python.org/3.12/library/math.html)）です。
 
 モジュールカタログ全5,890項目の解説が完成したわけではありません。未解説項目は「索引のみ」と明記し、自動収集した表記を実行例とは呼びません。公式資料への参照を解説の代わりにしません。追加する解説には具体的な用途・意味・動く例・結果・誤用への対処を必須とします。
 
 回帰確認：`node python/check-api-lessons.cjs`（Python 3.12以降も必要）。これはサンプルの実行結果を確認するテストであり、各型検査ツールの診断をテストするものではありません。
+
+検索確認：`node python/check-search.cjs`。トップ検索は入門記事だけでなく全モジュール・全5,890 APIと掲載済み解説を対象にします。検索結果は検索欄の直下に表示し、60件ずつ追加表示できます。完全一致を優先し、全角英数字、複数語、`pd.read_csv`の略記にも対応します。

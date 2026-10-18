@@ -9,7 +9,7 @@
       content="スマートフォンで調べながら学べる、コードエディター風の日本語Python辞書"
     />
     <title>Python辞書ノート</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=23" />
     <link rel="manifest" href="../manifest.webmanifest" />
   </head>
   <body>
@@ -78,6 +78,13 @@
           </div>
         </section>
 
+        <section id="globalSearchResults" class="module-section" aria-labelledby="globalSearchTitle" hidden>
+          <h2 id="globalSearchTitle">辞書全体の検索結果</h2>
+          <p id="globalSearchCount" role="status" aria-live="polite"></p>
+          <div id="globalSearchGrid" class="module-grid"></div>
+          <button id="moreSearchResults" type="button" hidden>続きを表示</button>
+          <button id="clearGlobalSearch" type="button">検索をクリアして一覧に戻る</button>
+        </section>
         <section class="module-section" id="modules" aria-labelledby="moduleTitle">
           <div class="section-heading module-heading">
             <div>
@@ -290,8 +297,11 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./module-catalog.js"></script>
-    <script src="./api-lessons.js"></script>
-    <script src="./app.js"></script>
+    <script src="./api-lessons.js?v=23"></script>
+    <script src="./core-lessons.js?v=23"></script>
+    <script src="./csv-lessons.js?v=23"></script>
+    <script src="./search.js?v=23"></script>
+    <script src="./app.js?v=23"></script>
     <script src="../hub.js"></script>
   </body>
 </html>
