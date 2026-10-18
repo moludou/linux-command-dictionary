@@ -2113,6 +2113,45 @@
       })
     );
 
+    commands.push(
+      historicalCommand({
+        name: "code", category: "開発", summary: "現在のフォルダーやファイルをVS Codeで開く",
+        keywords: "VS Code Visual Studio Code code . エディター Mac コマンドが見つからない",
+        risk: "safe", riskLabel: "エディターを開く", syntax: "code [オプション] [パス]",
+        tokens: [["code", "VS Codeのコマンドライン起動用プログラムです。"], [".", "現在いるディレクトリを表します。", "code ."], ["-n", "新しいウィンドウで開きます。", "code -n ."], ["-r", "既存のウィンドウを再利用します。", "code -r ."]],
+        examples: [["pwd", "開く前に現在地を確認"], ["code .", "現在のフォルダーをVS Codeで開く"], ["code Python_Module_04", "現在地の下にあるフォルダーを開く"]],
+        changes: "VS Codeを開きます。Gitの取得・復元・commitは行いません。実際に編集して保存した時点でファイルが変わります。",
+        caution: "Macでcommand not found: codeと出たら、VS CodeのコマンドパレットでShell Command: Install 'code' command in PATHを実行し、ターミナルを開き直します。",
+        output: "通常はVS Codeのウィンドウが開きます。code .だけではシェルの現在地は変わりません。",
+        related: ["cd", "pwd", "git restore --source"]
+      }),
+      gitCommand({
+        name: "git restore --source", summary: "fetchしたorigin/mainから、指定フォルダーだけを作業ツリーへ取り込む",
+        syntax: "git restore --source=origin/main -- Python_Module_04",
+        risk: "danger", riskLabel: "対象の未commit変更を上書き",
+        tokens: [["git restore", "指定したパスの内容を復元します。"], ["--source=origin/main", "ローカルに保存されたorigin/mainを復元元に指定します。restore自体は通信しません。", "git restore --source=origin/main -- Python_Module_04"], ["--", "オプション指定を終える独立した引数です。前後に空白を入れ、続けてパスを書きます。", "git restore --source=origin/main -- Python_Module_04"], ["Python_Module_04", "Python_Module内にいる場合の、現在地から見た相対パスです。", "ls -ld Python_Module_04"], [".", "現在地。code .はこのフォルダーを開きます。"], ["..", "親ディレクトリ。cd ..は1つ上に移動します。"]],
+        examples: [["pwd", "まず現在地を確認"], ["git rev-parse --show-toplevel", "Gitリポジトリの最上位を確認"], ["git fetch origin", "origin/mainなどの取得情報を更新"], ["git status --short -- Python_Module_04", "対象の変更状態を確認"], ["git diff -- Python_Module_04", "対象の未ステージ変更を確認"], ["git diff --cached -- Python_Module_04", "対象のステージ済み変更も確認"], ["git diff origin/main -- Python_Module_04", "取得済みの内容と作業ファイルを比較"], ["git restore --source=origin/main -- Python_Module_04", "対象を置き換えてよいと確認してから復元"], ["git status --short -- Python_Module_04", "復元後の状態を確認"], ["git diff origin/main -- Python_Module_04", "対象の追跡済み内容が復元元と一致するか確認"]],
+        changes: "この指定では対象の作業ファイルを復元元に合わせます。index（ステージ）、現在のbranchの先端、commit履歴、GitHub側は変えません。対象の追跡済みファイルが復元元にない場合、削除されることもあります。",
+        caution: "対象に残したい未commit変更があれば、先に別の場所へコピーするなどして保存します。fetchは作業ファイルのバックアップにはなりません。これをリポジトリ全体の同期やpull完了と解釈しないでください。",
+        output: "成功時は通常無表示です。git statusで変更範囲を確認し、git diff origin/main -- Python_Module_04で追跡済みファイルの差分を確認します。未追跡ファイルはこのdiffに出ないため、statusも併用します。",
+        related: ["git fetch", "git restore", "git status", "git diff", "cd", "code", "pwd"]
+      })
+    );
+    const restoreLesson = commands.find(command => command.name === "git restore --source");
+    restoreLesson.keywords += " unknown option 空白 スペース ハイフン 区切り 相対パス 特定フォルダー 部分取得 Python_Module Python_Module_04 origin/main cd .. code .";
+    restoreLesson.lesson = [
+      {title: "1. 現在地とGitの範囲を区別する", text: "例は42Tokyoがリポジトリの最上位で、その下にPython_Moduleがある構成です。実際の最上位はgit rev-parse --show-toplevelで確認します。端末のプロンプトの末尾にあるフォルダー名だけでは、Gitの範囲までは分かりません。", code: "42Tokyo/\n└── Python_Module/\n    ├── Python_Module_04/\n    └── Python_Module_05_bis/"},
+      {title: "2. cd → code . → cd .. の流れ", text: "ホームからフォルダーへ入り、code .で現在のフォルダーをVS Codeで開きます。その後のcd ..で親のPython_Moduleへ移動します。VS Codeで開いたフォルダーと、ターミナルの現在地は別々に考えます。", code: "cd ~/Developer/42Tokyo/Python_Module/Python_Module_05_bis\ncode .\ncd ..\npwd"},
+      {title: "3. fetchの出力を読む", text: "Enumerating・Countingは送るGitオブジェクトの列挙と集計、Compressingは圧縮、Unpackingは受信データの展開です。数字はファイル数とは限りません。最終行はorigin/mainが古いcommitから新しいcommitへ進んだ意味です。現在のmainや作業ファイルが更新されたという意味ではありません。", code: "git fetch origin\n# 出力例（IDや件数は実行ごとに変わります）\nFrom https://github.com/example/project\n   a802279..c874e2e  main -> origin/main"},
+      {title: "4. unknown optionの原因と修正", text: "--Python_Module/...のように続けると、Gitは長いオプション名として読みます。--は単独で置き、その後に空白とパスを書きます。さらに現在地がPython_Moduleなら、先頭のPython_Module/は重ねません。", code: "# 誤り\ngit restore --source=origin/main --Python_Module/Python_Module_04\n# error: unknown option 'Python_Module/Python_Module_04'\n\n# Python_Module内で、対象を置き換えてよいと確認した後\ngit restore --source=origin/main -- Python_Module_04"},
+      {title: "5. 同じ対象でも現在地でパスが変わる", text: "どちらも同じフォルダーを指定する例です。--はパスをリポジトリの最上位から解釈させる記号ではありません。通常の相対パスは現在地が基準です。", code: "# 現在地が42Tokyoの場合\ngit restore --source=origin/main -- Python_Module/Python_Module_04\n\n# 現在地が42Tokyo/Python_Moduleの場合\ngit restore --source=origin/main -- Python_Module_04"},
+      {title: "6. 無表示と成功確認", text: "成功時に何も表示しないのは通常の動作です。ただし提示されたログだけでファイル内容の一致までは判断できません。直後のecho $?が0なら直前のコマンドは成功終了です。さらにstatusとdiffで対象を確認します。復元後も、現在のcommitと異なれば変更として表示されます。", code: "# restore直後。他のコマンドを挟む前に確認\necho $?\n# 成功終了なら 0\n\ngit status --short -- Python_Module_04\ngit diff origin/main -- Python_Module_04"}
+    ];
+    restoreLesson.sources = [["Git公式：restore", "https://git-scm.com/docs/git-restore"], ["Git公式：fetch", "https://git-scm.com/docs/git-fetch"], ["VS Code公式：CLI", "https://code.visualstudio.com/docs/configure/command-line"]];
+    commands.find(command => command.name === "git restore").related.push("git restore --source");
+    commands.find(command => command.name === "git fetch").related.push("git restore --source");
+    commands.find(command => command.name === "cd").related.push("pwd", "code", "git restore --source");
+
     const relatedCategoryGroups = {
       "内部コマンド": ["activate", "deactivate"],
       "Git": ["ssh", "ssh-keygen"],
@@ -2481,6 +2520,8 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
     };
 
     const commandShellSamples = {
+      "code": "（VS Codeで指定したフォルダーが開きます）",
+      "git restore --source": "（成功時は通常何も表示されません）\n$ echo $?\n0",
       "aa-status": "apparmor module is loaded.\n42 profiles are loaded.\n40 profiles are in enforce mode.",
       "activate": "（何も表示されません）\n(.venv) user@host:~/project$",
       "adduser": "Adding user 'alice' ...\nAdding new group 'alice' (1001) ...\nNew password:",
@@ -2586,6 +2627,8 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
     };
 
     const commandOutputReadingGuides = {
+      "code": [["code .", "現在のフォルダーを開きます。Gitの同期は行いません。"]],
+      "git restore --source": [["表示なし", "通常の成功時の動作です。内容の一致は別途確認します。"], ["0", "restore直後のecho $?が0なら成功終了です。"], ["復元後", "git statusとgit diff origin/main -- 対象で結果を確認します。"]],
       "aa-status": [["profiles", "読み込まれたプロファイル数です。"], ["各mode", "enforceは拒否、complainは記録中心など、適用方法を表します。"]],
       "activate": [["(.venv)", "prompt先頭の仮想環境名です。"], ["確認方法", "python3 -cやwhich python3で仮想環境内のPythonか確認します。"]],
       "adduser": [["Adding user / group", "作成中のユーザー名と同名groupを示します。"], ["New password", "新規ユーザーのpassword入力待ちです。入力文字は表示されません。"]],
@@ -2940,6 +2983,14 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
           <code>${escapeHtml(command.syntax)}</code>
           <button class="copy-button" type="button" data-copy="${escapeHtml(command.syntax)}">コピー</button>
         </div>
+
+        ${command.lesson ? `<details open>
+          <summary>実際の操作から学ぶ：フォルダーを指定して取得</summary>
+          <div class="detail-content">
+            ${command.lesson.map(step => `<section><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.text)}</p><pre class="token-shell-output"><code>${escapeHtml(step.code)}</code></pre></section>`).join("")}
+          </div>
+        </details>` : ""}
+        ${command.sources ? `<details><summary>公式リファレンス</summary><div class="detail-content">${command.sources.map(([title, url]) => `<p><a href="${escapeHtml(url)}" style="color:var(--accent)">${escapeHtml(title)}</a></p>`).join("")}</div></details>` : ""}
 
         <details open>
           <summary>引数・オプションを分解</summary>

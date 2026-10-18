@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v18-hub";
+const CACHE_NAME = "linux-command-dictionary-v19-git-restore";
 const APP_FILES = [
   "./",
   "./index.html",
