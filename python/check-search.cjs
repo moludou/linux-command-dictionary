@@ -14,5 +14,6 @@ assert(engine.find(records,'JSON 文字列').some(item=>item.title==='json.loads
 assert.equal(engine.find(records,'存在しない確認語xyz').length,0);
 assert.equal(engine.find(records,'　 ').length,0);
 assert(engine.find(records,'read').length>60);
+assert.equal(engine.find([{title:'pandas.read_csv',kind:'api',text:'pandas.read_csv'},{title:'pandas.read_csv()',kind:'entry',text:'pandas.read_csv'}],'pd.read_csv')[0].kind,'entry');
 for(const [name,lesson] of Object.entries(lessons)) assert(lesson.summary.startsWith(name.split('.').pop()+'は、'),name);
 console.log('PASS: 5,890 searchable APIs; qualified/short/full-width names, Japanese, multiple words, pandas alias, empty queries, name-first summaries');

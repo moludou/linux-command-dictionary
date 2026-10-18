@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v23-global-search";
+const CACHE_NAME = "linux-command-dictionary-v23b-global-search";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -18,7 +18,7 @@ const APP_FILES = [
   "./python/api-lessons.js?v=23",
   "./python/core-lessons.js?v=23",
   "./python/csv-lessons.js?v=23",
-  "./python/search.js?v=23",
+  "./python/search.js?v=23b",
   "./python/legal.html",
   "./c/",
   "./c/index.html",

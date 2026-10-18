@@ -12,6 +12,6 @@ window.PYTHON_SEARCH = {
       const title = this.normalize(record.title);
       const short = this.normalize(record.name || record.title);
       return {record, score: title === q ? 0 : short === q ? 1 : title.startsWith(q) ? 2 : title.includes(q) ? 3 : 4};
-    }).sort((a,b) => a.score-b.score || a.record.title.localeCompare(b.record.title)).map(item=>item.record);
+    }).sort((a,b) => a.score-b.score || (a.record.kind==='entry'?0:1)-(b.record.kind==='entry'?0:1) || a.record.title.localeCompare(b.record.title)).map(item=>item.record);
   }
 };
