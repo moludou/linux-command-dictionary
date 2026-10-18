@@ -187,7 +187,11 @@ kbd { padding: 4px 6px; border: 1px solid #555; border-bottom-width: 2px; border
 .api-kind { padding: 3px 5px; flex: none; border-radius: 3px; background: rgba(55,148,255,.1); color: var(--blue-bright); font: 8px "SFMono-Regular", Consolas, monospace; }
 .api-item-body { padding: 0 12px 13px 33px; }
 .api-signature { margin: 0 0 8px; padding: 8px; overflow-x: auto; background: #151515; color: var(--cyan); font: 10px/1.55 "SFMono-Regular", Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
-.api-summary { margin: 0; color: #aaa; font-size: 10px; line-height: 1.7; }
+.api-summary { margin: 0; color: #d4d4d4; font-size: 14px; line-height: 1.9; overflow-wrap: anywhere; }
+.api-item-body h4 { margin: 22px 0 8px; color: var(--blue, #9cdcfe); font-size: 14px; }
+.api-item-body .api-signature { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.8; }
+.lesson-status { color: #89d5b3; font-size: 12px; line-height: 1.7; }
+.lesson-status.pending { color: #d7ba7d; }
 .api-empty { padding: 30px 14px; }
 .dialog-header { min-height: calc(68px + env(safe-area-inset-top)); padding: calc(10px + env(safe-area-inset-top)) 12px 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); background: var(--bg-deep); }
 .dialog-header p { margin: 0 0 5px; color: var(--muted); font: 10px "SFMono-Regular", Consolas, monospace; }

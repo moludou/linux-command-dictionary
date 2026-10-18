@@ -527,21 +527,37 @@ function renderApiItems() {
   const query = normalize(state.apiQuery);
   const visible = state.currentModule.api.filter((item) => {
     const kindMatch = state.apiKind === "all" || item.kind === state.apiKind;
-    const textMatch = !query || normalize(`${item.name} ${item.signature} ${item.summary}`).includes(query);
+    const lesson = window.PYTHON_API_LESSONS?.[`${state.currentModule.name}.${item.name}`];
+    const textMatch = !query || normalize(`${item.name} ${item.signature} ${item.summary} ${lesson ? JSON.stringify(lesson) : ""}`).includes(query);
     return kindMatch && textMatch;
   });
-  elements.apiList.innerHTML = visible.map((item) => `
+  elements.apiList.innerHTML = visible.map((item) => {
+    const lesson = window.PYTHON_API_LESSONS?.[`${state.currentModule.name}.${item.name}`];
+    return `
     <details class="api-item">
       <summary>
         <span class="api-item-name"><span class="api-kind">${apiKindLabels[item.kind]}</span>${escapeHTML(item.name)}</span>
       </summary>
       <div class="api-item-body">
-        <pre class="api-signature">${escapeHTML(`${state.currentModule.name}.${item.name}${item.signature}`)}</pre>
-        <p class="api-summary">${escapeHTML(item.summary || "公開APIの名前とシグネチャを表示しています。詳しい仕様は公式ドキュメントも確認してください。")}</p>
+        ${lesson ? `
+          <p class="lesson-status">日本語学習解説あり · Python 3.12基準</p>
+          <h4>何に使う？</h4><p class="api-summary">${escapeHTML(lesson.summary)}</p>
+          <h4>書き方と意味</h4><pre class="api-signature">${escapeHTML(lesson.syntax)}</pre>
+          <p class="api-summary">${escapeHTML(lesson.explanation)}</p>
+          <h4>実行例</h4><pre class="api-signature">${escapeHTML(lesson.code)}</pre>
+          <h4>実行結果</h4><pre class="api-signature">${escapeHTML(lesson.output)}</pre>
+          <h4>間違いやすい点・エラーと対処</h4><p class="api-summary">${escapeHTML(lesson.caution)}</p>
+        ` : `
+          <p class="lesson-status pending">索引のみ · 日本語学習解説は未掲載</p>
+          <p class="api-summary">${escapeHTML(item.summary || "この項目は現在、名前を調べるための索引です。用途・引数・実行例の解説はまだ完成していません。")}</p>
+          <h4>自動収集した表記（実行例ではありません）</h4>
+          <pre class="api-signature">${escapeHTML(`${state.currentModule.name}.${item.name}${item.signature}`)}</pre>
+        `}
       </div>
     </details>
-  `).join("");
-  document.querySelector("#apiResultCount").textContent = `${visible.length}件を表示（公開トップレベルAPI）`;
+  `; }).join("");
+  const explained = visible.filter(item => window.PYTHON_API_LESSONS?.[`${state.currentModule.name}.${item.name}`]).length;
+  document.querySelector("#apiResultCount").textContent = `${visible.length}件を表示 · 日本語学習解説 ${explained}件 / 索引のみ ${visible.length - explained}件`;
   elements.apiEmptyState.hidden = visible.length !== 0;
   elements.apiList.hidden = visible.length === 0;
 }
