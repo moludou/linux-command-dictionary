@@ -1,9 +1,14 @@
-const CACHE_NAME = "linux-command-dictionary-v23b-global-search";
+const CACHE_NAME = "linux-command-dictionary-v24-reminder";
 const APP_FILES = [
   "./",
   "./index.html",
   "./commands.html",
   "./hub.css",
+  "./hub.css?v=24",
+  "./reminder/",
+  "./reminder/index.html",
+  "./reminder/styles.css",
+  "./reminder/app.js",
   "./hub.js",
   "./mac/",
   "./mac/index.html",
