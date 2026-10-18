@@ -1,6 +1,13 @@
-# Linux コマンド辞典
+# コードとコマンドの辞典
 
-スマートフォンですぐに引ける、日本語のLinuxコマンド辞典です。
+スマートフォンですぐに引ける、日本語のコマンド・Python・C辞典です。入口で分野を選び、同じサイト内で確認できます。
+
+- 入口: `./`
+- コマンド: `./commands.html`（既存の項目・検索・お気に入りを継承）
+- Python: `./python/`（モジュール索引と詳細学習項目）
+- C: `./c/`（基本6項目。実行例・間違いの例・修正例）
+
+Pythonの出典と権利表記は `python/legal.html`、`python/THIRD_PARTY_NOTICES.md`、`python/LICENSE.md` にあります。新しい公開先は作らず、このリポジトリで各分野を管理します。
 
 学習クイズや進捗管理は行わず、必要なコマンドを検索して意味・書式・引数・使用例・注意点を確認することに特化しています。
 
@@ -56,7 +63,11 @@
 ## ファイル構成
 
 ```text
-index.html            辞典本体
+index.html            分野を選ぶ入口
+commands.html         コマンド辞典本体
+hub.css / hub.js      入口・C辞典の共通表示とPWA登録
+python/               Python辞典
+c/                    C辞典
 manifest.webmanifest  PWA設定
 service-worker.js     オフライン表示
 icons/                アプリアイコン

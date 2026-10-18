@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17191d">
+  <meta name="description" content="Cの型・構文・配列・ポインタを、実行例と間違いの例から確認できる日本語辞典。">
+  <link rel="stylesheet" href="../hub.css">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <title>C辞典 | コードとコマンドの辞典</title>
+</head>
+<body>
+  <main class="hub dictionary">
+    <a class="back" href="../">← 辞典の入口へ</a>
+    <header><p class="eyebrow">C LANGUAGE</p><h1>C辞典</h1><p class="lead">型・構文・メモリの扱いを、短い例から。<br>まずは6つの基本項目を収録しています。</p></header>
+    <label class="search-label" for="c-search">Cの項目を検索</label>
+    <input id="c-search" type="search" placeholder="int、繰り返し、ポインタ…" autocomplete="off">
+    <p class="count" id="count" role="status">6項目</p>
+    <section aria-label="Cの項目" id="entries"></section>
+    <p id="empty" hidden>見つかりませんでした。別の言葉で検索してください。</p>
+    <noscript><p>項目を表示するにはJavaScriptを有効にしてください。</p></noscript>
+    <footer>実行例はC11で記述しています。<br>例を main.c に保存し、<code>cc -std=c11 -Wall -Wextra main.c -o main</code> でコンパイル後、<code>./main</code> で実行できます。</footer>
+  </main>
+  <script src="./app.js"></script>
+  <script src="../hub.js"></script>
+</body>
+</html>

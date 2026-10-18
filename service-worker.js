@@ -1,7 +1,19 @@
-const CACHE_NAME = "linux-command-dictionary-v17";
+const CACHE_NAME = "linux-command-dictionary-v18-hub";
 const APP_FILES = [
   "./",
   "./index.html",
+  "./commands.html",
+  "./hub.css",
+  "./hub.js",
+  "./python/",
+  "./python/index.html",
+  "./python/styles.css",
+  "./python/app.js",
+  "./python/module-catalog.js",
+  "./python/legal.html",
+  "./c/",
+  "./c/index.html",
+  "./c/app.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
@@ -19,7 +31,7 @@ self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+        keys.filter(key => key.startsWith("linux-command-dictionary-") && key !== CACHE_NAME).map(key => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -27,6 +39,11 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if (!url.href.startsWith(self.registration.scope)) return;
+  url.search = "";
+  url.hash = "";
+  const cacheKey = url.href;
 
   if (event.request.mode === "navigate") {
     event.respondWith(
@@ -34,11 +51,11 @@ self.addEventListener("fetch", event => {
         .then(response => {
           if (response && response.status === 200) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+            event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(cacheKey, copy)));
           }
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(async () => (await caches.match(cacheKey)) || Response.error())
     );
     return;
   }

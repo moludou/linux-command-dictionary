@@ -1,13 +1,13 @@
 {
-  "name": "Linux コマンド辞典",
-  "short_name": "Linux辞典",
-  "description": "スマホで引ける、Linuxコマンドの日本語辞典",
+  "name": "コードとコマンドの辞典",
+  "short_name": "コード辞典",
+  "description": "スマホで引ける、コマンド・Python・Cの日本語辞典",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#071018",
-  "theme_color": "#071018",
+  "background_color": "#17191d",
+  "theme_color": "#17191d",
   "icons": [
     {
       "src": "./icons/icon-192.png",
