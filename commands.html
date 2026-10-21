@@ -2152,6 +2152,56 @@
     commands.find(command => command.name === "git fetch").related.push("git restore --source");
     commands.find(command => command.name === "cd").related.push("pwd", "code", "git restore --source");
 
+    const cloneLesson = commands.find(command => command.name === "git clone");
+    cloneLesson.tokens.push(
+      ["--filter=blob:none", "ファイルの中身（blob）の取得を、Gitが必要とする時まで遅らせます。履歴を浅くする--depthとは別です。作業ファイルを配置するときは、その中身を取得します。"],
+      ["--sparse", "最初はリポジトリ直下のファイルだけを作業フォルダーに配置します。必要なフォルダーはgit sparse-checkout setで選びます。"],
+      ["-b main / --branch main", "最初に使うブランチをmainに指定します。これだけでは取得するブランチを1つに限定しません。"],
+      ["git@github.com:moludou/42Tokyo.git", "SSH形式の取得元です。gitは接続用ユーザー名、github.comは接続先、moludou/42Tokyo.gitは所有者とリポジトリ名です。SSH認証と閲覧権限が必要です。"]
+    );
+    cloneLesson.examples.push(["git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study", "新しい42Tokyo-studyに複製。最初は直下のファイルだけを配置"]);
+    cloneLesson.keywords += " sparse partial clone blob 部分クローン スパース チェックアウト 必要なフォルダー";
+    cloneLesson.related.push("git sparse-checkout");
+    const cloneOptionExamples = {
+      "--filter=blob:none": "git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study",
+      "--sparse": "git clone --sparse git@github.com:moludou/42Tokyo.git 42Tokyo-study",
+      "-b main / --branch main": "git clone -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study",
+      "git@github.com:moludou/42Tokyo.git": "git clone git@github.com:moludou/42Tokyo.git 42Tokyo-study"
+    };
+    cloneLesson.tokens.forEach(token => { if (cloneOptionExamples[token[0]]) token[2] = cloneOptionExamples[token[0]]; });
+    cloneLesson.lesson = [
+      {title: "画像のコマンドを左から読む", text: "gitは履歴管理の道具、cloneはプロジェクトの複製です。--filter=blob:noneは中身の取得を後回しにし、--sparseは手元に配置する範囲を絞ります。-b mainは使い始めるブランチ、続くSSHアドレスは取得元です。最後の42Tokyo-studyは保存先の名前で、この例では既存フォルダーと区別するために付けています。", code: "git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study"},
+      {title: "続けてPython_Moduleを開く", text: "以下は複製が成功した後に実行します。cdで複製先に入り、setで対象を選びます。Python_Moduleとリポジトリ直下のファイルが配置されます。GitHub側のファイルを削除・変更する操作ではありません。", code: "cd 42Tokyo-study\ngit sparse-checkout set --cone Python_Module\ngit sparse-checkout list\n# 表示例：Python_Module\nls Python_Module\ngit status -sb"},
+      {title: "取得量・配置範囲・履歴の違い", text: "filterは取得するデータ、sparseは手元に見せる範囲、depthは履歴の深さを調整します。ファイルを一切取得しない指定ではありません。未取得の中身が必要になると追加通信が発生するため、オフラインではその操作が失敗することがあります。"},
+      {title: "エラー例：保存先が既にある", text: "destination path ... already exists and is not an empty directory は、保存先が空でないという意味です。中身を確認し、未使用の別名を選びます。既存フォルダーを削除して解決しようとしないでください。", code: "# エラー例\nfatal: destination path '42Tokyo-study' already exists and is not an empty directory."},
+      {title: "エラー例：認証・ブランチ・サーバー対応", text: "Permission denied (publickey) はSSH認証の失敗です。登録済み公開鍵と接続先を確認します。Remote branch main not found はmainが取得元にない場合のエラーです。filtering not recognized by server, ignoring はfilterが無視される警告で、想定より多くのデータを取得し得ます。秘密鍵を公開したり、警告を回避するために認証を無効化したりしないでください。"}
+    ];
+    cloneLesson.sources = [["Git公式：clone", "https://git-scm.com/docs/git-clone"]];
+    commands.push(gitCommand({
+      name: "git sparse-checkout", summary: "必要なフォルダーだけを作業フォルダーに配置する", syntax: "git sparse-checkout set --cone フォルダー",
+      tokens: [["set --cone フォルダー", "配置対象を指定フォルダーへ設定します。以前の選択は置き換わります。フォルダー内すべてと、その親フォルダー直下のファイルも含まれます。"], ["add フォルダー", "既存の選択を残したまま、配置対象を追加します。"], ["list", "現在選んでいるフォルダーを表示します。"], ["disable", "範囲の制限を解除し、現在のブランチの全ファイルを配置します。追加通信や容量が必要になる場合があります。"], ["--cone", "ファイル単位の複雑なパターンではなく、フォルダーを単位として選ぶ方式です。"]],
+      examples: [["git sparse-checkout set --cone Python_Module", "リポジトリの一番上で実行し、Python_Moduleを配置"], ["git sparse-checkout list", "選択中のフォルダーを確認"], ["git sparse-checkout add Born2beRoot", "このフォルダーが存在する場合、選択に追加"], ["git sparse-checkout disable", "現在のブランチの全ファイルを配置"]],
+      changes: "ローカルの設定と作業ファイルの配置を変更します。GitHubやコミットの履歴から対象外のファイルを削除するわけではありません。listは確認だけです。",
+      caution: "setは選択を置き換えるので、追加だけならaddです。対象外になるフォルダー内の無視ファイルが削除される場合があります。未コミット変更だけでなく、.gitignoreで無視される大切なファイルも別の場所へ保全してから変更します。",
+      output: "setやaddは成功しても無表示のことがあります。listなら選択したフォルダー名が表示されます。",
+      related: ["git clone", "git status", "git diff"]
+    }));
+    const sparseLesson = commands.find(command => command.name === "git sparse-checkout");
+    sparseLesson.keywords += " --sparse blob:none 必要なフォルダー 部分取得 スパース";
+    ["git sparse-checkout set --cone Python_Module", "git sparse-checkout add Born2beRoot", "git sparse-checkout list", "git sparse-checkout disable", "git sparse-checkout set --cone Python_Module"].forEach((example, index) => { sparseLesson.tokens[index][2] = example; });
+    sparseLesson.lesson = [
+      {title: "実行例と確認", text: "新しく複製した42Tokyo-studyの直下で実行する例です。フォルダー名の大文字・小文字を合わせてください。", code: "git sparse-checkout set --cone Python_Module\ngit sparse-checkout list\n# 出力例\nPython_Module"},
+      {title: "エラー例：Gitの外で実行した", text: "not a git repository は、現在地がリポジトリ内ではないという意味です。pwdで現在地を調べ、複製したフォルダーへcdしてから実行します。", code: "fatal: not a git repository (or any of the parent directories): .git\n\n# 現在地を確認\npwd\n# 複製先の親にいる場合\ncd 42Tokyo-study\ngit sparse-checkout list"},
+      {title: "エラー例：古いGit・変更が残っている", text: "git: 'sparse-checkout' is not a git command と出たらgit --versionで版を確認します。作業変更について警告された場合は、強制削除せずgit statusとgit diffで内容を確認して保全します。", code: "git --version\ngit status --short\ngit diff"}
+    ];
+    sparseLesson.sources = [["Git公式：sparse-checkout", "https://git-scm.com/docs/git-sparse-checkout"]];
+
+    for (const entry of [cloneLesson, sparseLesson]) {
+      entry.lessonTitle = "部分クローンと必要なフォルダーの選択";
+      entry.lesson.forEach(step => { step.code ??= ""; });
+      entry.keywords += " " + entry.tokens.map(token => token.slice(0, 2).join(" ")).join(" ");
+    }
+
     const uvEntries = [
       {name: "uv", summary: "Pythonのパッケージ・仮想環境・プロジェクトを管理する外部コマンド", syntax: "uv [オプション] サブコマンド",
         tokens: [["uv", "Astralが開発する外部ツール。Pythonの構文や標準搭載のコマンドではありません。"], ["--version", "uv自体のバージョンを表示します。", "uv --version"], ["--help", "使えるサブコマンドとオプションを表示します。", "uv --help"]],
