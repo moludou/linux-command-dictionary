@@ -1657,6 +1657,34 @@
         related: ["export", "source"]
       }),
       historicalCommand({
+        name: "flake8", category: "Python", summary: "Pythonコードの書式・構文上の問題・未使用importなどを検査する",
+        keywords: "Python lint linter style PEP8 pycodestyle pyflakes McCabe 書式 構文 未使用 import ex0 ex1 ex2 ex3",
+        syntax: "python -m flake8 [オプション] [ファイルまたはディレクトリ ...]",
+        tokens: [
+          ["python -m flake8", "選択中のPython環境に導入されたflake8 moduleを実行します。python3を使う環境ではpython3 -m flake8と書きます。", ["python -m flake8 ex0 ex1 ex2 ex3", "選択中のPython環境で4つの対象を検査"]],
+          ["ファイルまたはディレクトリ", "検査対象です。複数指定でき、ディレクトリ内では通常.pyファイルを探して検査します。", ["python -m flake8 ex0 ex1 ex2 ex3", "複数のディレクトリを検査対象に指定"]],
+          ["--version", "Flake8本体と関連pluginのバージョンを表示します。", ["python -m flake8 --version", "Flake8と関連pluginの版を表示"]],
+          ["--select=コード", "E・W・Fなど、報告する違反コードを絞ります。", ["python -m flake8 --select=E,W,F ex0 ex1 ex2 ex3", "E・W・Fの違反だけを報告"]],
+          ["--ignore=コード", "指定コードを報告対象から外します。既定のignore設定を置き換える点に注意します。", ["python -m flake8 --ignore=E501 ex0 ex1 ex2 ex3", "E501を報告対象から除外"]],
+          ["--extend-ignore=コード", "既定のignore設定を保ったまま、除外コードを追加します。", ["python -m flake8 --extend-ignore=E203 ex0 ex1 ex2 ex3", "既定設定へE203の除外を追加"]],
+          ["--max-line-length=数", "許可する1行の最大文字数を、この実行だけ指定します。", ["python -m flake8 --max-line-length=88 ex0 ex1 ex2 ex3", "最大行長を88文字に指定"]],
+          ["--exclude=パターン", "検査から外すファイル・ディレクトリのパターンを指定します。", ["python -m flake8 --exclude=.venv,__pycache__ .", ".venvと__pycache__を除外"]],
+          ["--count", "検出した違反の総数も表示します。", ["python -m flake8 --count ex0 ex1 ex2 ex3", "違反の合計件数も表示"]],
+          ["--statistics", "違反コードごとの検出数を集計して表示します。", ["python -m flake8 --statistics ex0 ex1 ex2 ex3", "違反コードごとの件数を表示"]],
+          ["--show-source", "違反したソース行も診断と一緒に表示します。", ["python -m flake8 --show-source ex0 ex1 ex2 ex3", "違反したソース行も表示"]],
+          ["--exit-zero", "違反があっても終了ステータスを0にします。自動判定では見落としにつながるため用途を限定します。", ["python -m flake8 --exit-zero ex0 ex1 ex2 ex3", "違反があっても終了ステータスを0にする"]]
+        ],
+        examples: [
+          ["python -m flake8 ex0 ex1 ex2 ex3", "今回の4つの課題ディレクトリをまとめて検査"],
+          ["python -m flake8 ex0/ft_ancient_text.py", "1ファイルだけを検査"],
+          ["python -m flake8 --statistics --count ex0 ex1 ex2 ex3", "違反の種類別件数と合計を表示"]
+        ],
+        changes: "対象のPythonファイルと設定を読み取って検査するだけで、通常はコードを書き換えません。",
+        caution: "何も表示されない場合は、指定範囲でFlake8が報告する違反を検出しなかったという意味です。プログラム全体の正しさを保証するものではありません。No module named flake8なら、実行したPython環境にFlake8が導入されているか確認します。",
+        output: "違反があると「ファイル:行:列: コード 説明」の形式で表示します。違反がなければ通常は無表示で終了ステータス0です。直後のecho $?で確認でき、0以外なら違反または実行エラーの表示を読みます。",
+        related: ["python3", "pip", "echo"]
+      }),
+      historicalCommand({
         name: "pip", category: "Python", relatedCategories: ["仮想環境"], summary: "Pythonパッケージを導入・確認・削除する",
         keywords: "pip3 package install uninstall requirements freeze PyPI", risk: "change", riskLabel: "Python環境へパッケージを変更",
         syntax: "python3 -m pip サブコマンド [オプション] [対象]",
@@ -1690,6 +1718,14 @@
         related: ["activate", "deactivate", "python3", "pip"]
       })
     );
+
+    const flake8Command = commands.find(command => command.name === "flake8");
+    flake8Command.sources = [
+      ["Flake8公式：実行方法", "https://flake8.pycqa.org/en/latest/user/invocation.html"],
+      ["Flake8公式：オプション一覧", "https://flake8.pycqa.org/en/latest/user/options.html"]
+    ];
+    commands.find(command => command.name === "python3").related.push("flake8");
+    commands.find(command => command.name === "pip").related.push("flake8");
 
     commands.push(
       historicalCommand({
@@ -2383,7 +2419,7 @@
       "command": ["command", "ls"], "cp": ["cp", "source.txt backup.txt"], "crontab": ["crontab", ""],
       "df": ["df", "/"], "dpkg": ["sudo dpkg", ""], "echo": ["echo", "\"$PATH\""], "env": ["env", "DEBUG=1 printenv DEBUG"],
       "export": ["export", ""], "find": ["find .", ""], "findmnt": ["findmnt", "/"],
-      "free": ["free", ""], "g++": ["g++", "main.cpp"], "gcc": ["gcc", "main.c"],
+      "flake8": ["python -m flake8", "ex0 ex1 ex2 ex3"], "free": ["free", ""], "g++": ["g++", "main.cpp"], "gcc": ["gcc", "main.c"],
       "getent": ["getent", "passwd"], "git add": ["git add", "README.md"], "git branch": ["git branch", ""],
       "git clone": ["git clone", "https://github.com/example/project.git"], "git commit": ["git commit", ""],
       "git config": ["git config", "user.name 'Alice'"], "git diff": ["git diff", ""],
@@ -2674,6 +2710,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "export": "declare -x HOME=\"/home/user\"\ndeclare -x PATH=\"/usr/local/bin:/usr/bin:/bin\"",
       "find": "./README.md\n./docs/guide.md",
       "findmnt": "TARGET SOURCE    FSTYPE OPTIONS\n/      /dev/sda2 ext4   rw,relatime",
+      "flake8": "ex0/example.py:12:80: E501 line too long (85 > 79 characters)\nex1/archive.py:4:1: F401 'os' imported but unused",
       "free": "               total        used        free      shared  buff/cache   available\nMem:           15Gi       4.2Gi       6.1Gi       512Mi       5.0Gi        10Gi",
       "g++": "（成功時は何も表示されません）",
       "gcc": "（成功時は何も表示されません）",
@@ -2781,6 +2818,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "export": [["declare -x", "子processへ引き継がれる環境変数であることを示します。"], ["名前=値", "引用符内が現在値です。秘密情報を含む変数は共有しません。"]],
       "find": [["./", "検索開始地点からの相対pathです。"], ["各行", "検索条件に一致した対象が1件ずつ表示されます。何もなければ通常は空です。"]],
       "findmnt": [["TARGET / SOURCE", "mount先と、その元device・filesystemです。"], ["FSTYPE / OPTIONS", "filesystem種類とrw・roなどのmount optionです。"]],
+      "flake8": [["ex0/example.py", "違反が見つかったファイルのパスです。"], ["12:80", "12行目・80列目を示します。"], ["E501 / F401", "違反の種類を表すコードです。Eは主に書式、FはPyflakes由来の検査です。"], ["後ろの説明", "line too longやimported but unusedなど、検出内容です。"], ["何も表示されない", "指定範囲で報告対象の違反を検出しなかった状態です。"], ["終了ステータス", "通常は0が違反なし、0以外は違反検出または実行エラーです。直後にecho $?で確認します。"]],
       "free": [["total / used / free", "総memory、使用中、完全に未使用の量です。"], ["buff/cache / available", "cache量と、新規処理に実質利用できる推定量です。通常はavailableを重視します。"]],
       "g++": [["表示なし", "compile成功時は通常何も表示されません。"], ["確認方法", "終了状態と、-oで指定した実行fileの存在を確認します。warningやerrorがあればその行を読みます。"]],
       "gcc": [["表示なし", "compile成功時は通常何も表示されません。"], ["確認方法", "終了状態と出力fileを確認し、warningとerrorを区別します。"]],
