@@ -2195,6 +2195,14 @@
       {title: "エラー例：古いGit・変更が残っている", text: "git: 'sparse-checkout' is not a git command と出たらgit --versionで版を確認します。作業変更について警告された場合は、強制削除せずgit statusとgit diffで内容を確認して保全します。", code: "git --version\ngit status --short\ngit diff"}
     ];
     sparseLesson.sources = [["Git公式：sparse-checkout", "https://git-scm.com/docs/git-sparse-checkout"]];
+    sparseLesson.keywords += " Python_Module/Python_Module_04 Python_Module_04 課題04 set パス";
+    sparseLesson.examples.unshift(["git sparse-checkout set --cone Python_Module/Python_Module_04", "課題04のフォルダーを選択。リポジトリの一番上で実行"]);
+    sparseLesson.lesson.unshift(
+      {title: "画像の例：課題04を手元で使う対象にする", text: "git sparse-checkout set Python_Module/Python_Module_04 は、課題04を作業フォルダーに配置する指定です。ここではフォルダー単位の方式を明示するため--coneを付けます。複製先の一番上で実行してください。既に選択していた範囲は置き換わるため、変更や大切な無視ファイルを先に保全します。", code: "# 複製先の親フォルダーにいる場合\ncd 42Tokyo-study\ngit status --short\ngit sparse-checkout set --cone Python_Module/Python_Module_04\ngit sparse-checkout list\n# 出力例\nPython_Module/Python_Module_04"},
+      {title: "git・sparse-checkout・setを分解する", text: "gitは変更履歴を管理する道具です。sparse-checkoutは、記録されたファイルのうち必要な範囲を手元に配置する機能名です。sparseは「まばらな」、checkoutはここでは「記録された内容を作業ファイルとして取り出す」という意味です。setは「設定する」で、今回指定した範囲に選び直して、配置にも反映します。追加だけならaddを使います。", code: "# 選択を課題04に置き換える\ngit sparse-checkout set --cone Python_Module/Python_Module_04\n\n# 課題04を残して課題05も追加する例（存在する場合）\ngit sparse-checkout add Python_Module/Python_Module_05"},
+      {title: "Python_Module/Python_Module_04というパス", text: "Python_Moduleは親フォルダー、/は「その中」の区切り、Python_Module_04は今回選ぶフォルダーです。このように場所を表した文字列をパスと呼びます。課題04内のサブフォルダーやファイルも対象です。以下の構成は説明用で、実際の内容を確認したものではありません。", code: "42Tokyo-study/\n└── Python_Module/\n    └── Python_Module_04/\n        ├── ex0/  ← 内部のファイルも対象\n        └── ex3/  ← 存在する場合は対象"},
+      {title: "親フォルダー直下のファイルも残る", text: "cone方式では、課題04内の全ファイルに加えて、リポジトリ直下とPython_Module直下のファイルも配置されます。課題04だけが完全に独立するわけではありません。対象外の追跡ファイルが手元から見えなくなっても、GitHubやコミット履歴から削除したという意味ではありません。", code: "# 選択の設定を確認\ngit sparse-checkout list\n# 実際に配置された内容を確認\nls\nls Python_Module\nls Python_Module/Python_Module_04"}
+    );
 
     for (const entry of [cloneLesson, sparseLesson]) {
       entry.lessonTitle = "部分クローンと必要なフォルダーの選択";

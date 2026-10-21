@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v25-sparse-clone";
+const CACHE_NAME = "linux-command-dictionary-v26-sparse-module04";
 const APP_FILES = [
   "./",
   "./index.html",
