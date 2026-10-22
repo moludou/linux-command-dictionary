@@ -2323,6 +2323,43 @@
       entry.keywords += " " + entry.tokens.map(token => token.slice(0, 2).join(" ")).join(" ");
     }
 
+    commands.push(gitCommand({
+      name: "git pull --rebase", summary: "取得した履歴の後ろへ、自分の未共有コミットを載せ直す", syntax: "git pull --rebase origin main",
+      risk: "danger", riskLabel: "現在のブランチの履歴・ファイルを変更",
+      tokens: [
+        ["git", "ファイルの変更履歴を管理する道具です。", "git --version"],
+        ["pull", "相手側の履歴を取得し、現在のブランチへ取り込みます。", "git pull --rebase origin main"],
+        ["--rebase", "取得した履歴を土台に、自分のコミットを適用し直す方式です。載せ直したコミットのIDは変わります。", "git pull --rebase origin main"],
+        ["origin", "接続先に付けた名前です。GitHub自体を意味する固定語ではありません。git remote -vでURLを確認します。", "git remote -v"],
+        ["main", "取得する相手側のブランチ名です。現在のブランチをmainへ切り替える指定ではありません。", "git branch --show-current"]
+      ],
+      examples: [["git status -sb", "未コミット変更とブランチを確認"], ["git pull --rebase origin main", "mainで作業中・未共有コミットのみ・未コミット変更なしの場合の取り込み例"], ["git push origin main", "rebase完了と内容確認の後に、手元のmainを送信"]],
+      changes: "取得後、現在のブランチの履歴と作業ファイルを更新します。このpullだけではGitHubへ送信しません。",
+      caution: "既に他の人へ共有したコミットを安易に載せ直さないでください。画像だけでは現在のGit状態は確定できません。未コミット変更や進行中の操作があれば先に確認し、競合中はpushせず対処します。",
+      output: "成功例：Successfully rebased and updated refs/heads/main. 競合時はCONFLICTやcould not applyなどを表示して途中で停止します。表示はGitの版や状態で変わります。",
+      related: ["git pull", "git push", "git fetch", "git status", "git diff", "git add"]
+    }));
+    const pullRebaseLesson = commands.find(command => command.name === "git pull --rebase");
+    pullRebaseLesson.keywords += " git pull --rebase origin main git push origin main non-fast-forward fetch first rejected リベース 競合 コンフリクト 再送信 continue abort";
+    pullRebaseLesson.lessonTitle = "pushが拒否されたとき：確認・取り込み・再送信";
+    pullRebaseLesson.lesson = [
+      {title: "コミット成功と送信成功は別", text: "commitは手元への記録、pushは接続先への送信です。[rejected] main -> main (fetch first) やnon-fast-forwardは、通常の送信では相手側の履歴を保てないための拒否です。認証エラーや保護ブランチによる拒否には、rebaseだけでは対処できません。", code: "# pushの拒否例\n! [rejected] main -> main (fetch first)"},
+      {title: "先に現在地・ブランチ・変更を確認", text: "この例は現在のブランチがmainで、originが意図した接続先である場合です。違うブランチなら、そのまま続けないでください。未コミット変更があれば内容を確認してコミットするか退避し、既にrebaseなどが進行中ならその状態を先に解決します。", code: "pwd\ngit branch --show-current\ngit remote -v\ngit status\ngit diff\ngit diff --cached"},
+      {title: "履歴のずれを見る", text: "fetchは履歴を取得するだけで、作業ファイルへ統合しません。下のlogで<は手元側だけ、>は取得したorigin/main側だけにあるコミットです。rebaseを使うかは履歴とチームの運用で判断します。", code: "git fetch origin\ngit log --oneline --left-right HEAD...origin/main"},
+      {title: "取り込み、成功を確認してから送る", text: "未コミット変更がなく、自分の未共有コミットを載せ直す場合の例です。まずpullだけを実行し、競合がないこととコードの動作を確認してからpushします。git push origin mainは手元のmainを送るため、別のブランチで作業していないか再確認してください。", code: "git pull --rebase origin main\n# 成功例（毎回この表示になるとは限りません）\nSuccessfully rebased and updated refs/heads/main.\n\n# 完了後に確認・必要なテストを行う\ngit status\ngit log --oneline -5\n\n# 内容が正しい場合だけ送信\ngit push origin main"},
+      {title: "エラー例：未コミット変更がある", text: "cannot pull with rebase: You have unstaged changes. は、まだコミットしていない編集がある例です。git diffとgit diff --cachedで確認し、必要な変更を保存してから再開します。解決のためにreset --hardで変更を消す必要はありません。", code: "error: cannot pull with rebase: You have unstaged changes.\ngit status\ngit diff\ngit diff --cached"},
+      {title: "エラー例：競合したら修正して続行", text: "CONFLICTは同じ箇所の変更などを自動で合わせられなかった状態です。statusで対象を確認し、ファイル内の競合マーカーを整理して必要な内容を残します。下のsrc/example.pyは例なので、実際の対象へ置き換えます。解決したファイルだけaddし、continueで再開します。次の競合で再び止まる場合があります。", code: "# エラー表示例\nCONFLICT (content): Merge conflict in src/example.py\n\n# 対象を確認してファイルを編集\ngit status\ngit diff\n# 修正した対象だけ登録して再開\ngit add src/example.py\ngit rebase --continue"},
+      {title: "判断できなければ中止する", text: "rebase中に限り、--abortで開始前のブランチ状態へ戻せます。途中で行った競合解決の編集は失われるため、残したい内容は先に別途保存してください。--skipは対象コミットを飛ばす操作なので、エラーを消す目的で使わないでください。", code: "# rebaseが進行中か確認\ngit status\n# 中止する場合のみ\ngit rebase --abort"},
+      {title: "再送信も拒否された場合", text: "取り込み後に相手側へ新しいコミットが追加されると、pushが再び拒否されます。エラーを読み、fetchして履歴を確認し直します。--forceで押し切らないでください。認証・権限・保護ルールのエラーなら、その原因を別に確認します。", code: "git fetch origin\ngit log --oneline --left-right HEAD...origin/main\ngit status"}
+    ];
+    pullRebaseLesson.sources = [["Git公式：pull", "https://git-scm.com/docs/git-pull"], ["Git公式：rebase", "https://git-scm.com/docs/git-rebase"]];
+    for (const name of ["git pull", "git push"]) {
+      const entry = commands.find(command => command.name === name);
+      entry.related.push("git pull --rebase");
+      entry.keywords += " git pull --rebase origin main git push origin main rejected fetch first non-fast-forward";
+    }
+    commands.find(command => command.name === "git pull").examples.push(["git pull --rebase origin main", "現在のブランチへ取り込み、未共有コミットを載せ直す。事前確認と競合対応は関連項目を参照"]);
+
     const uvEntries = [
       {name: "uv", summary: "Pythonのパッケージ・仮想環境・プロジェクトを管理する外部コマンド", syntax: "uv [オプション] サブコマンド",
         tokens: [["uv", "Astralが開発する外部ツール。Pythonの構文や標準搭載のコマンドではありません。"], ["--version", "uv自体のバージョンを表示します。", "uv --version"], ["--help", "使えるサブコマンドとオプションを表示します。", "uv --help"]],
