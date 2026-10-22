@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v33-rebase-continue";
+const CACHE_NAME = "linux-command-dictionary-v34-project-guides";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -17,6 +17,11 @@ const APP_FILES = [
   "./mac/app.js",
   "./python/",
   "./python/index.html",
+  "./python/projects/",
+  "./python/projects/index.html",
+  "./python/projects/styles.css",
+  "./python/projects/data.js",
+  "./python/projects/app.js",
   "./python/styles.css?v=23",
   "./python/app.js?v=23",
   "./python/module-catalog.js",

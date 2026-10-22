@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17191d">
+  <title>課題別・作り方 | Python辞書ノート</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./data.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <header><a href="../">← Python辞書へ</a><span>PYTHON / PROJECTS</span></header>
+  <main>
+    <p class="eyebrow">課題から、使う知識へ</p>
+    <h1>課題別・作り方</h1>
+    <p>課題を選び、各項目を開いて確認できます。通常のモジュール辞書は、そのまま利用できます。</p>
+    <nav id="projects" aria-label="課題を選択"></nav>
+    <section aria-labelledby="projectTitle">
+      <h2 id="projectTitle" tabindex="-1"></h2><p id="projectDescription"></p>
+      <label for="search">この課題の項目・クラス・関数を検索</label>
+      <div class="search"><input id="search" type="search" placeholder="例：例外、import、Maze" autocomplete="off"><button id="clear" type="button">クリア</button></div>
+      <p id="count" role="status" aria-live="polite"></p>
+      <div id="lessons"></div>
+    </section>
+    <footer>
+      <p>このページは学習用の補助資料です。作る順番は理解のための提案で、提出物の完成コードや課題仕様の全文ではありません。短い練習例は独自に作成しています。</p>
+      <p>コードの確認元：<a href="https://github.com/moludou/42Tokyo/tree/d6fb1c09fc9099db5fe652ee728b5f331490b250/Python_Module">Python_Module</a> / <a href="https://github.com/rui319420/42_amazeing/tree/68c1488ad0bcadab8acd2df57cac2a8c21a8c50f">A-Maze-ing</a>（アクセス権が必要な場合があります）。確認時点の構成に基づきます。</p>
+    </footer>
+  </main>
+  <noscript>項目の表示にはJavaScriptを有効にしてください。通常の辞書へは上のリンクから戻れます。</noscript>
+</body>
+</html>
