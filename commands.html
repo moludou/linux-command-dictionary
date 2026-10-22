@@ -2225,6 +2225,70 @@
       {title: "エラー例：認証・ブランチ・サーバー対応", text: "Permission denied (publickey) はSSH認証の失敗です。登録済み公開鍵と接続先を確認します。Remote branch main not found はmainが取得元にない場合のエラーです。filtering not recognized by server, ignoring はfilterが無視される警告で、想定より多くのデータを取得し得ます。秘密鍵を公開したり、警告を回避するために認証を無効化したりしないでください。"}
     ];
     cloneLesson.sources = [["Git公式：clone", "https://git-scm.com/docs/git-clone"]];
+
+    const rsyncSubmitCommand = "rsync -av \\\n  --exclude='.git/' \\\n  --exclude='.venv/' \\\n  --exclude='venv/' \\\n  --exclude='lab_env/' \\\n  --exclude='__pycache__/' \\\n  --exclude='.mypy_cache/' \\\n  --include='.env.example' \\\n  --exclude='.env*' \\\n  --exclude='*.pdf' \\\n  --exclude='.DS_Store' \\\n  /Users/tmarukaw/Developer/42Tokyo/Python_Module/Python_Module_05_bis/ \\\n  Python_Module/Python_Module_05_bis/";
+    commands.push(historicalCommand({
+      name: "rsync", category: "ファイル", summary: "差分を比較しながらファイルやフォルダーをコピー・同期する",
+      keywords: "rsync -av include exclude .env.example .env PDF DS_Store venv __pycache__ mypy_cache 42Tokyo Python_Module_05_bis 差分 コピー 同期 提出",
+      risk: "change", riskLabel: "コピー先を作成・更新", syntax: "rsync [オプション] コピー元/ コピー先/",
+      tokens: [
+        ["-a", "archive modeです。再帰コピーに加え、シンボリックリンク・権限・更新日時など多くの属性を保とうとします。ACLや拡張属性は別指定です。", ["rsync -a source/ destination/", "sourceの中身をarchive modeでコピー"]],
+        ["-v", "verboseの略で、処理した項目や転送量などを詳しく表示します。", ["rsync -av source/ destination/", "archive modeで詳しい経過も表示"]],
+        ["行末の \\", "シェルへ『次の行も同じコマンド』と伝える記号です。直後に改行し、後ろへ空白やコメントを置きません。", ["rsync -av \\\n  source/ destination/", "2行を1つのコマンドとして実行"]],
+        ["--exclude='.git/'", ".gitというディレクトリを転送対象から外します。末尾の/はディレクトリだけを対象にし、引用符はシェルによる展開を防ぎます。", ["rsync -av --exclude='.git/' source/ destination/", "Git管理情報を除外してコピー"]],
+        ["--exclude='.venv/' など", ".venv・venv・lab_envという仮想環境と、__pycache__・.mypy_cacheという生成キャッシュを除外します。", ["rsync -av --exclude='.venv/' --exclude='__pycache__/' source/ destination/", "仮想環境とPythonキャッシュを除外"]],
+        ["--include='.env.example'", ".env.exampleを除外せず転送候補に残します。後続の.env*除外より先に置く順番が重要です。", ["rsync -av --include='.env.example' --exclude='.env*' source/ destination/", ".env.exampleだけを許可し、他の.env系を除外"]],
+        ["--exclude='.env*'", ".envで始まるファイルやディレクトリを除外します。この例では先に一致する.env.exampleだけが許可されています。", ["rsync -av --include='.env.example' --exclude='.env*' source/ destination/", "秘密情報を含み得る.env系を除外"]],
+        ["--exclude='*.pdf'", "名前が小文字.pdfで終わるファイルを除外します。大文字.PDFは別名なので、このパターンだけでは除外されません。", ["rsync -av --exclude='*.pdf' source/ destination/", "小文字.pdfのファイルを除外"]],
+        ["--exclude='.DS_Store'", "macOSがフォルダー表示情報として作る.DS_Storeを除外します。", ["rsync -av --exclude='.DS_Store' source/ destination/", ".DS_Storeを除外"]],
+        ["コピー元/", "末尾の/があるため、Python_Module_05_bisフォルダー自体ではなく、その中身をコピー先へ入れます。", ["rsync -av /path/to/source/ destination/", "sourceの中身をdestinationへコピー"]],
+        ["コピー先/", "現在地から見た相対パスです。この例は42Tokyo-submit-05bisの直下で実行する想定です。", ["rsync -av source/ Python_Module/Python_Module_05_bis/", "相対パスのコピー先へ反映"]],
+        ["--dry-run / -n", "実際には変更せず、コピー・更新される予定を確認します。初回は-avへnを足した-avnで確認します。", ["rsync -avn source/ destination/", "コピーせず予定だけ確認"]]
+      ],
+      examples: [[rsyncSubmitCommand, "課題05 bisの修正済みファイルを、不要物と秘密情報を除外して提出確認用コピーへ反映"], ["rsync -avn --exclude='.git/' source/ destination/", "-nを追加し、変更せずに対象予定を確認"]],
+      changes: "コピー先にディレクトリやファイルを作成し、同じ相対パスのファイルを必要に応じて更新します。コピー元は変更しません。この例には--deleteがないため、コピー元にない既存ファイルをコピー先から削除はしません。",
+      caution: "このまま実行するとコピー先が変わります。先にpwdとgit status -sbで提出確認用リポジトリの直下にいることを確認し、最初は-nを追加した-avnで予定を確認します。.env.exampleには実際の秘密値を書かず、除外指定だけに頼らず転送予定も確認します。",
+      output: "sending incremental file listに続き、作成・更新対象、送受信byte数、転送速度などが表示されます。変更がなければファイル名がほとんど表示されないことがあります。",
+      related: ["cp", "pwd", "git status"]
+    }));
+    const rsyncLesson = commands.find(command => command.name === "rsync");
+    rsyncLesson.lessonTitle = "課題05 bisを提出確認用コピーへ反映する";
+    rsyncLesson.lesson = [
+      {title: "1. 実行する場所とコピー方向", text: "前の手順で作った42Tokyo-submit-05bisの直下へ移動してから実行する想定です。左の絶対パスが修正済みのコピー元、右の相対パスが提出確認用リポジトリ内のコピー先です。方向を逆にすると意図と反対の内容で上書きし得ます。", code: "cd /Users/tmarukaw/Developer/42Tokyo-submit-05bis\npwd\ngit status -sb"},
+      {title: "2. まずdry-runで予定を確認", text: "実コマンドの-avを-avnにすると、コピー先を変更せず対象予定を表示します。除外した.git・仮想環境・キャッシュ・.env系・PDF・.DS_Storeが一覧に出ていないことと、コピー方向を確認します。", code: rsyncSubmitCommand.replace("rsync -av ", "rsync -avn ")},
+      {title: "3. 確認後に実際のコピーを実行", text: "dry-runの内容が意図どおりなら、-nを外した元のコマンドを実行します。行末のバックスラッシュは次の行へ続ける記号なので、各行を別々には実行しません。", code: rsyncSubmitCommand},
+      {title: "4. includeとexcludeは上から先に一致した規則が有効", text: ".env.exampleは.env*にも一致しますが、先にincludeされるため転送候補に残ります。順番を逆にすると.env*の除外が先に一致し、後ろのincludeでは戻せません。引用符により、*はzshではなくrsyncが解釈します。", code: "--include='.env.example'\n--exclude='.env*'"},
+      {title: "5. コピー後に差分を確認", text: "rsyncの成功だけではコミット対象が正しいとは限りません。git statusで変更ファイル、git diffで未ステージ差分を確認します。この段階ではまだgit add・commit・pushは行われていません。", code: "git status --short -- Python_Module/Python_Module_05_bis\ngit diff -- Python_Module/Python_Module_05_bis"},
+      {title: "6. 末尾の/と削除されないファイル", text: "コピー元末尾の/は『このフォルダーの中身』をコピーする意味です。また、このコマンドには--deleteがないため、コピー先だけに存在する古いファイルは残ります。完全な鏡像化が必要でも、対象確認なしに--deleteを追加しないでください。", code: "# 中身をコピー\nsource/  → destination/\n\n# 今回は指定していない\n--delete"}
+    ];
+    rsyncLesson.sources = [["rsync公式：rsync(1) manpage", "https://download.samba.org/pub/rsync/rsync.1"]];
+
+    const gitAddSubmit = commands.find(command => command.name === "git add");
+    gitAddSubmit.examples.unshift(["git add Python_Module/Python_Module_05_bis/", "課題05 bisのフォルダー内にある変更だけをステージング"]);
+    gitAddSubmit.keywords += " git add Python_Module/Python_Module_05_bis/ 課題05 bis staging ステージング";
+    gitAddSubmit.lessonTitle = "課題05 bisだけを次のコミット候補へ入れる";
+    gitAddSubmit.lesson = [
+      {title: "1. フォルダーを指定してステージングする", text: "42Tokyo-submit-05bisのリポジトリ直下で実行します。指定フォルダー内の新規・変更・削除を、現在の状態に合わせてGit indexへ記録します。リポジトリ全体をまとめて追加するgit add .とは範囲が異なります。", code: "git add Python_Module/Python_Module_05_bis/"},
+      {title: "2. addはcommitやpushではない", text: "この操作で変わるのはローカルのstaging areaです。まだコミット履歴は作られず、GitHubにも送られません。add後にファイルをさらに編集した場合、その追加分を含めるにはもう一度addが必要です。", code: "git status --short -- Python_Module/Python_Module_05_bis/"},
+      {title: "3. 次のコミット候補を2段階で確認", text: "まず--statでファイルごとの変更量と合計を見て、次に--name-onlyで対象ファイル名だけを確認します。どちらもstaging内容を変更しません。必要なら最後にgit diff --cachedで本文の差分も確認します。", code: "git diff --cached --stat\ngit diff --cached --name-only\ngit diff --cached"},
+      {title: "4. 範囲を間違えた場合", text: "まだcommit前なら、Git公式が案内するrestore --stagedなどでstagingだけを戻せますが、対象を確認せず実行しません。まずgit statusとgit diff --cached --name-onlyで実際の対象を確認します。", code: "git status --short\ngit diff --cached --name-only"}
+    ];
+    gitAddSubmit.sources = [["Git公式：add", "https://git-scm.com/docs/git-add"]];
+
+    const gitDiffSubmit = commands.find(command => command.name === "git diff");
+    gitDiffSubmit.examples.unshift(
+      ["git diff --cached --stat", "ステージ済み変更をファイル別の増減と合計で確認"],
+      ["git diff --cached --name-only", "ステージ済み変更に含まれるファイル名だけを確認"]
+    );
+    gitDiffSubmit.keywords += " git diff --cached --stat git diff --cached --name-only staged staging 統計 ファイル名 課題05 bis";
+    gitDiffSubmit.lessonTitle = "課題05 bisをステージした後の確認";
+    gitDiffSubmit.lesson = [
+      {title: "1. --cachedはステージ済み変更を見る", text: "--cachedは通常、Git indexと直前のcommitであるHEADを比較します。つまり、今commitすると含まれる予定の変更です。作業中だがまだaddしていない変更は、この2つの表示には含まれません。", code: "git diff --cached --stat\ngit diff --cached --name-only"},
+      {title: "2. --statで変更量を要約する", text: "ファイル名、変更行数を表すグラフ、最後に変更ファイル数と追加・削除行数の合計を表示します。本文の差分は表示しないため、全体量をすばやく確認する用途です。", code: "git diff --cached --stat\n# 表示例\nPython_Module/Python_Module_05_bis/ex00/example.py | 8 +++++---\n1 file changed, 5 insertions(+), 3 deletions(-)"},
+      {title: "3. --name-onlyで対象ファイルを確認する", text: "ステージ済み変更に含まれるパスだけを1行ずつ表示します。課題05 bis以外のファイルが混ざっていないか確認できますが、変更内容や追加・削除の種類は表示しません。", code: "git diff --cached --name-only\n# 表示例\nPython_Module/Python_Module_05_bis/ex00/example.py"},
+      {title: "4. 何も表示されない場合", text: "ステージ済み変更がなければ通常は何も表示されません。成功と対象なしを区別するため、git status --shortも確認します。add前の未ステージ差分はgit diffで確認します。", code: "git status --short\ngit diff\ngit diff --cached --name-only"}
+    ];
+    gitDiffSubmit.sources = [["Git公式：diff", "https://git-scm.com/docs/git-diff"]];
     commands.push(gitCommand({
       name: "git sparse-checkout", summary: "必要なフォルダーだけを作業フォルダーに配置する", syntax: "git sparse-checkout set --cone フォルダー",
       tokens: [["set --cone フォルダー", "配置対象を指定フォルダーへ設定します。以前の選択は置き換わります。フォルダー内すべてと、その親フォルダー直下のファイルも含まれます。"], ["add フォルダー", "既存の選択を残したまま、配置対象を追加します。"], ["list", "現在選んでいるフォルダーを表示します。"], ["disable", "範囲の制限を解除し、現在のブランチの全ファイルを配置します。追加通信や容量が必要になる場合があります。"], ["--cone", "ファイル単位の複雑なパターンではなく、フォルダーを単位として選ぶ方式です。"]],
