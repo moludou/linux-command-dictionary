@@ -1658,26 +1658,26 @@
       }),
       historicalCommand({
         name: "flake8", category: "Python", summary: "Pythonコードの書式・構文上の問題・未使用importなどを検査する",
-        keywords: "Python lint linter style PEP8 pycodestyle pyflakes McCabe 書式 構文 未使用 import ex0 ex1 ex2 ex3",
+        keywords: "Python python -m flake8 src tests lint linter style PEP8 pycodestyle pyflakes McCabe 書式 構文 未使用 import",
         syntax: "python -m flake8 [オプション] [ファイルまたはディレクトリ ...]",
         tokens: [
-          ["python -m flake8", "選択中のPython環境に導入されたflake8 moduleを実行します。python3を使う環境ではpython3 -m flake8と書きます。", ["python -m flake8 ex0 ex1 ex2 ex3", "選択中のPython環境で4つの対象を検査"]],
-          ["ファイルまたはディレクトリ", "検査対象です。複数指定でき、ディレクトリ内では通常.pyファイルを探して検査します。", ["python -m flake8 ex0 ex1 ex2 ex3", "複数のディレクトリを検査対象に指定"]],
+          ["python -m flake8", "選択中のPython環境に導入されたflake8 moduleを実行します。python3を使う環境ではpython3 -m flake8と書きます。", ["python -m flake8 src tests", "選択中のPython環境で複数の対象を検査"]],
+          ["ファイルまたはディレクトリ", "検査対象です。複数指定でき、ディレクトリ内では通常.pyファイルを探して検査します。", ["python -m flake8 src tests", "複数のディレクトリを検査対象に指定"]],
           ["--version", "Flake8本体と関連pluginのバージョンを表示します。", ["python -m flake8 --version", "Flake8と関連pluginの版を表示"]],
-          ["--select=コード", "E・W・Fなど、報告する違反コードを絞ります。", ["python -m flake8 --select=E,W,F ex0 ex1 ex2 ex3", "E・W・Fの違反だけを報告"]],
-          ["--ignore=コード", "指定コードを報告対象から外します。既定のignore設定を置き換える点に注意します。", ["python -m flake8 --ignore=E501 ex0 ex1 ex2 ex3", "E501を報告対象から除外"]],
-          ["--extend-ignore=コード", "既定のignore設定を保ったまま、除外コードを追加します。", ["python -m flake8 --extend-ignore=E203 ex0 ex1 ex2 ex3", "既定設定へE203の除外を追加"]],
-          ["--max-line-length=数", "許可する1行の最大文字数を、この実行だけ指定します。", ["python -m flake8 --max-line-length=88 ex0 ex1 ex2 ex3", "最大行長を88文字に指定"]],
+          ["--select=コード", "E・W・Fなど、報告する違反コードを絞ります。", ["python -m flake8 --select=E,W,F src tests", "E・W・Fの違反だけを報告"]],
+          ["--ignore=コード", "指定コードを報告対象から外します。既定のignore設定を置き換える点に注意します。", ["python -m flake8 --ignore=E501 src tests", "E501を報告対象から除外"]],
+          ["--extend-ignore=コード", "既定のignore設定を保ったまま、除外コードを追加します。", ["python -m flake8 --extend-ignore=E203 src tests", "既定設定へE203の除外を追加"]],
+          ["--max-line-length=数", "許可する1行の最大文字数を、この実行だけ指定します。", ["python -m flake8 --max-line-length=88 src tests", "最大行長を88文字に指定"]],
           ["--exclude=パターン", "検査から外すファイル・ディレクトリのパターンを指定します。", ["python -m flake8 --exclude=.venv,__pycache__ .", ".venvと__pycache__を除外"]],
-          ["--count", "検出した違反の総数も表示します。", ["python -m flake8 --count ex0 ex1 ex2 ex3", "違反の合計件数も表示"]],
-          ["--statistics", "違反コードごとの検出数を集計して表示します。", ["python -m flake8 --statistics ex0 ex1 ex2 ex3", "違反コードごとの件数を表示"]],
-          ["--show-source", "違反したソース行も診断と一緒に表示します。", ["python -m flake8 --show-source ex0 ex1 ex2 ex3", "違反したソース行も表示"]],
-          ["--exit-zero", "違反があっても終了ステータスを0にします。自動判定では見落としにつながるため用途を限定します。", ["python -m flake8 --exit-zero ex0 ex1 ex2 ex3", "違反があっても終了ステータスを0にする"]]
+          ["--count", "検出した違反の総数も表示します。", ["python -m flake8 --count src tests", "違反の合計件数も表示"]],
+          ["--statistics", "違反コードごとの検出数を集計して表示します。", ["python -m flake8 --statistics src tests", "違反コードごとの件数を表示"]],
+          ["--show-source", "違反したソース行も診断と一緒に表示します。", ["python -m flake8 --show-source src tests", "違反したソース行も表示"]],
+          ["--exit-zero", "違反があっても終了ステータスを0にします。自動判定では見落としにつながるため用途を限定します。", ["python -m flake8 --exit-zero src tests", "違反があっても終了ステータスを0にする"]]
         ],
         examples: [
-          ["python -m flake8 ex0 ex1 ex2 ex3", "今回の4つの課題ディレクトリをまとめて検査"],
-          ["python -m flake8 ex0/ft_ancient_text.py", "1ファイルだけを検査"],
-          ["python -m flake8 --statistics --count ex0 ex1 ex2 ex3", "違反の種類別件数と合計を表示"]
+          ["python -m flake8 src tests", "アプリ本体とテストのディレクトリをまとめて検査"],
+          ["python -m flake8 src/app.py", "1ファイルだけを検査"],
+          ["python -m flake8 --statistics --count src tests", "違反の種類別件数と合計を表示"]
         ],
         changes: "対象のPythonファイルと設定を読み取って検査するだけで、通常はコードを書き換えません。",
         caution: "何も表示されない場合は、指定範囲でFlake8が報告する違反を検出しなかったという意味です。プログラム全体の正しさを保証するものではありません。No module named flake8なら、実行したPython環境にFlake8が導入されているか確認します。",
@@ -2155,7 +2155,7 @@
         keywords: "VS Code Visual Studio Code code . エディター Mac コマンドが見つからない",
         risk: "safe", riskLabel: "エディターを開く", syntax: "code [オプション] [パス]",
         tokens: [["code", "VS Codeのコマンドライン起動用プログラムです。"], [".", "現在いるディレクトリを表します。", "code ."], ["-n", "新しいウィンドウで開きます。", "code -n ."], ["-r", "既存のウィンドウを再利用します。", "code -r ."]],
-        examples: [["pwd", "開く前に現在地を確認"], ["code .", "現在のフォルダーをVS Codeで開く"], ["code Python_Module_04", "現在地の下にあるフォルダーを開く"]],
+        examples: [["pwd", "開く前に現在地を確認"], ["code .", "現在のフォルダーをVS Codeで開く"], ["code src", "現在地の下にあるsrcフォルダーを開く"]],
         changes: "VS Codeを開きます。Gitの取得・復元・commitは行いません。実際に編集して保存した時点でファイルが変わります。",
         caution: "Macでcommand not found: codeと出たら、VS CodeのコマンドパレットでShell Command: Install 'code' command in PATHを実行し、ターミナルを開き直します。",
         output: "通常はVS Codeのウィンドウが開きます。code .だけではシェルの現在地は変わりません。",
@@ -2163,25 +2163,25 @@
       }),
       gitCommand({
         name: "git restore --source", summary: "fetchしたorigin/mainから、指定フォルダーだけを作業ツリーへ取り込む",
-        syntax: "git restore --source=origin/main -- Python_Module_04",
+        syntax: "git restore --source=origin/main -- path/to/directory",
         risk: "danger", riskLabel: "対象の未commit変更を上書き",
-        tokens: [["git restore", "指定したパスの内容を復元します。"], ["--source=origin/main", "ローカルに保存されたorigin/mainを復元元に指定します。restore自体は通信しません。", "git restore --source=origin/main -- Python_Module_04"], ["--", "オプション指定を終える独立した引数です。前後に空白を入れ、続けてパスを書きます。", "git restore --source=origin/main -- Python_Module_04"], ["Python_Module_04", "Python_Module内にいる場合の、現在地から見た相対パスです。", "ls -ld Python_Module_04"], [".", "現在地。code .はこのフォルダーを開きます。"], ["..", "親ディレクトリ。cd ..は1つ上に移動します。"]],
-        examples: [["pwd", "まず現在地を確認"], ["git rev-parse --show-toplevel", "Gitリポジトリの最上位を確認"], ["git fetch origin", "origin/mainなどの取得情報を更新"], ["git status --short -- Python_Module_04", "対象の変更状態を確認"], ["git diff -- Python_Module_04", "対象の未ステージ変更を確認"], ["git diff --cached -- Python_Module_04", "対象のステージ済み変更も確認"], ["git diff origin/main -- Python_Module_04", "取得済みの内容と作業ファイルを比較"], ["git restore --source=origin/main -- Python_Module_04", "対象を置き換えてよいと確認してから復元"], ["git status --short -- Python_Module_04", "復元後の状態を確認"], ["git diff origin/main -- Python_Module_04", "対象の追跡済み内容が復元元と一致するか確認"]],
+        tokens: [["git restore", "指定したパスの内容を復元します。"], ["--source=origin/main", "ローカルに保存されたorigin/mainを復元元に指定します。restore自体は通信しません。", "git restore --source=origin/main -- src/module"], ["--", "オプション指定を終える独立した引数です。前後に空白を入れ、続けてパスを書きます。", "git restore --source=origin/main -- src/module"], ["path/to/directory", "現在地から見た復元対象の相対パスです。", "ls -ld path/to/directory"], [".", "現在地。code .はこのフォルダーを開きます。"], ["..", "親ディレクトリ。cd ..は1つ上に移動します。"]],
+        examples: [["pwd", "まず現在地を確認"], ["git rev-parse --show-toplevel", "Gitリポジトリの最上位を確認"], ["git fetch origin", "origin/mainなどの取得情報を更新"], ["git status --short -- src/module", "対象の変更状態を確認"], ["git diff -- src/module", "対象の未ステージ変更を確認"], ["git diff --cached -- src/module", "対象のステージ済み変更も確認"], ["git diff origin/main -- src/module", "取得済みの内容と作業ファイルを比較"], ["git restore --source=origin/main -- src/module", "対象を置き換えてよいと確認してから復元"], ["git status --short -- src/module", "復元後の状態を確認"], ["git diff origin/main -- src/module", "対象の追跡済み内容が復元元と一致するか確認"]],
         changes: "この指定では対象の作業ファイルを復元元に合わせます。index（ステージ）、現在のbranchの先端、commit履歴、GitHub側は変えません。対象の追跡済みファイルが復元元にない場合、削除されることもあります。",
         caution: "対象に残したい未commit変更があれば、先に別の場所へコピーするなどして保存します。fetchは作業ファイルのバックアップにはなりません。これをリポジトリ全体の同期やpull完了と解釈しないでください。",
-        output: "成功時は通常無表示です。git statusで変更範囲を確認し、git diff origin/main -- Python_Module_04で追跡済みファイルの差分を確認します。未追跡ファイルはこのdiffに出ないため、statusも併用します。",
+        output: "成功時は通常無表示です。git statusで変更範囲を確認し、git diff origin/main -- path/to/directoryで追跡済みファイルの差分を確認します。未追跡ファイルはこのdiffに出ないため、statusも併用します。",
         related: ["git fetch", "git restore", "git status", "git diff", "cd", "code", "pwd"]
       })
     );
     const restoreLesson = commands.find(command => command.name === "git restore --source");
-    restoreLesson.keywords += " unknown option 空白 スペース ハイフン 区切り 相対パス 特定フォルダー 部分取得 Python_Module Python_Module_04 origin/main cd .. code .";
+    restoreLesson.keywords += " unknown option 空白 スペース ハイフン 区切り 相対パス 特定フォルダー 部分取得 path/to/directory src/module origin/main cd .. code .";
     restoreLesson.lesson = [
-      {title: "1. 現在地とGitの範囲を区別する", text: "例は42Tokyoがリポジトリの最上位で、その下にPython_Moduleがある構成です。実際の最上位はgit rev-parse --show-toplevelで確認します。端末のプロンプトの末尾にあるフォルダー名だけでは、Gitの範囲までは分かりません。", code: "42Tokyo/\n└── Python_Module/\n    ├── Python_Module_04/\n    └── Python_Module_05_bis/"},
-      {title: "2. cd → code . → cd .. の流れ", text: "ホームからフォルダーへ入り、code .で現在のフォルダーをVS Codeで開きます。その後のcd ..で親のPython_Moduleへ移動します。VS Codeで開いたフォルダーと、ターミナルの現在地は別々に考えます。", code: "cd ~/Developer/42Tokyo/Python_Module/Python_Module_05_bis\ncode .\ncd ..\npwd"},
+      {title: "1. 現在地とGitの範囲を区別する", text: "例はprojectがリポジトリの最上位で、その下にsrcとtestsがある構成です。実際の最上位はgit rev-parse --show-toplevelで確認します。端末のプロンプトの末尾にあるフォルダー名だけでは、Gitの範囲までは分かりません。", code: "project/\n├── src/\n│   └── module/\n└── tests/"},
+      {title: "2. cd → code . → cd .. の流れ", text: "プロジェクト内のフォルダーへ入り、code .で現在のフォルダーをVS Codeで開きます。その後のcd ..で親フォルダーへ移動します。VS Codeで開いたフォルダーと、ターミナルの現在地は別々に考えます。", code: "cd ~/Developer/project/src/module\ncode .\ncd ..\npwd"},
       {title: "3. fetchの出力を読む", text: "Enumerating・Countingは送るGitオブジェクトの列挙と集計、Compressingは圧縮、Unpackingは受信データの展開です。数字はファイル数とは限りません。最終行はorigin/mainが古いcommitから新しいcommitへ進んだ意味です。現在のmainや作業ファイルが更新されたという意味ではありません。", code: "git fetch origin\n# 出力例（IDや件数は実行ごとに変わります）\nFrom https://github.com/example/project\n   a802279..c874e2e  main -> origin/main"},
-      {title: "4. unknown optionの原因と修正", text: "--Python_Module/...のように続けると、Gitは長いオプション名として読みます。--は単独で置き、その後に空白とパスを書きます。さらに現在地がPython_Moduleなら、先頭のPython_Module/は重ねません。", code: "# 誤り\ngit restore --source=origin/main --Python_Module/Python_Module_04\n# error: unknown option 'Python_Module/Python_Module_04'\n\n# Python_Module内で、対象を置き換えてよいと確認した後\ngit restore --source=origin/main -- Python_Module_04"},
-      {title: "5. 同じ対象でも現在地でパスが変わる", text: "どちらも同じフォルダーを指定する例です。--はパスをリポジトリの最上位から解釈させる記号ではありません。通常の相対パスは現在地が基準です。", code: "# 現在地が42Tokyoの場合\ngit restore --source=origin/main -- Python_Module/Python_Module_04\n\n# 現在地が42Tokyo/Python_Moduleの場合\ngit restore --source=origin/main -- Python_Module_04"},
-      {title: "6. 無表示と成功確認", text: "成功時に何も表示しないのは通常の動作です。ただし提示されたログだけでファイル内容の一致までは判断できません。直後のecho $?が0なら直前のコマンドは成功終了です。さらにstatusとdiffで対象を確認します。復元後も、現在のcommitと異なれば変更として表示されます。", code: "# restore直後。他のコマンドを挟む前に確認\necho $?\n# 成功終了なら 0\n\ngit status --short -- Python_Module_04\ngit diff origin/main -- Python_Module_04"}
+      {title: "4. unknown optionの原因と修正", text: "--src/...のように続けると、Gitは長いオプション名として読みます。--は単独で置き、その後に空白とパスを書きます。さらに現在地がsrcなら、先頭のsrc/は重ねません。", code: "# 誤り\ngit restore --source=origin/main --src/module\n# error: unknown option 'src/module'\n\n# src内で、対象を置き換えてよいと確認した後\ngit restore --source=origin/main -- module"},
+      {title: "5. 同じ対象でも現在地でパスが変わる", text: "どちらも同じフォルダーを指定する例です。--はパスをリポジトリの最上位から解釈させる記号ではありません。通常の相対パスは現在地が基準です。", code: "# 現在地がprojectの場合\ngit restore --source=origin/main -- src/module\n\n# 現在地がproject/srcの場合\ngit restore --source=origin/main -- module"},
+      {title: "6. 無表示と成功確認", text: "成功時に何も表示しないのは通常の動作です。ただし提示されたログだけでファイル内容の一致までは判断できません。直後のecho $?が0なら直前のコマンドは成功終了です。さらにstatusとdiffで対象を確認します。復元後も、現在のcommitと異なれば変更として表示されます。", code: "# restore直後。他のコマンドを挟む前に確認\necho $?\n# 成功終了なら 0\n\ngit status --short -- src/module\ngit diff origin/main -- src/module"}
     ];
     restoreLesson.sources = [["Git公式：restore", "https://git-scm.com/docs/git-restore"], ["Git公式：fetch", "https://git-scm.com/docs/git-fetch"], ["VS Code公式：CLI", "https://code.visualstudio.com/docs/configure/command-line"]];
     commands.find(command => command.name === "git restore").related.push("git restore --source");
@@ -2189,47 +2189,47 @@
     const cdCommand = commands.find(command => command.name === "cd");
     cdCommand.related.push("pwd", "code", "git restore --source");
     cdCommand.examples.push(
-      ["cd /Users/tmarukaw/Developer", "絶対パスを指定してDeveloperフォルダーへ移動"],
-      ["cd 42Tokyo-submit-05bis", "現在地の下にある提出確認用の複製先へ移動"]
+      ["cd /path/to/projects", "絶対パスを指定してプロジェクト置き場へ移動"],
+      ["cd project-copy", "現在地の下にある複製先へ移動"]
     );
-    cdCommand.keywords += " /Users/tmarukaw/Developer 42Tokyo-submit-05bis 提出確認用 絶対パス";
+    cdCommand.keywords += " /path/to/projects project-copy 複製先 絶対パス";
 
     const cloneLesson = commands.find(command => command.name === "git clone");
     cloneLesson.tokens.push(
       ["--filter=blob:none", "ファイルの中身（blob）の取得を、Gitが必要とする時まで遅らせます。履歴を浅くする--depthとは別です。作業ファイルを配置するときは、その中身を取得します。"],
       ["--sparse", "最初はリポジトリ直下のファイルだけを作業フォルダーに配置します。必要なフォルダーはgit sparse-checkout setで選びます。"],
       ["-b main / --branch main", "最初に使うブランチをmainに指定します。これだけでは取得するブランチを1つに限定しません。"],
-      ["https://github.com/moludou/42Tokyo.git", "HTTPS形式の取得元です。github.com上のmoludou/42Tokyoリポジトリを表します。公開リポジトリならSSH鍵を使わずに取得できます。", ["git clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis", "HTTPSでmainを提出確認用フォルダーへ複製"]],
-      ["git@github.com:moludou/42Tokyo.git", "SSH形式の取得元です。gitは接続用ユーザー名、github.comは接続先、moludou/42Tokyo.gitは所有者とリポジトリ名です。SSH認証と閲覧権限が必要です。"]
+      ["https://github.com/owner/repository.git", "HTTPS形式の取得元です。ownerは所有者、repositoryはリポジトリ名を表す一般例です。公開リポジトリならSSH鍵を使わずに取得できます。", ["git clone --branch main https://github.com/owner/repository.git project-copy", "HTTPSでmainを別フォルダーへ複製"]],
+      ["git@github.com:owner/repository.git", "SSH形式の取得元です。gitは接続用ユーザー名、github.comは接続先、owner/repository.gitは所有者とリポジトリ名です。SSH認証と閲覧権限が必要です。"]
     );
-    cloneLesson.examples.unshift(["git clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis", "GitHubのmainを履歴ごと、提出確認用の別フォルダーへ複製"]);
-    cloneLesson.examples.push(["git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study", "新しい42Tokyo-studyに複製。最初は直下のファイルだけを配置"]);
-    cloneLesson.keywords += " sparse partial clone blob 部分クローン スパース チェックアウト 必要なフォルダー 42Tokyo-submit-05bis submit 提出確認用 HTTPS Developer git clone --branch main";
+    cloneLesson.examples.unshift(["git clone --branch main https://github.com/owner/repository.git project-copy", "GitHubのmainを履歴ごと別フォルダーへ複製"]);
+    cloneLesson.examples.push(["git clone --filter=blob:none --sparse -b main git@github.com:owner/repository.git project-sparse", "新しいproject-sparseへ部分クローン。最初は直下のファイルだけを配置"]);
+    cloneLesson.keywords += " sparse partial clone blob 部分クローン スパース チェックアウト 必要なフォルダー project-copy project-sparse HTTPS git clone --branch main";
     cloneLesson.related.push("git sparse-checkout");
     const cloneOptionExamples = {
-      "--filter=blob:none": "git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study",
-      "--sparse": "git clone --sparse git@github.com:moludou/42Tokyo.git 42Tokyo-study",
-      "-b main / --branch main": "git clone -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study",
-      "git@github.com:moludou/42Tokyo.git": "git clone git@github.com:moludou/42Tokyo.git 42Tokyo-study"
+      "--filter=blob:none": "git clone --filter=blob:none --sparse -b main git@github.com:owner/repository.git project-sparse",
+      "--sparse": "git clone --sparse git@github.com:owner/repository.git project-sparse",
+      "-b main / --branch main": "git clone -b main git@github.com:owner/repository.git project-copy",
+      "git@github.com:owner/repository.git": "git clone git@github.com:owner/repository.git project-copy"
     };
     cloneLesson.tokens.forEach(token => { if (cloneOptionExamples[token[0]]) token[2] = cloneOptionExamples[token[0]]; });
     cloneLesson.lesson = [
-      {title: "提出確認用フォルダーへ複製して移動する", text: "最初のcdでDeveloperフォルダーへ移動します。次のgit cloneはGitHubのmainを、42Tokyo-submit-05bisという新しいフォルダーへ履歴ごと複製します。最後のcdは、複製が成功した後にそのフォルダーへ入る操作です。元の42TokyoフォルダーやGitHub側の内容は変更しません。", code: "cd /Users/tmarukaw/Developer\n\ngit clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis\n\ncd 42Tokyo-submit-05bis"},
-      {title: "cloneの指定を左から読む", text: "gitは履歴管理の道具、cloneは複製、--branch mainは最初にmainをcheckoutする指定です。HTTPS URLがコピー元、最後の42Tokyo-submit-05bisが新しく作る保存先フォルダー名です。--single-branchは指定していないため、--branch mainだけで取得対象をmainだけに限定する意味にはなりません。", code: "git clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis"},
+      {title: "別フォルダーへ複製して移動する", text: "最初のcdでプロジェクト置き場へ移動します。次のgit cloneはGitHubのmainを、project-copyという新しいフォルダーへ履歴ごと複製します。最後のcdは、複製が成功した後にそのフォルダーへ入る操作です。元の作業フォルダーやGitHub側の内容は変更しません。", code: "cd /path/to/projects\n\ngit clone --branch main https://github.com/owner/repository.git project-copy\n\ncd project-copy"},
+      {title: "cloneの指定を左から読む", text: "gitは履歴管理の道具、cloneは複製、--branch mainは最初にmainをcheckoutする指定です。HTTPS URLがコピー元、最後のproject-copyが新しく作る保存先フォルダー名です。--single-branchは指定していないため、--branch mainだけで取得対象をmainだけに限定する意味にはなりません。", code: "git clone --branch main https://github.com/owner/repository.git project-copy"},
       {title: "複製後の場所とGit設定を確認する", text: "cloneとcdが成功した後、pwdで現在地、git status -sbで現在のブランチと状態、git remote -vで取得元を確認できます。これら3つは確認コマンドで、GitHubへpushする操作ではありません。", code: "pwd\ngit status -sb\ngit remote -v"},
-      {title: "同名の保存先がすでにある場合", text: "42Tokyo-submit-05bisが空でない状態で存在すると、cloneは上書きせずに停止します。まずls -laで中身を確認し、必要なら未使用の別名を選びます。確認せずに既存フォルダーを削除しないでください。", code: "# エラー例\nfatal: destination path '42Tokyo-submit-05bis' already exists and is not an empty directory.\n\nls -la 42Tokyo-submit-05bis"},
-      {title: "画像のコマンドを左から読む", text: "gitは履歴管理の道具、cloneはプロジェクトの複製です。--filter=blob:noneは中身の取得を後回しにし、--sparseは手元に配置する範囲を絞ります。-b mainは使い始めるブランチ、続くSSHアドレスは取得元です。最後の42Tokyo-studyは保存先の名前で、この例では既存フォルダーと区別するために付けています。", code: "git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study"},
-      {title: "続けてPython_Moduleを開く", text: "以下は複製が成功した後に実行します。cdで複製先に入り、setで対象を選びます。Python_Moduleとリポジトリ直下のファイルが配置されます。GitHub側のファイルを削除・変更する操作ではありません。", code: "cd 42Tokyo-study\ngit sparse-checkout set --cone Python_Module\ngit sparse-checkout list\n# 表示例：Python_Module\nls Python_Module\ngit status -sb"},
+      {title: "同名の保存先がすでにある場合", text: "project-copyが空でない状態で存在すると、cloneは上書きせずに停止します。まずls -laで中身を確認し、必要なら未使用の別名を選びます。確認せずに既存フォルダーを削除しないでください。", code: "# エラー例\nfatal: destination path 'project-copy' already exists and is not an empty directory.\n\nls -la project-copy"},
+      {title: "部分クローンを左から読む", text: "gitは履歴管理の道具、cloneはプロジェクトの複製です。--filter=blob:noneは中身の取得を後回しにし、--sparseは手元に配置する範囲を絞ります。-b mainは使い始めるブランチ、続くSSHアドレスは取得元です。最後のproject-sparseは保存先の名前です。", code: "git clone --filter=blob:none --sparse -b main git@github.com:owner/repository.git project-sparse"},
+      {title: "続けて必要なフォルダーを開く", text: "以下は複製が成功した後に実行します。cdで複製先に入り、setで対象を選びます。srcとリポジトリ直下のファイルが配置されます。GitHub側のファイルを削除・変更する操作ではありません。", code: "cd project-sparse\ngit sparse-checkout set --cone src\ngit sparse-checkout list\n# 表示例：src\nls src\ngit status -sb"},
       {title: "取得量・配置範囲・履歴の違い", text: "filterは取得するデータ、sparseは手元に見せる範囲、depthは履歴の深さを調整します。ファイルを一切取得しない指定ではありません。未取得の中身が必要になると追加通信が発生するため、オフラインではその操作が失敗することがあります。"},
-      {title: "エラー例：保存先が既にある", text: "destination path ... already exists and is not an empty directory は、保存先が空でないという意味です。中身を確認し、未使用の別名を選びます。既存フォルダーを削除して解決しようとしないでください。", code: "# エラー例\nfatal: destination path '42Tokyo-study' already exists and is not an empty directory."},
+      {title: "エラー例：保存先が既にある", text: "destination path ... already exists and is not an empty directory は、保存先が空でないという意味です。中身を確認し、未使用の別名を選びます。既存フォルダーを削除して解決しようとしないでください。", code: "# エラー例\nfatal: destination path 'project-sparse' already exists and is not an empty directory."},
       {title: "エラー例：認証・ブランチ・サーバー対応", text: "Permission denied (publickey) はSSH認証の失敗です。登録済み公開鍵と接続先を確認します。Remote branch main not found はmainが取得元にない場合のエラーです。filtering not recognized by server, ignoring はfilterが無視される警告で、想定より多くのデータを取得し得ます。秘密鍵を公開したり、警告を回避するために認証を無効化したりしないでください。"}
     ];
     cloneLesson.sources = [["Git公式：clone", "https://git-scm.com/docs/git-clone"]];
 
-    const rsyncSubmitCommand = "rsync -av \\\n  --exclude='.git/' \\\n  --exclude='.venv/' \\\n  --exclude='venv/' \\\n  --exclude='lab_env/' \\\n  --exclude='__pycache__/' \\\n  --exclude='.mypy_cache/' \\\n  --include='.env.example' \\\n  --exclude='.env*' \\\n  --exclude='*.pdf' \\\n  --exclude='.DS_Store' \\\n  /Users/tmarukaw/Developer/42Tokyo/Python_Module/Python_Module_05_bis/ \\\n  Python_Module/Python_Module_05_bis/";
+    const rsyncFilteredCopyCommand = "rsync -av \\\n  --exclude='.git/' \\\n  --exclude='.venv/' \\\n  --exclude='venv/' \\\n  --exclude='lab_env/' \\\n  --exclude='__pycache__/' \\\n  --exclude='.mypy_cache/' \\\n  --include='.env.example' \\\n  --exclude='.env*' \\\n  --exclude='*.pdf' \\\n  --exclude='.DS_Store' \\\n  source/ \\\n  destination/";
     commands.push(historicalCommand({
       name: "rsync", category: "ファイル", summary: "差分を比較しながらファイルやフォルダーをコピー・同期する",
-      keywords: "rsync -av include exclude .env.example .env PDF DS_Store venv __pycache__ mypy_cache 42Tokyo Python_Module_05_bis 差分 コピー 同期 提出",
+      keywords: "rsync -av include exclude .env.example .env PDF DS_Store venv __pycache__ mypy_cache source destination 差分 コピー 同期 dry-run",
       risk: "change", riskLabel: "コピー先を作成・更新", syntax: "rsync [オプション] コピー元/ コピー先/",
       tokens: [
         ["-a", "archive modeです。再帰コピーに加え、シンボリックリンク・権限・更新日時など多くの属性を保とうとします。ACLや拡張属性は別指定です。", ["rsync -a source/ destination/", "sourceの中身をarchive modeでコピー"]],
@@ -2241,58 +2241,58 @@
         ["--exclude='.env*'", ".envで始まるファイルやディレクトリを除外します。この例では先に一致する.env.exampleだけが許可されています。", ["rsync -av --include='.env.example' --exclude='.env*' source/ destination/", "秘密情報を含み得る.env系を除外"]],
         ["--exclude='*.pdf'", "名前が小文字.pdfで終わるファイルを除外します。大文字.PDFは別名なので、このパターンだけでは除外されません。", ["rsync -av --exclude='*.pdf' source/ destination/", "小文字.pdfのファイルを除外"]],
         ["--exclude='.DS_Store'", "macOSがフォルダー表示情報として作る.DS_Storeを除外します。", ["rsync -av --exclude='.DS_Store' source/ destination/", ".DS_Storeを除外"]],
-        ["コピー元/", "末尾の/があるため、Python_Module_05_bisフォルダー自体ではなく、その中身をコピー先へ入れます。", ["rsync -av /path/to/source/ destination/", "sourceの中身をdestinationへコピー"]],
-        ["コピー先/", "現在地から見た相対パスです。この例は42Tokyo-submit-05bisの直下で実行する想定です。", ["rsync -av source/ Python_Module/Python_Module_05_bis/", "相対パスのコピー先へ反映"]],
+        ["コピー元/", "末尾の/があるため、sourceフォルダー自体ではなく、その中身をコピー先へ入れます。", ["rsync -av source/ destination/", "sourceの中身をdestinationへコピー"]],
+        ["コピー先/", "コピー内容が作成・更新される場所です。相対パスなら現在地が基準です。", ["rsync -av source/ destination/", "sourceの中身を相対パスのdestinationへ反映"]],
         ["--dry-run / -n", "実際には変更せず、コピー・更新される予定を確認します。初回は-avへnを足した-avnで確認します。", ["rsync -avn source/ destination/", "コピーせず予定だけ確認"]]
       ],
-      examples: [[rsyncSubmitCommand, "課題05 bisの修正済みファイルを、不要物と秘密情報を除外して提出確認用コピーへ反映"], ["rsync -avn --exclude='.git/' source/ destination/", "-nを追加し、変更せずに対象予定を確認"]],
+      examples: [[rsyncFilteredCopyCommand, "不要物と秘密情報を除外してsourceの中身をdestinationへ反映"], ["rsync -avn --exclude='.git/' source/ destination/", "-nを追加し、変更せずに対象予定を確認"]],
       changes: "コピー先にディレクトリやファイルを作成し、同じ相対パスのファイルを必要に応じて更新します。コピー元は変更しません。この例には--deleteがないため、コピー元にない既存ファイルをコピー先から削除はしません。",
-      caution: "このまま実行するとコピー先が変わります。先にpwdとgit status -sbで提出確認用リポジトリの直下にいることを確認し、最初は-nを追加した-avnで予定を確認します。.env.exampleには実際の秘密値を書かず、除外指定だけに頼らず転送予定も確認します。",
+      caution: "このまま実行するとコピー先が変わります。先にpwdとls -ldでコピー元・コピー先を確認し、最初は-nを追加した-avnで予定を確認します。.env.exampleには実際の秘密値を書かず、除外指定だけに頼らず転送予定も確認します。",
       output: "sending incremental file listに続き、作成・更新対象、送受信byte数、転送速度などが表示されます。変更がなければファイル名がほとんど表示されないことがあります。",
       related: ["cp", "pwd", "git status"]
     }));
     const rsyncLesson = commands.find(command => command.name === "rsync");
-    rsyncLesson.lessonTitle = "課題05 bisを提出確認用コピーへ反映する";
+    rsyncLesson.lessonTitle = "除外規則を使って安全にフォルダーを同期する";
     rsyncLesson.lesson = [
-      {title: "1. 実行する場所とコピー方向", text: "前の手順で作った42Tokyo-submit-05bisの直下へ移動してから実行する想定です。左の絶対パスが修正済みのコピー元、右の相対パスが提出確認用リポジトリ内のコピー先です。方向を逆にすると意図と反対の内容で上書きし得ます。", code: "cd /Users/tmarukaw/Developer/42Tokyo-submit-05bis\npwd\ngit status -sb"},
-      {title: "2. まずdry-runで予定を確認", text: "実コマンドの-avを-avnにすると、コピー先を変更せず対象予定を表示します。除外した.git・仮想環境・キャッシュ・.env系・PDF・.DS_Storeが一覧に出ていないことと、コピー方向を確認します。", code: rsyncSubmitCommand.replace("rsync -av ", "rsync -avn ")},
-      {title: "3. 確認後に実際のコピーを実行", text: "dry-runの内容が意図どおりなら、-nを外した元のコマンドを実行します。行末のバックスラッシュは次の行へ続ける記号なので、各行を別々には実行しません。", code: rsyncSubmitCommand},
+      {title: "1. 実行する場所とコピー方向", text: "左がコピー元、右がコピー先です。相対パスは現在地が基準になるため、pwdとls -ldで両方の場所を確認します。方向を逆にすると意図と反対の内容で上書きし得ます。", code: "pwd\nls -ld source/ destination/"},
+      {title: "2. まずdry-runで予定を確認", text: "実コマンドの-avを-avnにすると、コピー先を変更せず対象予定を表示します。除外した.git・仮想環境・キャッシュ・.env系・PDF・.DS_Storeが一覧に出ていないことと、コピー方向を確認します。", code: rsyncFilteredCopyCommand.replace("rsync -av ", "rsync -avn ")},
+      {title: "3. 確認後に実際のコピーを実行", text: "dry-runの内容が意図どおりなら、-nを外した元のコマンドを実行します。行末のバックスラッシュは次の行へ続ける記号なので、各行を別々には実行しません。", code: rsyncFilteredCopyCommand},
       {title: "4. includeとexcludeは上から先に一致した規則が有効", text: ".env.exampleは.env*にも一致しますが、先にincludeされるため転送候補に残ります。順番を逆にすると.env*の除外が先に一致し、後ろのincludeでは戻せません。引用符により、*はzshではなくrsyncが解釈します。", code: "--include='.env.example'\n--exclude='.env*'"},
-      {title: "5. コピー後に差分を確認", text: "rsyncの成功だけではコミット対象が正しいとは限りません。git statusで変更ファイル、git diffで未ステージ差分を確認します。この段階ではまだgit add・commit・pushは行われていません。", code: "git status --short -- Python_Module/Python_Module_05_bis\ngit diff -- Python_Module/Python_Module_05_bis"},
+      {title: "5. コピー後に差分を確認", text: "コピー先がGitリポジトリなら、git statusで変更ファイル、git diffで未ステージ差分を確認できます。この段階ではまだgit add・commit・pushは行われていません。", code: "git status --short\ngit diff"},
       {title: "6. 末尾の/と削除されないファイル", text: "コピー元末尾の/は『このフォルダーの中身』をコピーする意味です。また、このコマンドには--deleteがないため、コピー先だけに存在する古いファイルは残ります。完全な鏡像化が必要でも、対象確認なしに--deleteを追加しないでください。", code: "# 中身をコピー\nsource/  → destination/\n\n# 今回は指定していない\n--delete"}
     ];
     rsyncLesson.sources = [["rsync公式：rsync(1) manpage", "https://download.samba.org/pub/rsync/rsync.1"]];
 
-    const gitAddSubmit = commands.find(command => command.name === "git add");
-    gitAddSubmit.examples.unshift(["git add Python_Module/Python_Module_05_bis/", "課題05 bisのフォルダー内にある変更だけをステージング"]);
-    gitAddSubmit.keywords += " git add Python_Module/Python_Module_05_bis/ 課題05 bis staging ステージング";
-    gitAddSubmit.lessonTitle = "課題05 bisだけを次のコミット候補へ入れる";
-    gitAddSubmit.lesson = [
-      {title: "1. フォルダーを指定してステージングする", text: "42Tokyo-submit-05bisのリポジトリ直下で実行します。指定フォルダー内の新規・変更・削除を、現在の状態に合わせてGit indexへ記録します。リポジトリ全体をまとめて追加するgit add .とは範囲が異なります。", code: "git add Python_Module/Python_Module_05_bis/"},
-      {title: "2. addはcommitやpushではない", text: "この操作で変わるのはローカルのstaging areaです。まだコミット履歴は作られず、GitHubにも送られません。add後にファイルをさらに編集した場合、その追加分を含めるにはもう一度addが必要です。", code: "git status --short -- Python_Module/Python_Module_05_bis/"},
+    const gitAddDirectory = commands.find(command => command.name === "git add");
+    gitAddDirectory.examples.unshift(["git add path/to/directory/", "指定フォルダー内にある変更だけをステージング"]);
+    gitAddDirectory.keywords += " git add path/to/directory/ folder directory staging ステージング";
+    gitAddDirectory.lessonTitle = "フォルダー単位で次のコミット候補へ追加する";
+    gitAddDirectory.lesson = [
+      {title: "1. フォルダーを指定してステージングする", text: "リポジトリ内で実行します。指定フォルダー内の新規・変更・削除を、現在の状態に合わせてGit indexへ記録します。リポジトリ全体をまとめて追加するgit add .とは範囲が異なります。", code: "git add path/to/directory/"},
+      {title: "2. addはcommitやpushではない", text: "この操作で変わるのはローカルのstaging areaです。まだコミット履歴は作られず、GitHubにも送られません。add後にファイルをさらに編集した場合、その追加分を含めるにはもう一度addが必要です。", code: "git status --short -- path/to/directory/"},
       {title: "3. 次のコミット候補を2段階で確認", text: "まず--statでファイルごとの変更量と合計を見て、次に--name-onlyで対象ファイル名だけを確認します。どちらもstaging内容を変更しません。必要なら最後にgit diff --cachedで本文の差分も確認します。", code: "git diff --cached --stat\ngit diff --cached --name-only\ngit diff --cached"},
       {title: "4. 範囲を間違えた場合", text: "まだcommit前なら、Git公式が案内するrestore --stagedなどでstagingだけを戻せますが、対象を確認せず実行しません。まずgit statusとgit diff --cached --name-onlyで実際の対象を確認します。", code: "git status --short\ngit diff --cached --name-only"}
     ];
-    gitAddSubmit.sources = [["Git公式：add", "https://git-scm.com/docs/git-add"]];
+    gitAddDirectory.sources = [["Git公式：add", "https://git-scm.com/docs/git-add"]];
 
-    const gitDiffSubmit = commands.find(command => command.name === "git diff");
-    gitDiffSubmit.examples.unshift(
+    const gitDiffStaged = commands.find(command => command.name === "git diff");
+    gitDiffStaged.examples.unshift(
       ["git diff --cached --stat", "ステージ済み変更をファイル別の増減と合計で確認"],
       ["git diff --cached --name-only", "ステージ済み変更に含まれるファイル名だけを確認"]
     );
-    gitDiffSubmit.keywords += " git diff --cached --stat git diff --cached --name-only staged staging 統計 ファイル名 課題05 bis";
-    gitDiffSubmit.lessonTitle = "課題05 bisをステージした後の確認";
-    gitDiffSubmit.lesson = [
+    gitDiffStaged.keywords += " git diff --cached --stat git diff --cached --name-only staged staging 統計 ファイル名";
+    gitDiffStaged.lessonTitle = "ステージ済み変更を要約して確認する";
+    gitDiffStaged.lesson = [
       {title: "1. --cachedはステージ済み変更を見る", text: "--cachedは通常、Git indexと直前のcommitであるHEADを比較します。つまり、今commitすると含まれる予定の変更です。作業中だがまだaddしていない変更は、この2つの表示には含まれません。", code: "git diff --cached --stat\ngit diff --cached --name-only"},
-      {title: "2. --statで変更量を要約する", text: "ファイル名、変更行数を表すグラフ、最後に変更ファイル数と追加・削除行数の合計を表示します。本文の差分は表示しないため、全体量をすばやく確認する用途です。", code: "git diff --cached --stat\n# 表示例\nPython_Module/Python_Module_05_bis/ex00/example.py | 8 +++++---\n1 file changed, 5 insertions(+), 3 deletions(-)"},
-      {title: "3. --name-onlyで対象ファイルを確認する", text: "ステージ済み変更に含まれるパスだけを1行ずつ表示します。課題05 bis以外のファイルが混ざっていないか確認できますが、変更内容や追加・削除の種類は表示しません。", code: "git diff --cached --name-only\n# 表示例\nPython_Module/Python_Module_05_bis/ex00/example.py"},
+      {title: "2. --statで変更量を要約する", text: "ファイル名、変更行数を表すグラフ、最後に変更ファイル数と追加・削除行数の合計を表示します。本文の差分は表示しないため、全体量をすばやく確認する用途です。", code: "git diff --cached --stat\n# 表示例\nsrc/example.py | 8 +++++---\n1 file changed, 5 insertions(+), 3 deletions(-)"},
+      {title: "3. --name-onlyで対象ファイルを確認する", text: "ステージ済み変更に含まれるパスだけを1行ずつ表示します。意図しないファイルが混ざっていないか確認できますが、変更内容や追加・削除の種類は表示しません。", code: "git diff --cached --name-only\n# 表示例\nsrc/example.py"},
       {title: "4. 何も表示されない場合", text: "ステージ済み変更がなければ通常は何も表示されません。成功と対象なしを区別するため、git status --shortも確認します。add前の未ステージ差分はgit diffで確認します。", code: "git status --short\ngit diff\ngit diff --cached --name-only"}
     ];
-    gitDiffSubmit.sources = [["Git公式：diff", "https://git-scm.com/docs/git-diff"]];
+    gitDiffStaged.sources = [["Git公式：diff", "https://git-scm.com/docs/git-diff"]];
     commands.push(gitCommand({
       name: "git sparse-checkout", summary: "必要なフォルダーだけを作業フォルダーに配置する", syntax: "git sparse-checkout set --cone フォルダー",
       tokens: [["set --cone フォルダー", "配置対象を指定フォルダーへ設定します。以前の選択は置き換わります。フォルダー内すべてと、その親フォルダー直下のファイルも含まれます。"], ["add フォルダー", "既存の選択を残したまま、配置対象を追加します。"], ["list", "現在選んでいるフォルダーを表示します。"], ["disable", "範囲の制限を解除し、現在のブランチの全ファイルを配置します。追加通信や容量が必要になる場合があります。"], ["--cone", "ファイル単位の複雑なパターンではなく、フォルダーを単位として選ぶ方式です。"]],
-      examples: [["git sparse-checkout set --cone Python_Module", "リポジトリの一番上で実行し、Python_Moduleを配置"], ["git sparse-checkout list", "選択中のフォルダーを確認"], ["git sparse-checkout add Born2beRoot", "このフォルダーが存在する場合、選択に追加"], ["git sparse-checkout disable", "現在のブランチの全ファイルを配置"]],
+      examples: [["git sparse-checkout set --cone src", "リポジトリの一番上で実行し、srcを配置"], ["git sparse-checkout list", "選択中のフォルダーを確認"], ["git sparse-checkout add docs", "docsが存在する場合、選択に追加"], ["git sparse-checkout disable", "現在のブランチの全ファイルを配置"]],
       changes: "ローカルの設定と作業ファイルの配置を変更します。GitHubやコミットの履歴から対象外のファイルを削除するわけではありません。listは確認だけです。",
       caution: "setは選択を置き換えるので、追加だけならaddです。対象外になるフォルダー内の無視ファイルが削除される場合があります。未コミット変更だけでなく、.gitignoreで無視される大切なファイルも別の場所へ保全してから変更します。",
       output: "setやaddは成功しても無表示のことがあります。listなら選択したフォルダー名が表示されます。",
@@ -2300,20 +2300,20 @@
     }));
     const sparseLesson = commands.find(command => command.name === "git sparse-checkout");
     sparseLesson.keywords += " --sparse blob:none 必要なフォルダー 部分取得 スパース";
-    ["git sparse-checkout set --cone Python_Module", "git sparse-checkout add Born2beRoot", "git sparse-checkout list", "git sparse-checkout disable", "git sparse-checkout set --cone Python_Module"].forEach((example, index) => { sparseLesson.tokens[index][2] = example; });
+    ["git sparse-checkout set --cone src", "git sparse-checkout add docs", "git sparse-checkout list", "git sparse-checkout disable", "git sparse-checkout set --cone src"].forEach((example, index) => { sparseLesson.tokens[index][2] = example; });
     sparseLesson.lesson = [
-      {title: "実行例と確認", text: "新しく複製した42Tokyo-studyの直下で実行する例です。フォルダー名の大文字・小文字を合わせてください。", code: "git sparse-checkout set --cone Python_Module\ngit sparse-checkout list\n# 出力例\nPython_Module"},
-      {title: "エラー例：Gitの外で実行した", text: "not a git repository は、現在地がリポジトリ内ではないという意味です。pwdで現在地を調べ、複製したフォルダーへcdしてから実行します。", code: "fatal: not a git repository (or any of the parent directories): .git\n\n# 現在地を確認\npwd\n# 複製先の親にいる場合\ncd 42Tokyo-study\ngit sparse-checkout list"},
+      {title: "実行例と確認", text: "新しく複製したproject-sparseの直下で実行する例です。フォルダー名の大文字・小文字を合わせてください。", code: "git sparse-checkout set --cone src\ngit sparse-checkout list\n# 出力例\nsrc"},
+      {title: "エラー例：Gitの外で実行した", text: "not a git repository は、現在地がリポジトリ内ではないという意味です。pwdで現在地を調べ、複製したフォルダーへcdしてから実行します。", code: "fatal: not a git repository (or any of the parent directories): .git\n\n# 現在地を確認\npwd\n# 複製先の親にいる場合\ncd project-sparse\ngit sparse-checkout list"},
       {title: "エラー例：古いGit・変更が残っている", text: "git: 'sparse-checkout' is not a git command と出たらgit --versionで版を確認します。作業変更について警告された場合は、強制削除せずgit statusとgit diffで内容を確認して保全します。", code: "git --version\ngit status --short\ngit diff"}
     ];
     sparseLesson.sources = [["Git公式：sparse-checkout", "https://git-scm.com/docs/git-sparse-checkout"]];
-    sparseLesson.keywords += " Python_Module/Python_Module_04 Python_Module_04 課題04 set パス";
-    sparseLesson.examples.unshift(["git sparse-checkout set --cone Python_Module/Python_Module_04", "課題04のフォルダーを選択。リポジトリの一番上で実行"]);
+    sparseLesson.keywords += " src/module path/to/directory set パス";
+    sparseLesson.examples.unshift(["git sparse-checkout set --cone src/module", "src/moduleフォルダーを選択。リポジトリの一番上で実行"]);
     sparseLesson.lesson.unshift(
-      {title: "画像の例：課題04を手元で使う対象にする", text: "git sparse-checkout set Python_Module/Python_Module_04 は、課題04を作業フォルダーに配置する指定です。ここではフォルダー単位の方式を明示するため--coneを付けます。複製先の一番上で実行してください。既に選択していた範囲は置き換わるため、変更や大切な無視ファイルを先に保全します。", code: "# 複製先の親フォルダーにいる場合\ncd 42Tokyo-study\ngit status --short\ngit sparse-checkout set --cone Python_Module/Python_Module_04\ngit sparse-checkout list\n# 出力例\nPython_Module/Python_Module_04"},
-      {title: "git・sparse-checkout・setを分解する", text: "gitは変更履歴を管理する道具です。sparse-checkoutは、記録されたファイルのうち必要な範囲を手元に配置する機能名です。sparseは「まばらな」、checkoutはここでは「記録された内容を作業ファイルとして取り出す」という意味です。setは「設定する」で、今回指定した範囲に選び直して、配置にも反映します。追加だけならaddを使います。", code: "# 選択を課題04に置き換える\ngit sparse-checkout set --cone Python_Module/Python_Module_04\n\n# 課題04を残して課題05も追加する例（存在する場合）\ngit sparse-checkout add Python_Module/Python_Module_05"},
-      {title: "Python_Module/Python_Module_04というパス", text: "Python_Moduleは親フォルダー、/は「その中」の区切り、Python_Module_04は今回選ぶフォルダーです。このように場所を表した文字列をパスと呼びます。課題04内のサブフォルダーやファイルも対象です。以下の構成は説明用で、実際の内容を確認したものではありません。", code: "42Tokyo-study/\n└── Python_Module/\n    └── Python_Module_04/\n        ├── ex0/  ← 内部のファイルも対象\n        └── ex3/  ← 存在する場合は対象"},
-      {title: "親フォルダー直下のファイルも残る", text: "cone方式では、課題04内の全ファイルに加えて、リポジトリ直下とPython_Module直下のファイルも配置されます。課題04だけが完全に独立するわけではありません。対象外の追跡ファイルが手元から見えなくなっても、GitHubやコミット履歴から削除したという意味ではありません。", code: "# 選択の設定を確認\ngit sparse-checkout list\n# 実際に配置された内容を確認\nls\nls Python_Module\nls Python_Module/Python_Module_04"}
+      {title: "必要なフォルダーを手元へ配置する", text: "git sparse-checkout set src/module は、src/moduleを作業フォルダーに配置する指定です。ここではフォルダー単位の方式を明示するため--coneを付けます。複製先の一番上で実行してください。既に選択していた範囲は置き換わるため、変更や大切な無視ファイルを先に保全します。", code: "# 複製先の親フォルダーにいる場合\ncd project-sparse\ngit status --short\ngit sparse-checkout set --cone src/module\ngit sparse-checkout list\n# 出力例\nsrc/module"},
+      {title: "git・sparse-checkout・setを分解する", text: "gitは変更履歴を管理する道具です。sparse-checkoutは、記録されたファイルのうち必要な範囲を手元に配置する機能名です。sparseは「まばらな」、checkoutはここでは「記録された内容を作業ファイルとして取り出す」という意味です。setは指定範囲へ選び直し、配置にも反映します。追加だけならaddを使います。", code: "# 選択をsrc/moduleに置き換える\ngit sparse-checkout set --cone src/module\n\n# src/moduleを残してdocsも追加する例\ngit sparse-checkout add docs"},
+      {title: "src/moduleというパス", text: "srcは親フォルダー、/は『その中』の区切り、moduleは今回選ぶフォルダーです。このように場所を表した文字列をパスと呼びます。module内のサブフォルダーやファイルも対象です。", code: "project-sparse/\n└── src/\n    └── module/\n        ├── app.py\n        └── helpers/"},
+      {title: "親フォルダー直下のファイルも残る", text: "cone方式では、module内の全ファイルに加えて、リポジトリ直下とsrc直下のファイルも配置されます。moduleだけが完全に独立するわけではありません。対象外の追跡ファイルが手元から見えなくなっても、GitHubやコミット履歴から削除したという意味ではありません。", code: "# 選択の設定を確認\ngit sparse-checkout list\n# 実際に配置された内容を確認\nls\nls src\nls src/module"}
     );
 
     cloneLesson.lessonTitle = "別フォルダーへの複製と部分クローン";
@@ -2496,7 +2496,7 @@
       "command": ["command", "ls"], "cp": ["cp", "source.txt backup.txt"], "crontab": ["crontab", ""],
       "df": ["df", "/"], "dpkg": ["sudo dpkg", ""], "echo": ["echo", "\"$PATH\""], "env": ["env", "DEBUG=1 printenv DEBUG"],
       "export": ["export", ""], "find": ["find .", ""], "findmnt": ["findmnt", "/"],
-      "flake8": ["python -m flake8", "ex0 ex1 ex2 ex3"], "free": ["free", ""], "g++": ["g++", "main.cpp"], "gcc": ["gcc", "main.c"],
+      "flake8": ["python -m flake8", "src tests"], "free": ["free", ""], "g++": ["g++", "main.cpp"], "gcc": ["gcc", "main.c"],
       "getent": ["getent", "passwd"], "git add": ["git add", "README.md"], "git branch": ["git branch", ""],
       "git clone": ["git clone", "https://github.com/example/project.git"], "git commit": ["git commit", ""],
       "git config": ["git config", "user.name 'Alice'"], "git diff": ["git diff", ""],
@@ -2787,7 +2787,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "export": "declare -x HOME=\"/home/user\"\ndeclare -x PATH=\"/usr/local/bin:/usr/bin:/bin\"",
       "find": "./README.md\n./docs/guide.md",
       "findmnt": "TARGET SOURCE    FSTYPE OPTIONS\n/      /dev/sda2 ext4   rw,relatime",
-      "flake8": "ex0/example.py:12:80: E501 line too long (85 > 79 characters)\nex1/archive.py:4:1: F401 'os' imported but unused",
+      "flake8": "src/example.py:12:80: E501 line too long (85 > 79 characters)\ntests/test_app.py:4:1: F401 'os' imported but unused",
       "free": "               total        used        free      shared  buff/cache   available\nMem:           15Gi       4.2Gi       6.1Gi       512Mi       5.0Gi        10Gi",
       "g++": "（成功時は何も表示されません）",
       "gcc": "（成功時は何も表示されません）",
@@ -2895,7 +2895,7 @@ no changes added to commit (use "git add" and/or "git commit -a")`,
       "export": [["declare -x", "子processへ引き継がれる環境変数であることを示します。"], ["名前=値", "引用符内が現在値です。秘密情報を含む変数は共有しません。"]],
       "find": [["./", "検索開始地点からの相対pathです。"], ["各行", "検索条件に一致した対象が1件ずつ表示されます。何もなければ通常は空です。"]],
       "findmnt": [["TARGET / SOURCE", "mount先と、その元device・filesystemです。"], ["FSTYPE / OPTIONS", "filesystem種類とrw・roなどのmount optionです。"]],
-      "flake8": [["ex0/example.py", "違反が見つかったファイルのパスです。"], ["12:80", "12行目・80列目を示します。"], ["E501 / F401", "違反の種類を表すコードです。Eは主に書式、FはPyflakes由来の検査です。"], ["後ろの説明", "line too longやimported but unusedなど、検出内容です。"], ["何も表示されない", "指定範囲で報告対象の違反を検出しなかった状態です。"], ["終了ステータス", "通常は0が違反なし、0以外は違反検出または実行エラーです。直後にecho $?で確認します。"]],
+      "flake8": [["src/example.py", "違反が見つかったファイルのパスです。"], ["12:80", "12行目・80列目を示します。"], ["E501 / F401", "違反の種類を表すコードです。Eは主に書式、FはPyflakes由来の検査です。"], ["後ろの説明", "line too longやimported but unusedなど、検出内容です。"], ["何も表示されない", "指定範囲で報告対象の違反を検出しなかった状態です。"], ["終了ステータス", "通常は0が違反なし、0以外は違反検出または実行エラーです。直後にecho $?で確認します。"]],
       "free": [["total / used / free", "総memory、使用中、完全に未使用の量です。"], ["buff/cache / available", "cache量と、新規処理に実質利用できる推定量です。通常はavailableを重視します。"]],
       "g++": [["表示なし", "compile成功時は通常何も表示されません。"], ["確認方法", "終了状態と、-oで指定した実行fileの存在を確認します。warningやerrorがあればその行を読みます。"]],
       "gcc": [["表示なし", "compile成功時は通常何も表示されません。"], ["確認方法", "終了状態と出力fileを確認し、warningとerrorを区別します。"]],
