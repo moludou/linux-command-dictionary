@@ -2186,17 +2186,25 @@
     restoreLesson.sources = [["Git公式：restore", "https://git-scm.com/docs/git-restore"], ["Git公式：fetch", "https://git-scm.com/docs/git-fetch"], ["VS Code公式：CLI", "https://code.visualstudio.com/docs/configure/command-line"]];
     commands.find(command => command.name === "git restore").related.push("git restore --source");
     commands.find(command => command.name === "git fetch").related.push("git restore --source");
-    commands.find(command => command.name === "cd").related.push("pwd", "code", "git restore --source");
+    const cdCommand = commands.find(command => command.name === "cd");
+    cdCommand.related.push("pwd", "code", "git restore --source");
+    cdCommand.examples.push(
+      ["cd /Users/tmarukaw/Developer", "絶対パスを指定してDeveloperフォルダーへ移動"],
+      ["cd 42Tokyo-submit-05bis", "現在地の下にある提出確認用の複製先へ移動"]
+    );
+    cdCommand.keywords += " /Users/tmarukaw/Developer 42Tokyo-submit-05bis 提出確認用 絶対パス";
 
     const cloneLesson = commands.find(command => command.name === "git clone");
     cloneLesson.tokens.push(
       ["--filter=blob:none", "ファイルの中身（blob）の取得を、Gitが必要とする時まで遅らせます。履歴を浅くする--depthとは別です。作業ファイルを配置するときは、その中身を取得します。"],
       ["--sparse", "最初はリポジトリ直下のファイルだけを作業フォルダーに配置します。必要なフォルダーはgit sparse-checkout setで選びます。"],
       ["-b main / --branch main", "最初に使うブランチをmainに指定します。これだけでは取得するブランチを1つに限定しません。"],
+      ["https://github.com/moludou/42Tokyo.git", "HTTPS形式の取得元です。github.com上のmoludou/42Tokyoリポジトリを表します。公開リポジトリならSSH鍵を使わずに取得できます。", ["git clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis", "HTTPSでmainを提出確認用フォルダーへ複製"]],
       ["git@github.com:moludou/42Tokyo.git", "SSH形式の取得元です。gitは接続用ユーザー名、github.comは接続先、moludou/42Tokyo.gitは所有者とリポジトリ名です。SSH認証と閲覧権限が必要です。"]
     );
+    cloneLesson.examples.unshift(["git clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis", "GitHubのmainを履歴ごと、提出確認用の別フォルダーへ複製"]);
     cloneLesson.examples.push(["git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study", "新しい42Tokyo-studyに複製。最初は直下のファイルだけを配置"]);
-    cloneLesson.keywords += " sparse partial clone blob 部分クローン スパース チェックアウト 必要なフォルダー";
+    cloneLesson.keywords += " sparse partial clone blob 部分クローン スパース チェックアウト 必要なフォルダー 42Tokyo-submit-05bis submit 提出確認用 HTTPS Developer git clone --branch main";
     cloneLesson.related.push("git sparse-checkout");
     const cloneOptionExamples = {
       "--filter=blob:none": "git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study",
@@ -2206,6 +2214,10 @@
     };
     cloneLesson.tokens.forEach(token => { if (cloneOptionExamples[token[0]]) token[2] = cloneOptionExamples[token[0]]; });
     cloneLesson.lesson = [
+      {title: "提出確認用フォルダーへ複製して移動する", text: "最初のcdでDeveloperフォルダーへ移動します。次のgit cloneはGitHubのmainを、42Tokyo-submit-05bisという新しいフォルダーへ履歴ごと複製します。最後のcdは、複製が成功した後にそのフォルダーへ入る操作です。元の42TokyoフォルダーやGitHub側の内容は変更しません。", code: "cd /Users/tmarukaw/Developer\n\ngit clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis\n\ncd 42Tokyo-submit-05bis"},
+      {title: "cloneの指定を左から読む", text: "gitは履歴管理の道具、cloneは複製、--branch mainは最初にmainをcheckoutする指定です。HTTPS URLがコピー元、最後の42Tokyo-submit-05bisが新しく作る保存先フォルダー名です。--single-branchは指定していないため、--branch mainだけで取得対象をmainだけに限定する意味にはなりません。", code: "git clone --branch main https://github.com/moludou/42Tokyo.git 42Tokyo-submit-05bis"},
+      {title: "複製後の場所とGit設定を確認する", text: "cloneとcdが成功した後、pwdで現在地、git status -sbで現在のブランチと状態、git remote -vで取得元を確認できます。これら3つは確認コマンドで、GitHubへpushする操作ではありません。", code: "pwd\ngit status -sb\ngit remote -v"},
+      {title: "同名の保存先がすでにある場合", text: "42Tokyo-submit-05bisが空でない状態で存在すると、cloneは上書きせずに停止します。まずls -laで中身を確認し、必要なら未使用の別名を選びます。確認せずに既存フォルダーを削除しないでください。", code: "# エラー例\nfatal: destination path '42Tokyo-submit-05bis' already exists and is not an empty directory.\n\nls -la 42Tokyo-submit-05bis"},
       {title: "画像のコマンドを左から読む", text: "gitは履歴管理の道具、cloneはプロジェクトの複製です。--filter=blob:noneは中身の取得を後回しにし、--sparseは手元に配置する範囲を絞ります。-b mainは使い始めるブランチ、続くSSHアドレスは取得元です。最後の42Tokyo-studyは保存先の名前で、この例では既存フォルダーと区別するために付けています。", code: "git clone --filter=blob:none --sparse -b main git@github.com:moludou/42Tokyo.git 42Tokyo-study"},
       {title: "続けてPython_Moduleを開く", text: "以下は複製が成功した後に実行します。cdで複製先に入り、setで対象を選びます。Python_Moduleとリポジトリ直下のファイルが配置されます。GitHub側のファイルを削除・変更する操作ではありません。", code: "cd 42Tokyo-study\ngit sparse-checkout set --cone Python_Module\ngit sparse-checkout list\n# 表示例：Python_Module\nls Python_Module\ngit status -sb"},
       {title: "取得量・配置範囲・履歴の違い", text: "filterは取得するデータ、sparseは手元に見せる範囲、depthは履歴の深さを調整します。ファイルを一切取得しない指定ではありません。未取得の中身が必要になると追加通信が発生するため、オフラインではその操作が失敗することがあります。"},
@@ -2240,8 +2252,9 @@
       {title: "親フォルダー直下のファイルも残る", text: "cone方式では、課題04内の全ファイルに加えて、リポジトリ直下とPython_Module直下のファイルも配置されます。課題04だけが完全に独立するわけではありません。対象外の追跡ファイルが手元から見えなくなっても、GitHubやコミット履歴から削除したという意味ではありません。", code: "# 選択の設定を確認\ngit sparse-checkout list\n# 実際に配置された内容を確認\nls\nls Python_Module\nls Python_Module/Python_Module_04"}
     );
 
+    cloneLesson.lessonTitle = "別フォルダーへの複製と部分クローン";
+    sparseLesson.lessonTitle = "部分クローンと必要なフォルダーの選択";
     for (const entry of [cloneLesson, sparseLesson]) {
-      entry.lessonTitle = "部分クローンと必要なフォルダーの選択";
       entry.lesson.forEach(step => { step.code ??= ""; });
       entry.keywords += " " + entry.tokens.map(token => token.slice(0, 2).join(" ")).join(" ");
     }
