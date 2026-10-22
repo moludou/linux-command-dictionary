@@ -2360,6 +2360,32 @@
     }
     commands.find(command => command.name === "git pull").examples.push(["git pull --rebase origin main", "現在のブランチへ取り込み、未共有コミットを載せ直す。事前確認と競合対応は関連項目を参照"]);
 
+    commands.push(gitCommand({
+      name: "git rebase --continue", summary: "競合を解決した後、中断中のrebaseを再開する", syntax: "git rebase --continue",
+      risk: "danger", riskLabel: "進行中の履歴の載せ直しを再開",
+      tokens: [["git rebase", "コミットを別の土台に適用し直す操作です。この項目は開始ではなく途中からの再開を扱います。", "git status"], ["--continue", "中断中の処理を続けます。競合を自動で直す指定ではありません。", "git rebase --continue"], ["GIT_EDITOR=true", "Bash・zshでは、この1回のGit実行に編集用コマンドtrueを指定します。永続設定は変えません。", "GIT_EDITOR=true git rebase --continue"], ["true", "何も変更せず成功終了するコマンドです。ここではGitのメッセージ編集処理の代わりに呼ばれます。PythonのTrueや、競合解決を承認するフラグではありません。", "true"]],
+      examples: [["git status", "rebaseの進行状況と未解決ファイルを確認"], ["git diff --cached", "解決済みとして登録した内容を確認"], ["git rebase --continue", "通常の再開。必要に応じてメッセージ編集画面が開く"], ["GIT_EDITOR=true git rebase --continue", "用意済みのメッセージでよい場合、編集画面を開かず再開"]],
+      changes: "登録した解決内容を使ってコミットを作り直し、次の処理へ進みます。次の競合で再停止することがあります。GitHubへの送信はしません。",
+      caution: "GIT_EDITOR=trueは競合・テスト・Gitの確認を通過させる指定ではありません。メッセージを確認・修正したい場合は通常の--continueを使います。ファイルの内容を確認しないままgit addしないでください。",
+      output: "完了例：Successfully rebased and updated refs/heads/main. 続きで競合すればCONFLICTなどが表示されます。表示は状態・Gitの版で異なります。",
+      related: ["git pull --rebase", "git add", "git diff", "git status", "git push"]
+    }));
+    const rebaseContinueLesson = commands.find(command => command.name === "git rebase --continue");
+    rebaseContinueLesson.keywords += " GIT_EDITOR=true git rebase --continue 環境変数 true エディター 編集画面 競合 解決済み 再開 no rebase in progress";
+    rebaseContinueLesson.lessonTitle = "競合を直す → 登録する → 再開する";
+    rebaseContinueLesson.lesson = [
+      {title: "最初に：中断中のrebaseがあるか確認", text: "この手順は、git statusでrebaseが進行中と分かる場合のものです。画像だけでは現在の状態やコピー先は確定できません。まず対象リポジトリ内で確認します。", code: "git status\ngit diff --name-only --diff-filter=U\n# 後者は未解決として扱われているファイルの一覧"},
+      {title: "cpで置き換えれば解決、とは限らない", text: "コピーはファイル内容を置き換える操作で、双方の変更を統合するとは限りません。手元のファイルで丸ごと上書きすると、相手側の必要な修正を失う可能性があります。両方の変更を確認して内容を決めます。この画像ではcpの右側が見切れているため、そのコマンドは再現しません。", code: "git diff\n# 対象ファイルを編集し、競合箇所の必要な内容を残す"},
+      {title: "git addは内容を直すのではなく、結果を登録する", text: "画像のようなフォルダー指定は、その中の別の変更もまとめて登録する可能性があります。まず解決したファイルだけを指定します。下のsrc/example.pyは説明用で、実際の対象へ置き換えます。addは内容の正しさを検証しないため、競合マーカーが残っていないか自分でも確認します。", code: "git add src/example.py\ngit diff --cached\ngit diff --cached --check\ngit status"},
+      {title: "GIT_EDITOR=trueを左から読む", text: "GIT_EDITORはGitがメッセージ編集に使うコマンドを指定する環境変数です。=trueはその値をtrueにする指定です。空白の後ろのgit rebase --continueにだけ渡します。trueは編集せず正常終了するため、用意されているコミットメッセージを編集せず進められます。=の前後に空白を入れません。この書き方はBash・zsh向けです。", code: "# 既存のメッセージでよいと確認した場合\nGIT_EDITOR=true git rebase --continue\n\n# メッセージを確認・編集する通常の方法\ngit rebase --continue\n# 上の2つは選択肢です。続けて両方実行する手順ではありません。"},
+      {title: "エラー例：まだ競合が残っている", text: "You must edit all merge conflicts ... のような表示なら、未解決の対象があります。statusで対象を確認し、内容を修正してaddした後に再開します。GIT_EDITOR=trueを付けても競合は解消しません。", code: "git status\ngit diff --name-only --diff-filter=U"},
+      {title: "エラー例：進行中のrebaseがない", text: "No rebase in progress? は、再開する処理がない場合の表示例です。既に完了・中止している可能性があります。statusとlogで確認し、エラーを消すために新しいrebaseを始めないでください。", code: "fatal: No rebase in progress?\n\n# 状態を確認\ngit status\ngit log --oneline -5"},
+      {title: "完了後に内容を確認して送信", text: "成功メッセージだけでコードが正しいとは限りません。statusで完了を確認し、テストと差分確認を行ってから送ります。下のpushは現在のブランチがmainで、originが意図した送信先の場合の例です。main以外ならそのまま実行しないでください。", code: "git status\ngit branch --show-current\ngit remote -v\ngit log --oneline -5\n# 必要なテストを実行してから\ngit push origin main"}
+    ];
+    rebaseContinueLesson.sources = [["Git公式：rebase", "https://git-scm.com/docs/git-rebase"], ["Git公式：GIT_EDITOR", "https://git-scm.com/docs/git#Documentation/git.txt-GIT_EDITOR"]];
+    pullRebaseLesson.related.push("git rebase --continue");
+    pullRebaseLesson.keywords += " GIT_EDITOR=true git rebase --continue";
+
     const uvEntries = [
       {name: "uv", summary: "Pythonのパッケージ・仮想環境・プロジェクトを管理する外部コマンド", syntax: "uv [オプション] サブコマンド",
         tokens: [["uv", "Astralが開発する外部ツール。Pythonの構文や標準搭載のコマンドではありません。"], ["--version", "uv自体のバージョンを表示します。", "uv --version"], ["--help", "使えるサブコマンドとオプションを表示します。", "uv --help"]],

@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v32-pull-rebase";
+const CACHE_NAME = "linux-command-dictionary-v33-rebase-continue";
 const APP_FILES = [
   "./",
   "./index.html",
