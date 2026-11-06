@@ -19,7 +19,7 @@
     <p class="lead">使うコマンドから、説明できるところまで。<br>61コマンドの用途・引数・実行結果を確認。</p>
   </header>
   <nav class="jump-links" aria-label="このページの項目">
-    <a href="#commands">コマンドを探す</a><a href="#packages">aptとaptitude</a><a href="#practice">変更と復元</a>
+    <a href="#practice">ディフェンスの実演</a><a href="#demo-ufw-toggle">UFW 有効・無効</a><a href="#commands">コマンドを探す</a><a href="#packages">aptとaptitude</a>
   </nav>
   <details class="guide">
     <summary>実行場所と記号の読み方</summary>
@@ -62,9 +62,75 @@
     </div></details>
   </section>
   <section id="practice" aria-labelledby="practiceHeading">
-    <h2 id="practiceHeading">設定変更の実演と復元</h2>
+    <h2 id="practiceHeading">ディフェンス：実演コマンドと復元</h2>
     <p>起動・変更してよい評価用VMで行います。提出署名と照合する元VDIの保全や起動条件は、手元の評価手順書で先に確認します。</p>
-    <details class="guide"><summary>UFW：8080/tcpを追加し、追加分だけ戻す</summary><div class="guide-body">
+    <p>各実演は<strong>事前確認 → 操作 → 結果確認 → 復元</strong>の順です。コマンドは1つずつ実行して結果を読みます。これは添付資料を補強した練習用で、すべてが公式レビューの必須操作という意味ではありません。</p>
+    <label for="practiceSearch">実演を検索（例：無効、SSH、グループ）</label>
+    <div class="search-row"><input id="practiceSearch" type="search" placeholder="実演名・操作で絞り込み"><button id="clearPractice" type="button">クリア</button></div>
+    <p id="practiceCount" class="count" role="status" aria-live="polite"></p>
+    <p id="practiceEmpty" hidden>一致する実演がありません。検索語を変えてください。</p>
+    <details class="guide" id="demo-ufw-toggle"><summary>UFW：有効化・無効化・再読込</summary><div class="guide-body">
+      <p><strong>実行場所：</strong>評価用VMのコンソール。SSHだけを操作経路にせず、VM画面から戻せる状態にします。有効化はSSH接続に影響する場合があります。</p>
+      <h3>1. 事前確認</h3>
+      <pre><code>sudo ufw status verbose
+sudo ufw show added
+sudo ss -lntp</code></pre>
+      <p>元がactiveかinactiveか、保存済みの許可ルールとSSHの実際の待受ポートを記録します。<code>show added</code>はUFWで追加済みのルールを表示します。</p>
+      <p>4242/tcpを許可する構成で、まだ必要な許可がない場合だけ追加します。接続元を限定しているルールがあれば、その範囲を保ちます。</p>
+      <pre><code>sudo ufw allow 4242/tcp</code></pre>
+      <h3>2. 有効化する</h3>
+      <pre><code>sudo ufw enable
+sudo ufw status verbose</code></pre>
+      <p><code>enable</code>は保存済みルールを読み込み、現在と起動時のUFWを有効にします。<code>Status: active</code>と許可ルールを確認します。確認を求められたら影響を読んで判断します。</p>
+      <h3>3. 無効化する</h3>
+      <pre><code>sudo ufw disable
+sudo ufw status</code></pre>
+      <p><code>disable</code>は現在のUFWによる制御を解除し、起動時も無効にします。<code>Status: inactive</code>を確認します。保存済みルールを初期化する<code>reset</code>とは違います。</p>
+      <h3>4. 元の状態へ戻す</h3>
+      <p>元がactiveなら次で戻します。</p>
+      <pre><code>sudo ufw enable
+sudo ufw status verbose</code></pre>
+      <p>元がinactiveなら<code>sudo ufw disable</code>へ戻します。追加した4242のルールがあれば、それが今回の追加分か確認して元のルール構成も復元します。現在使うSSHの許可を削除する操作はVMコンソールで行います。課題の通常運用状態はUFW有効です。</p>
+      <h3>補足：有効なUFWのルールを読み直す</h3>
+      <pre><code>sudo ufw reload
+sudo ufw status verbose</code></pre>
+      <p><code>reload</code>は再読込です。有効化の代わりではありません。<code>systemctl is-active ufw</code>だけではファイアウォールの有効状態を断定せず、<code>ufw status</code>で判断します。</p>
+      <p class="oral"><strong>説明例：</strong>「UFWのenableは現在と起動時の両方を有効にします。disableは両方を無効にします。ルールを消すresetとは区別しています。」</p>
+    </div></details>
+    <details class="guide" id="demo-service-control"><summary>systemctl：今の起動・停止と、自動起動の有効・無効</summary><div class="guide-body">
+      <p><strong>実行場所：</strong>練習用VMのコンソール。例ではcronを使うため、停止中は監視以外のcronジョブも影響を受けます。監視だけを止める実演は下のcrontabの項目を使います。</p>
+      <h3>1. 事前確認</h3>
+      <pre><code>systemctl is-active cron
+systemctl is-enabled cron</code></pre>
+      <p>ここでは元が<code>active / enabled</code>の場合を実演します。違う場合は記録した状態に合わせて復元します。staticやmaskedの場合に、そのまま同じ操作は行いません。</p>
+      <h3>2. 今の稼働だけを止める・戻す</h3>
+      <pre><code>sudo systemctl stop cron
+systemctl is-active cron
+systemctl is-enabled cron</code></pre>
+      <p><code>inactive / enabled</code>が目安です。stopは今の停止で、自動起動設定は残ります。</p>
+      <pre><code>sudo systemctl start cron
+systemctl is-active cron</code></pre>
+      <p>startは今の起動です。<code>active</code>へ戻ったことを確認します。</p>
+      <h3>3. 自動起動だけを無効にする・戻す</h3>
+      <pre><code>sudo systemctl disable cron
+systemctl is-enabled cron
+systemctl is-active cron</code></pre>
+      <p><code>disabled / active</code>が目安です。disableだけでは今のサービスは停止しません。ほかのunitによる起動まで禁止する指定でもありません。</p>
+      <pre><code>sudo systemctl enable cron
+systemctl is-enabled cron</code></pre>
+      <p>enableは通常の自動起動設定を戻します。今停止中の場合、これだけでは起動しません。</p>
+      <h3>4. 両方を操作する --now と復元</h3>
+      <pre><code>sudo systemctl disable --now cron
+systemctl is-active cron
+systemctl is-enabled cron</code></pre>
+      <p><code>inactive / disabled</code>を確認後、元がactive / enabledなら次で復元します。</p>
+      <pre><code>sudo systemctl enable --now cron
+systemctl is-active cron
+systemctl is-enabled cron</code></pre>
+      <p>元がactive / disabledなら<code>disable</code>の後に<code>start</code>、inactive / enabledなら<code>enable</code>の後に<code>stop</code>、inactive / disabledなら<code>disable --now</code>が対応します。状態確認まで行います。</p>
+      <p class="oral"><strong>説明例：</strong>「start・stopは今の稼働、enable・disableは自動起動の設定です。--nowを付けると現在の起動・停止も一緒に操作します。」</p>
+    </div></details>
+    <details class="guide" id="demo-ufw-rule"><summary>UFW：8080/tcpを追加し、追加分だけ戻す</summary><div class="guide-body">
       <p>まず<code>sudo ufw status numbered</code>で8080/tcpの許可が元からないことを確認します。元からある場合、この実演で削除しません。</p>
       <pre><code>sudo ufw allow 8080/tcp
 sudo ufw status numbered</code></pre>
@@ -74,7 +140,66 @@ sudo ufw status verbose
 sudo ufw status numbered</code></pre>
       <p>8080の追加分が消え、既存の4242の許可とUFWの有効状態が残っていることを確認します。</p>
     </div></details>
-    <details class="guide"><summary>ホスト名：変更・再起動・復元</summary><div class="guide-body">
+    <details class="guide" id="demo-ssh-reload"><summary>SSH：設定検査・再読込・接続とroot拒否の確認</summary><div class="guide-body">
+      <h3>1. 事前確認（VM側）</h3>
+      <pre><code>systemctl is-active ssh
+systemctl is-enabled ssh
+sudo sshd -t
+sudo sshd -T | grep -E '^(port|permitrootlogin) '
+sudo ss -lntp</code></pre>
+      <p><code>sshd -t</code>は正常時無表示です。資料の構成では4242待受と<code>permitrootlogin no</code>を確認します。Match条件がある場合は接続条件を指定した-T -Cも使います。</p>
+      <h3>2. 設定検査に成功したら再読込</h3>
+      <pre><code>sudo sshd -t &amp;&amp; sudo systemctl reload ssh</code></pre>
+      <p><code>&amp;&amp;</code>により検査が成功したときだけreloadします。reloadはサービスに設定の読み直しを求め、restartはサービスの停止・起動です。停止や再起動を実演する必要がある場合はVMコンソールで行います。</p>
+      <pre><code>sudo systemctl restart ssh
+systemctl is-active ssh
+sudo ss -lntp</code></pre>
+      <h3>3. 別端末から接続確認（接続元PC）</h3>
+      <pre><code>ssh -p 4242 evaluationuser@VM_IP</code></pre>
+      <p>VM_IPを接続先へ置き換え、ログイン後に<code>whoami</code>と<code>id</code>を確認します。一般ユーザーが同じ経路で接続できることを確認してから、root拒否を確かめます。</p>
+      <pre><code>ssh -p 4242 root@VM_IP</code></pre>
+      <p>設定のnoとroot認証の拒否を合わせて説明します。Connection refusedやタイムアウトだけではroot拒否の証明になりません。</p>
+      <h3>4. 復元・終了確認</h3>
+      <p>この実演例自体は設定ファイルを書き換えません。編集を伴った場合は事前の設定へ戻し、再度<code>sshd -t</code>成功後にreloadし、新しい接続で確認します。元の接続は確認できるまで残します。socket起動方式の環境はssh.socketも確認し、ssh.service停止だけで接続不能になると決めつけません。</p>
+    </div></details>
+    <details class="guide" id="demo-group-demo"><summary>ユーザー：グループ追加・sudo権限の実演と復元</summary><div class="guide-body">
+      <h3>1. 事前確認</h3>
+      <pre><code>getent passwd evaluationuser
+getent group evaluating
+id evaluationuser</code></pre>
+      <p>ここでは評価用ユーザーとグループが存在し、追加先へ未所属の場合を実演します。未作成の場合だけ<code>sudo adduser evaluationuser</code>、<code>sudo groupadd evaluating</code>で作成します。元の所属を記録し、操作は元からsudo権限がある管理用ユーザーで行います。</p>
+      <h3>2. 補助グループへ追加</h3>
+      <pre><code>sudo usermod -aG evaluating evaluationuser
+sudo usermod -aG sudo evaluationuser</code></pre>
+      <p><code>-a</code>は現在の所属を残して追加、<code>-G</code>は補助グループです。-Gだけでは所属を置き換えます。</p>
+      <h3>3. 登録と実際の権限を確認</h3>
+      <pre><code>id evaluationuser
+getent group evaluating
+sudo -l -U evaluationuser</code></pre>
+      <p>評価用ユーザーで再ログインし、<code>id</code>と<code>sudo -l</code>を確認します。許可されていれば<code>sudo id</code>でuid=0(root)になることも説明できます。グループ名だけではなくsudoersの実効ルールを確認します。</p>
+      <h3>4. 今回追加した所属だけを戻す</h3>
+      <pre><code>sudo gpasswd -d evaluationuser evaluating
+sudo gpasswd -d evaluationuser sudo
+id evaluationuser</code></pre>
+      <p><code>gpasswd -d</code>は補助メンバーを外す操作です。元からの所属には実行しません。古いログインセッションは所属を保持し得るので終了して再確認します。ユーザー・ホーム自体の削除とは別です。</p>
+    </div></details>
+    <details class="guide" id="demo-password-days"><summary>chage：パスワード期限を設定・確認・復元</summary><div class="guide-body">
+      <h3>1. 事前確認</h3>
+      <pre><code>sudo chage -l evaluationuser</code></pre>
+      <p>最短日数・最長日数・警告日数の元の値を手元に記録します。ログイン中の管理用ユーザーではなく、評価用ユーザーを対象にします。</p>
+      <h3>2. 資料の値へ設定</h3>
+      <pre><code>sudo chage -m 2 -M 30 -W 7 evaluationuser</code></pre>
+      <p><code>-m 2</code>は変更から2日間は通常変更不可、<code>-M 30</code>は30日間有効、<code>-W 7</code>は期限の7日前から警告です。既に最終変更日から30日を超えていれば期限切れになります。</p>
+      <h3>3. 設定結果を確認</h3>
+      <pre><code>sudo chage -l evaluationuser</code></pre>
+      <p>3項目が2・30・7であることを読みます。文字数・文字種などの強度設定はpwqualityとPAMの役割で、chageでは検査しません。</p>
+      <h3>4. 元の値へ復元</h3>
+      <p>次の日本語部分を、最初に記録した数値へ置き換えます。実演前が2・30・7だった場合はその値へ戻します。</p>
+      <pre><code>sudo chage -m 元の最短日数 -M 元の最長日数 -W 元の警告日数 evaluationuser
+sudo chage -l evaluationuser</code></pre>
+      <p>期限を無効にする値は-M -1です。元が無期限だったときだけ使用します。復元のために最終変更日やアカウント期限まで変更する必要はありません。</p>
+    </div></details>
+    <details class="guide" id="demo-hostname-demo"><summary>ホスト名：変更・再起動・復元</summary><div class="guide-body">
       <p><code>hostnamectl --static</code>の結果を<strong>元の名前として手元に記録</strong>します。バックアップ名が未使用であることを確認して保存します。</p>
       <pre><code>sudo cp -ai /etc/hosts /etc/hosts.before-evaluation
 sudo hostnamectl set-hostname evaluator42
@@ -85,7 +210,7 @@ sudoedit /etc/hosts</code></pre>
 sudo systemctl reboot</code></pre>
       <p>再起動後に元の名前とhosts内容を確認します。バックアップの整理は復元確認後に行います。</p>
     </div></details>
-    <details class="guide"><summary>cron：毎分の実演・停止・元の予定表へ復元</summary><div class="guide-body">
+    <details class="guide" id="demo-cron-demo"><summary>cron：毎分の実演・停止・元の予定表へ復元</summary><div class="guide-body">
       <p>最初に<code>sudo crontab -l</code>が成功し、元の予定表があることを確認します。次はバックアップ名が未使用の場合に実行します。シェルの<code>pipefail</code>により途中の失敗も検出します。</p>
       <pre><code>sudo bash -o pipefail -c 'crontab -l | tee /root/crontab.before-monitoring-test &gt;/dev/null'
 sudo cat /root/crontab.before-monitoring-test
@@ -94,6 +219,13 @@ sudo crontab -e</code></pre>
       <pre><code>* * * * * /usr/local/bin/monitoring.sh</code></pre>
       <p>5個の<code>*</code>は分・時・日・月・曜日の各条件をすべて許可し、毎分実行します。10分ごとは先頭を<code>*/10</code>にします。ユーザーのcrontabには追加のユーザー名欄を書きません。</p>
       <p>停止実演では<code>sudo crontab -e</code>で監視に関係する行の先頭へ<code>#</code>を付けます。<code>@reboot</code>もあれば対象です。ほかのジョブとスクリプト本体は編集しません。</p>
+      <pre><code>sudo crontab -e
+sudo crontab -l
+sudo journalctl -u cron -b --since '-3 minutes' --no-pager</code></pre>
+      <p>編集画面で無効化した行の例（端末への入力ではありません）：</p>
+      <pre><code># */10 * * * * /usr/local/bin/monitoring.sh
+# @reboot /usr/local/bin/monitoring.sh</code></pre>
+      <p>保存後、次の予定時刻を過ぎても新しい実行記録や表示が発生しないか確認します。過去の記録は残ります。監視の予定だけを止めるため、ここではcronサービス全体のstopやdisableを使いません。</p>
       <p>停止前に<code>sudo sha256sum /usr/local/bin/monitoring.sh | sudo tee /root/monitoring.sha256.before</code>で記録すれば、停止・再起動後に<code>sudo sha256sum -c /root/monitoring.sha256.before</code>で本体が同じか照合できます。crontabとcronログも確認します。</p>
       <pre><code>sudo crontab /root/crontab.before-monitoring-test
 sudo crontab -l</code></pre>
@@ -107,6 +239,7 @@ sudo crontab -l</code></pre>
   <footer>
     <p>提供された「Born2beRoot コマンドリファレンス」「apt と aptitude の違い」「Born2beRoot 評価合格手順書」をもとに構成。値やファイル配置は資料の例です。公式評価票の全項目を保証するものではありません。</p>
     <p>仕様の確認元：<a href="https://manpages.debian.org/trixie/apt/apt.8.en.html">apt</a> · <a href="https://manpages.debian.org/trixie/aptitude/aptitude.8.en.html">aptitude</a> · <a href="https://manpages.debian.org/trixie/openssh-server/sshd.8.en.html">sshd</a> · <a href="https://manpages.debian.org/trixie/cron/crontab.5.en.html">crontabの書式</a></p>
+    <p>実演操作の確認元：<a href="https://manpages.debian.org/trixie/ufw/ufw.8.en.html">UFW</a> · <a href="https://www.freedesktop.org/software/systemd/man/latest/systemctl.html">systemctl</a> · <a href="https://manpages.debian.org/trixie/passwd/chage.1.en.html">chage</a> · <a href="https://manpages.debian.org/trixie/passwd/gpasswd.1.en.html">gpasswd</a></p>
     <p>更新：2026年11月6日</p>
   </footer>
 </main>

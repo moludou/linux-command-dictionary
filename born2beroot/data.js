@@ -1325,4 +1325,164 @@ const B2B_COMMANDS = [
     "where": "Debian VM・一般ユーザーの端末"
   }
 ];
+const B2B_ACTIONS = {
+  "ufw": {
+    "demo": "ufw-toggle",
+    "actions": [
+      [
+        "有効化",
+        "sudo ufw enable",
+        "保存済みルールを適用し、起動時にも有効にします。接続に必要な許可ルールを先に確認します。",
+        "sudo ufw status verbose → Status: active"
+      ],
+      [
+        "無効化",
+        "sudo ufw disable",
+        "現在のUFWによる制御を解除し、起動時も無効にします。保存したルールを初期化するresetとは別です。",
+        "sudo ufw status → Status: inactive"
+      ],
+      [
+        "ルールを再読込",
+        "sudo ufw reload",
+        "有効なUFWへルールを読み直させます。inactiveからの有効化にはenableを使います。",
+        "sudo ufw status verboseで有効状態とルールを再確認"
+      ],
+      [
+        "許可ルールの追加",
+        "sudo ufw allow 8080/tcp",
+        "TCPの8080番への受信を許可します。元からないルールを実演用に追加する例です。",
+        "sudo ufw status numberedで8080/tcpの追加を確認"
+      ],
+      [
+        "今回の許可ルールを削除",
+        "sudo ufw delete allow 8080/tcp",
+        "今回追加したルールだけを取り除きます。既存ルールを消す操作には使いません。",
+        "8080の追加分が消え、4242など既存ルールが残ることを確認"
+      ]
+    ]
+  },
+  "systemctl": {
+    "demo": "service-control",
+    "actions": [
+      [
+        "今すぐ起動",
+        "sudo systemctl start cron",
+        "cronを今起動します。次回起動時の自動起動設定は変えません。",
+        "systemctl is-active cron → active"
+      ],
+      [
+        "今すぐ停止",
+        "sudo systemctl stop cron",
+        "cronサービスを今停止します。監視以外のcronジョブも実行されなくなるため、サービス操作の練習用VMで行います。",
+        "systemctl is-active cron → inactive（通常、終了状態は非0）"
+      ],
+      [
+        "自動起動を有効",
+        "sudo systemctl enable cron",
+        "通常の起動時にcronを起動する設定にします。今停止中のサービスはこれだけでは起動しません。",
+        "systemctl is-enabled cron → enabled"
+      ],
+      [
+        "自動起動を無効",
+        "sudo systemctl disable cron",
+        "通常の自動起動設定を解除します。現在動いているcronはこれだけでは停止しません。",
+        "systemctl is-enabled cron → disabled。is-activeは別に確認"
+      ],
+      [
+        "自動起動を有効にして今も起動",
+        "sudo systemctl enable --now cron",
+        "enableが自動起動設定、--nowが現在の起動も行う指定です。",
+        "is-enabledがenabled、is-activeがactive"
+      ],
+      [
+        "自動起動を無効にして今も停止",
+        "sudo systemctl disable --now cron",
+        "disableが自動起動設定の解除、--nowが現在の停止も行う指定です。",
+        "is-enabledがdisabled、is-activeがinactive"
+      ],
+      [
+        "再起動",
+        "sudo systemctl restart cron",
+        "サービスを停止してから起動します。OS全体を再起動するrebootとは別です。",
+        "systemctl status cron --no-pagerで状態を確認"
+      ]
+    ]
+  },
+  "sshd": {
+    "demo": "ssh-reload",
+    "actions": [
+      [
+        "設定検査後に再読込",
+        "sudo sshd -t && sudo systemctl reload ssh",
+        "sshd -tで設定を検査し、成功した場合だけSSHサービスへ再読込を要求します。systemctlは別の管理コマンドです。",
+        "sudo sshd -Tとsudo ss -lntp、別端末からの新しいSSH接続で確認"
+      ]
+    ]
+  },
+  "usermod": {
+    "demo": "group-demo",
+    "actions": [
+      [
+        "評価用グループへ追加",
+        "sudo usermod -aG evaluating evaluationuser",
+        "-aは現在の補助グループを残して追加、-Gは追加先の補助グループ、末尾が対象ユーザーです。",
+        "id evaluationuserとgetent group evaluatingで確認"
+      ],
+      [
+        "sudoグループへ追加",
+        "sudo usermod -aG sudo evaluationuser",
+        "評価用ユーザーをsudoグループへ追加します。実際の許可はsudoersのルールに従います。",
+        "sudo -l -U evaluationuserで許可を確認。評価用ユーザーは再ログイン"
+      ],
+      [
+        "今回の追加所属を戻す（gpasswd）",
+        "sudo gpasswd -d evaluationuser evaluating",
+        "gpasswdは別コマンドです。-dで補助メンバー登録を削除します。元から所属していた場合は削除しません。",
+        "id evaluationuserで今回の追加だけが消えたことを確認"
+      ]
+    ]
+  },
+  "chage": {
+    "demo": "password-days",
+    "actions": [
+      [
+        "期限の設定",
+        "sudo chage -m 2 -M 30 -W 7 evaluationuser",
+        "-mは最短変更間隔、-Mは最長有効期間、-Wは期限前警告の日数です。資料の2・30・7を設定する例です。",
+        "sudo chage -l evaluationuserで3項目を確認"
+      ]
+    ]
+  },
+  "crontab": {
+    "demo": "cron-demo",
+    "actions": [
+      [
+        "rootの予定表を編集",
+        "sudo crontab -e",
+        "監視の行だけを変更します。毎分なら先頭を*、10分ごとなら*/10にします。",
+        "sudo crontab -lで保存した行を確認"
+      ],
+      [
+        "保存した予定表へ復元",
+        "sudo crontab /root/crontab.before-monitoring-test",
+        "保存ファイルでrootの予定表全体を置き換えます。バックアップ成功と内容の確認が前提です。",
+        "sudo crontab -lで元の予定表へ戻ったことを確認"
+      ]
+    ]
+  },
+  "hostnamectl": {
+    "demo": "hostname-demo",
+    "actions": [
+      [
+        "ホスト名を変更",
+        "sudo hostnamectl set-hostname evaluator42",
+        "set-hostnameが変更操作、evaluator42が新しい名前の例です。元の名前を記録してから変更します。",
+        "hostnamectl --staticで表示、再起動後も同じ名前か確認"
+      ]
+    ]
+  }
+};
+for (const item of B2B_COMMANDS) {
+  if (B2B_ACTIONS[item.name]) Object.assign(item, B2B_ACTIONS[item.name], {effect: "確認・設定変更"});
+}
 if (typeof module !== "undefined") module.exports = B2B_COMMANDS;

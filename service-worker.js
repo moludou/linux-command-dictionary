@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v35-born2beroot";
+const CACHE_NAME = "linux-command-dictionary-v36-defense-commands";
 const APP_FILES = [
   "./",
   "./index.html",

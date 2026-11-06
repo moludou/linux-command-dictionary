@@ -3,13 +3,18 @@ const b2bGroups = ['すべて','基本確認','パッケージ','ユーザー・
 const b2bEscape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const b2bNormalize = value => String(value).normalize('NFKC').toLocaleLowerCase('ja').trim();
 function b2bMatches(item, query) {
-  const haystack = b2bNormalize([item.name,item.group,item.role,item.code,item.parts.flat().join(' '),item.result,item.note,item.effect,item.where].join(' '));
+  const haystack = b2bNormalize([item.name,item.group,item.role,item.code,item.parts.flat().join(' '),item.result,item.note,item.effect,item.where,JSON.stringify(item.actions||[])].join(' '));
   return b2bNormalize(query).split(/\s+/).filter(Boolean).every(word => haystack.includes(word));
 }
 function b2bCard(item) {
   const e=b2bEscape;
   const safe=/確認のみ/.test(item.effect);
-  return `<details class="entry" id="cmd-${e(item.name)}"><summary><strong>${e(item.name)}</strong><span class="badge ${safe?'':'change'}">${e(item.effect)}</span><small>${e(item.role)}</small></summary><div class="entry-body"><p><strong>使う場面：</strong>${e(item.group)}</p><p><strong>実行場所：</strong>${e(item.where)}</p><h3>実行例</h3><div class="codebox"><button class="copy" type="button" data-copy="${e(item.name)}" aria-label="${e(item.name)}の実行例をコピー">コピー</button><pre><code>${e(item.code)}</code></pre></div><h3>コマンドを分解</h3><dl class="parts">${item.parts.map(([part,meaning])=>`<dt>${e(part)}</dt><dd>${e(meaning)}</dd>`).join('')}</dl><h3>結果の読み方</h3><p>${e(item.result)}</p><h3>理解するポイント</h3><p>${e(item.note)}</p></div></details>`;
+  return `<details class="entry" id="cmd-${e(item.name)}"><summary><strong>${e(item.name)}</strong><span class="badge ${safe?'':'change'}">${e(item.effect)}</span><small>${e(item.role)}</small></summary><div class="entry-body"><p><strong>使う場面：</strong>${e(item.group)}</p><p><strong>実行場所：</strong>${e(item.where)}</p><h3>実行例</h3><div class="codebox"><button class="copy" type="button" data-copy="${e(item.name)}" aria-label="${e(item.name)}の実行例をコピー">コピー</button><pre><code>${e(item.code)}</code></pre></div><h3>コマンドを分解</h3><dl class="parts">${item.parts.map(([part,meaning])=>`<dt>${e(part)}</dt><dd>${e(meaning)}</dd>`).join('')}</dl><h3>結果の読み方</h3><p>${e(item.result)}</p><h3>理解するポイント</h3><p>${e(item.note)}</p>${b2bActionsHtml(item)}</div></details>`;
+}
+function b2bActionsHtml(item){
+  if(!item.actions)return '';
+  const e=b2bEscape;
+  return `<h3>ディフェンスで使う操作</h3><p>必要な操作を1つずつ選びます。<a href="#demo-${e(item.demo)}">事前確認と復元を含む実演手順へ →</a></p>${item.actions.map(([title,code,meaning,result],index)=>`<section class="action"><h4>${e(title)}</h4><div class="codebox"><button type="button" class="copy" data-copy="${e(item.name)}" data-action="${index}" aria-label="${e(item.name)} ${e(title)}をコピー">コピー</button><pre><code>${e(code)}</code></pre></div><p>${e(meaning)}</p><p><strong>確認：</strong>${e(result)}</p></section>`).join('')}`;
 }
 if (typeof document !== 'undefined') {
   const search=document.getElementById('b2bSearch');
@@ -30,12 +35,42 @@ if (typeof document !== 'undefined') {
     const button=event.target.closest('[data-copy]');if(!button)return;
     const item=B2B_COMMANDS.find(item=>item.name===button.dataset.copy);if(!item)return;
     const status=document.getElementById('copyStatus');
-    try {await navigator.clipboard.writeText(item.code);status.textContent='コピーしました';}
+    const code=button.dataset.action===undefined?item.code:item.actions?.[Number(button.dataset.action)]?.[1];
+    if(typeof code!=='string')return;
+    try {await navigator.clipboard.writeText(code);status.textContent='コピーしました';}
     catch {status.textContent='コピーできませんでした。コードを選択してコピーしてください。';}
     setTimeout(()=>{status.textContent='';},3500);
   });
+  const practiceSearch=document.getElementById('practiceSearch');
+  const practices=Array.from(document.querySelectorAll('#practice details[id]'));
+  const practiceText=new Map(practices.map(entry=>[entry,b2bNormalize(entry.textContent)]));
+  function renderPractice(){
+    const words=b2bNormalize(practiceSearch.value).split(/\s+/).filter(Boolean);
+    let total=0;
+    for(const entry of practices){entry.hidden=!words.every(word=>practiceText.get(entry).includes(word));if(!entry.hidden)total++;}
+    document.getElementById('practiceCount').textContent=`${total} / ${practices.length} 実演`;
+    document.getElementById('practiceEmpty').hidden=total!==0;
+  }
+  practiceSearch.addEventListener('input',renderPractice);
+  document.getElementById('clearPractice').addEventListener('click',()=>{practiceSearch.value='';renderPractice();practiceSearch.focus();});
+  for(const pre of document.querySelectorAll('#practice pre')){
+    const box=document.createElement('div');box.className='codebox';
+    const button=document.createElement('button');button.type='button';button.className='copy';button.textContent='コピー';button.setAttribute('aria-label','この実演のコードをコピー');
+    pre.replaceWith(box);box.append(button,pre);
+    button.addEventListener('click',async()=>{
+      const status=document.getElementById('copyStatus');
+      try{await navigator.clipboard.writeText(pre.textContent);status.textContent='コピーしました';}
+      catch{status.textContent='コピーできませんでした。コードを選択してコピーしてください。';}
+      setTimeout(()=>{status.textContent='';},3500);
+    });
+  }
+  renderPractice();
   function openHash(){
     let name;try{name=decodeURIComponent(location.hash.slice(1));}catch{return;}
+    if(name.startsWith('demo-')){
+      const entry=practices.find(entry=>entry.id===name);if(!entry)return;
+      practiceSearch.value='';renderPractice();entry.open=true;entry.scrollIntoView({block:'start'});return;
+    }
     if(!name.startsWith('cmd-'))return;
     if(!B2B_COMMANDS.some(item=>'cmd-'+item.name===name))return;
     selected='すべて';search.value='';render();
