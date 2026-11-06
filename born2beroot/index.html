@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17191d">
+  <meta name="description" content="Born2beRootで使う61のLinuxコマンド。用途・引数・実行例・結果の読み方と、設定変更後の復元を日本語で確認。">
+  <title>Born2beRoot — Linux コマンド辞典</title>
+  <link rel="stylesheet" href="../hub.css?v=24">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="manifest" href="../manifest.webmanifest">
+</head>
+<body>
+<main class="hub dictionary">
+  <a class="back" href="../commands.html">← Linux コマンド辞典へ</a>
+  <header class="intro">
+    <p class="eyebrow">LINUX / PROJECT REFERENCE</p>
+    <h1>Born2beRoot</h1>
+    <p class="lead">使うコマンドから、説明できるところまで。<br>61コマンドの用途・引数・実行結果を確認。</p>
+  </header>
+  <nav class="jump-links" aria-label="このページの項目">
+    <a href="#commands">コマンドを探す</a><a href="#packages">aptとaptitude</a><a href="#practice">変更と復元</a>
+  </nav>
+  <details class="guide">
+    <summary>実行場所と記号の読み方</summary>
+    <div class="guide-body">
+      <p>基本は<strong>Debian VMに一般ユーザーでログインした端末</strong>です。SSH接続・ファイル転送は接続元のPCで実行します。各項目に実行場所を記載しています。</p>
+      <p><code>evaluationuser</code>は評価用ユーザー名の例、<code>VM_IP</code>は実際の接続先IPへ置き換えます。サービス名・暗号化mapping名・ログ保存先は自分の構成に合わせます。</p>
+      <dl><dt><code>sudo</code></dt><dd>後ろの1つのコマンドを、通常root権限で実行します。</dd><dt><code>|</code></dt><dd>左の標準出力を右の標準入力へ渡します。</dd><dt><code>&amp;&amp;</code></dt><dd>左側が成功したときだけ右側を実行します。</dd><dt><code>&gt; / &gt;&gt; / 2&gt;</code></dt><dd>出力を上書き／追記／標準エラーだけ転送します。これはシェルの処理です。</dd><dt><code>/dev/null</code></dt><dd>受け取ったデータを保存せず捨てます。</dd><dt>終了状態</dt><dd>通常0が成功、非0が不一致やエラーです。grepの一致なしは1。無表示で成功するコマンドもあります。</dd></dl>
+      <p>一覧は一括実行するスクリプトではありません。必要な項目を選び、表示結果を確認して使います。</p>
+    </div>
+  </details>
+  <section id="commands" aria-labelledby="commandsHeading">
+    <h2 id="commandsHeading">コマンドを探す</h2>
+    <div class="search-panel">
+      <label for="b2bSearch">名前・目的・オプションで検索</label>
+      <div class="search-row"><input id="b2bSearch" type="search" placeholder="例：sudo、パスワード、4242、-l" autocomplete="off"><button id="clearSearch" type="button">クリア</button></div>
+      <div id="groups" class="groups" role="group" aria-label="目的で絞り込み"></div>
+    </div>
+    <p id="count" class="count" role="status" aria-live="polite"></p>
+    <div id="commandCards"><p>コマンドを読み込み中です。</p></div>
+    <noscript><p>検索とコマンドの表示にはJavaScriptを有効にしてください。下の比較と変更手順はそのまま読めます。</p></noscript>
+  </section>
+  <section id="packages" aria-labelledby="packagesHeading">
+    <h2 id="packagesHeading">apt と aptitude</h2>
+    <p>どちらもDebianのパッケージを管理します。aptはコマンド中心。aptitudeは文字画面でも一覧や変更予定を確認でき、依存関係が競合したときに複数の解決案を比較できます。</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="aptとaptitudeの操作比較"><table><thead><tr><th>目的</th><th>apt</th><th>aptitude</th></tr></thead><tbody>
+      <tr><td>検索</td><td><code>apt search tree</code></td><td><code>aptitude search tree</code></td></tr>
+      <tr><td>詳細</td><td><code>apt show tree</code></td><td><code>aptitude show tree</code></td></tr>
+      <tr><td>変更予定だけ確認</td><td><code>apt install --simulate tree</code></td><td><code>aptitude --simulate install tree</code></td></tr>
+      <tr><td>一覧情報の更新</td><td><code>sudo apt update</code></td><td><code>sudo aptitude update</code></td></tr>
+      <tr><td>導入</td><td><code>sudo apt install tree</code></td><td><code>sudo aptitude install tree</code></td></tr>
+      <tr><td>削除</td><td><code>sudo apt remove tree</code></td><td><code>sudo aptitude remove tree</code></td></tr>
+    </tbody></table></div>
+    <details class="guide"><summary>依存関係・why・文字画面の読み方</summary><div class="guide-body">
+      <p>依存関係は「ソフトを動かすために別のパッケージが必要」という関係です。<code>aptitude why aptitude-common</code>は、現在のパッケージ情報からその経路をたどります。導入日時や承認した人の履歴ではありません。</p>
+      <p><code>why-not</code>は競合する関係を調べます。導入可否を万能に判定するものではなく、変更予定を確認するには<code>--simulate</code>を使います。<code>-y</code>は実際の操作へ自動承諾する指定です。</p>
+      <p>aptの<code>why</code>対応は版によります。<code>apt --version</code>とその環境のマニュアルで確認します。「whyはaptitudeだけ」とは一般化しません。</p>
+      <p>引数なしの<code>aptitude</code>で文字画面を開きます。通常、矢印で移動、Enterで詳細、<code>/</code>で検索、<code>?</code>でヘルプ、<code>q</code>で戻ります。変更を確定する前に対象を確認します。</p>
+      <p>検索結果の先頭は、<code>i</code>＝導入済み、<code>p</code>＝痕跡なし、<code>c</code>＝設定のみ残存、<code>v</code>＝仮想パッケージ。後ろの<code>A</code>は自動導入です。</p>
+      <p>aptitudeが未導入で使いたい場合は、<code>sudo apt update</code>と<code>sudo apt install aptitude</code>で導入します。これは設定・パッケージを変更する操作です。</p>
+    </div></details>
+  </section>
+  <section id="practice" aria-labelledby="practiceHeading">
+    <h2 id="practiceHeading">設定変更の実演と復元</h2>
+    <p>起動・変更してよい評価用VMで行います。提出署名と照合する元VDIの保全や起動条件は、手元の評価手順書で先に確認します。</p>
+    <details class="guide"><summary>UFW：8080/tcpを追加し、追加分だけ戻す</summary><div class="guide-body">
+      <p>まず<code>sudo ufw status numbered</code>で8080/tcpの許可が元からないことを確認します。元からある場合、この実演で削除しません。</p>
+      <pre><code>sudo ufw allow 8080/tcp
+sudo ufw status numbered</code></pre>
+      <p><code>allow</code>が許可、<code>8080/tcp</code>が対象ポートとプロトコルです。追加したルールを確認後、今回の追加分を戻します。</p>
+      <pre><code>sudo ufw delete allow 8080/tcp
+sudo ufw status verbose
+sudo ufw status numbered</code></pre>
+      <p>8080の追加分が消え、既存の4242の許可とUFWの有効状態が残っていることを確認します。</p>
+    </div></details>
+    <details class="guide"><summary>ホスト名：変更・再起動・復元</summary><div class="guide-body">
+      <p><code>hostnamectl --static</code>の結果を<strong>元の名前として手元に記録</strong>します。バックアップ名が未使用であることを確認して保存します。</p>
+      <pre><code>sudo cp -ai /etc/hosts /etc/hosts.before-evaluation
+sudo hostnamectl set-hostname evaluator42
+sudoedit /etc/hosts</code></pre>
+      <p><code>sudoedit</code>は管理者権限で対象ファイルを編集するコマンドです。元のホスト名に対応する行だけを新しい名前に合わせ、<code>localhost</code>は残します。確認後に<code>sudo systemctl reboot</code>で再起動し、<code>hostnamectl --static</code>と<code>cat /etc/hosts</code>を確認します。</p>
+      <p>復元は<code>sudo hostnamectl set-hostname 元のホスト名</code>（記録した実際の名前に置換）と、次のコピーで行います。</p>
+      <pre><code>sudo cp -a /etc/hosts.before-evaluation /etc/hosts
+sudo systemctl reboot</code></pre>
+      <p>再起動後に元の名前とhosts内容を確認します。バックアップの整理は復元確認後に行います。</p>
+    </div></details>
+    <details class="guide"><summary>cron：毎分の実演・停止・元の予定表へ復元</summary><div class="guide-body">
+      <p>最初に<code>sudo crontab -l</code>が成功し、元の予定表があることを確認します。次はバックアップ名が未使用の場合に実行します。シェルの<code>pipefail</code>により途中の失敗も検出します。</p>
+      <pre><code>sudo bash -o pipefail -c 'crontab -l | tee /root/crontab.before-monitoring-test &gt;/dev/null'
+sudo cat /root/crontab.before-monitoring-test
+sudo crontab -e</code></pre>
+      <p>バックアップ内容が元と一致することを確認してから編集します。監視の行だけを次の形へ変更します。これは<strong>crontabに書く行</strong>で、端末へ直接入力するコマンドではありません。</p>
+      <pre><code>* * * * * /usr/local/bin/monitoring.sh</code></pre>
+      <p>5個の<code>*</code>は分・時・日・月・曜日の各条件をすべて許可し、毎分実行します。10分ごとは先頭を<code>*/10</code>にします。ユーザーのcrontabには追加のユーザー名欄を書きません。</p>
+      <p>停止実演では<code>sudo crontab -e</code>で監視に関係する行の先頭へ<code>#</code>を付けます。<code>@reboot</code>もあれば対象です。ほかのジョブとスクリプト本体は編集しません。</p>
+      <p>停止前に<code>sudo sha256sum /usr/local/bin/monitoring.sh | sudo tee /root/monitoring.sha256.before</code>で記録すれば、停止・再起動後に<code>sudo sha256sum -c /root/monitoring.sha256.before</code>で本体が同じか照合できます。crontabとcronログも確認します。</p>
+      <pre><code>sudo crontab /root/crontab.before-monitoring-test
+sudo crontab -l</code></pre>
+      <p>復元は予定表<strong>全体</strong>を置き換えます。実演中に別の変更が入っていないことを確認し、元の10分間隔などへ戻ったことを読みます。</p>
+    </div></details>
+  </section>
+  <details class="guide"><summary>Windows・Rocky Linuxのコマンドはどこで使う？</summary><div class="guide-body">
+    <p>添付資料の<code>Test-Path</code>・<code>Remove-Item</code>はWindows PowerShell用です。<code>VBoxManage</code>はVirtualBoxを入れたホストで使用します。VM内のLinuxコマンド一覧には混ぜていません。</p>
+    <p><code>dnf</code>・<code>rpm</code>・<code>firewall-cmd</code>はRocky Linuxとの比較用です。このDebian実演ではapt・dpkg・ufwを使います。</p>
+  </div></details>
+  <footer>
+    <p>提供された「Born2beRoot コマンドリファレンス」「apt と aptitude の違い」「Born2beRoot 評価合格手順書」をもとに構成。値やファイル配置は資料の例です。公式評価票の全項目を保証するものではありません。</p>
+    <p>仕様の確認元：<a href="https://manpages.debian.org/trixie/apt/apt.8.en.html">apt</a> · <a href="https://manpages.debian.org/trixie/aptitude/aptitude.8.en.html">aptitude</a> · <a href="https://manpages.debian.org/trixie/openssh-server/sshd.8.en.html">sshd</a> · <a href="https://manpages.debian.org/trixie/cron/crontab.5.en.html">crontabの書式</a></p>
+    <p>更新：2026年11月6日</p>
+  </footer>
+</main>
+<p id="copyStatus" class="copy-status" role="status" aria-live="polite"></p>
+<script src="./data.js"></script><script src="./app.js"></script><script src="../hub.js"></script>
+</body>
+</html>

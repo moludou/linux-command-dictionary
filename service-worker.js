@@ -1,8 +1,13 @@
-const CACHE_NAME = "linux-command-dictionary-v34-project-guides";
+const CACHE_NAME = "linux-command-dictionary-v35-born2beroot";
 const APP_FILES = [
   "./",
   "./index.html",
   "./commands.html",
+  "./born2beroot/",
+  "./born2beroot/index.html",
+  "./born2beroot/styles.css",
+  "./born2beroot/data.js",
+  "./born2beroot/app.js",
   "./hub.css",
   "./hub.css?v=24",
   "./reminder/",
