@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v36-defense-commands";
+const CACHE_NAME = "linux-command-dictionary-v37-defense-assets";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -6,8 +6,11 @@ const APP_FILES = [
   "./born2beroot/",
   "./born2beroot/index.html",
   "./born2beroot/styles.css",
+  "./born2beroot/styles.css?v=36",
   "./born2beroot/data.js",
+  "./born2beroot/data.js?v=36",
   "./born2beroot/app.js",
+  "./born2beroot/app.js?v=36",
   "./hub.css",
   "./hub.css?v=24",
   "./reminder/",
