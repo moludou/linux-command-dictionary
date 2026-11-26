@@ -1,8 +1,11 @@
-const CACHE_NAME = "linux-command-dictionary-v37-defense-assets";
+const CACHE_NAME = "linux-command-dictionary-v38-fly-in";
 const APP_FILES = [
   "./",
   "./index.html",
   "./commands.html",
+  "./fly-in/",
+  "./fly-in/index.html",
+  "./fly-in/lessons.js",
   "./born2beroot/",
   "./born2beroot/index.html",
   "./born2beroot/styles.css",
