@@ -143,9 +143,9 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
 </main>
 <noscript>図解を再生するにはJavaScriptを有効にしてください。</noscript>
 </div>
-<script src="./lessons.js?v=40"></script>
+<script src="./lessons.js?v=41"></script>
 <script src="./advanced-lessons.js?v=39"></script>
-<script src="./diagrams.js?v=40"></script>
+<script src="./diagrams.js?v=41"></script>
 <script>
 'use strict';
 const get = id => document.getElementById(id);
@@ -176,7 +176,7 @@ const graphPages = [
 const coreTopics = flyInLessons.filter(topic => topic.id !== 'dfs');
 const course = [...coreTopics, ...advancedLessons, flyInLessons.find(topic => topic.id === 'dfs')];
 const directory = course.flatMap(topic => topic.id === 'dijkstra' ? [topic, aStarLesson] : [topic]);
-const diagramTopics = new Set(['map-file', ...advancedLessons.map(topic => topic.id), aStarLesson.id]);
+const diagramTopics = new Set(['map-file', 'dijkstra', ...advancedLessons.map(topic => topic.id), aStarLesson.id]);
 function nextTopic() {
   const current = lesson === aStarLesson ? 'dijkstra' : lesson.id;
   return course[course.findIndex(topic => topic.id === current) + 1];

@@ -243,7 +243,71 @@ const lessonDiagram = (() => {
     return reading+'機体は'+droneCount+'台。地点は'+(zones.map(z=>z.name).join('、') || 'まだありません')+
       '。通路は'+(lines || 'まだありません')+'。'+tableDescription;
   }
-  const renderers = {'map-file':mapFile,restricted,bottleneck,astar,'time-expanded':timeline,'max-flow':(svg,p)=>p.scene==='intro' ? flowIntro(svg) : timeline(svg,p)};
+  const routePoints = {S:[40,125],A:[180,78],B:[180,166],G:[320,125],mid:[110,101.5]};
+  const routeExamples = [
+    {name:'A経由', color:brown, positions:['S','mid','A','G']},
+    {name:'B経由', color:blue, positions:['S','B','G',null]}
+  ];
+  function positionLabel(position) {
+    if (position === 'mid') return '通路の途中';
+    return position ?? '到着済み';
+  }
+  function routeTable(svg,turn,focusTurn) {
+    const columns = [99,164,236,310];
+    box(svg,8,199,344,99,'#f1f5f2');
+    label(svg,18,217,'各ターンが終わったときの位置',14,ink,700,'start');
+    box(svg,columns[focusTurn]-33,223,66,70,'#d9e8dc');
+    ['出発時','1ターン','2ターン','3ターン'].forEach((t,i) => label(svg,columns[i],239,t,13,muted));
+    routeExamples.forEach((route,i) => {
+      const y = 262 + i*23;
+      label(svg,18,y,route.name,15,route.color,700,'start');
+      route.positions.forEach((position,j) => {
+        if (j<=turn) label(svg,columns[j],y,positionLabel(position),14,ink);
+      });
+    });
+  }
+  function dijkstra(svg,p) {
+    box(svg,8,6,168,45,'#faede2');
+    box(svg,181,6,171,45,'#e8f1ec');
+    label(svg,92,24,'A は制限ゾーン',15,brown,700);
+    label(svg,92,43,'入るのに2ターン',14,ink);
+    label(svg,266,24,'B・G は普通のゾーン',15,green,700);
+    label(svg,266,43,'入るのに1ターン',14,ink);
+    for (const edge of ['SA','AG','SB','BG']) {
+      const active = p.edges?.includes(edge);
+      const color = edge.includes('A') ? brown : blue;
+      line(svg,routePoints[edge[0]],routePoints[edge[1]],active ? color : rail,active ? 5 : 3);
+    }
+    if (p.turn !== undefined) {
+      for (const route of routeExamples) {
+        for (let t=1; t<=p.turn && route.positions[t]; t++) {
+          line(svg,routePoints[route.positions[t-1]],routePoints[route.positions[t]],route.color,5);
+        }
+        const key = route.positions[p.turn];
+        if (p.turn>0 && key) dot(svg,...routePoints[key],key==='mid' ? 7 : 21,'white',route.color,3);
+      }
+    }
+    for (const key of ['S','A','B','G']) {
+      place(svg,routePoints[key],key,key===p.active || (key==='S' && p.turn===0));
+    }
+    if (p.turn===1) label(svg,95,84,'途中',14,brown);
+    if (p.turn!==undefined || p.compare) {
+      const turn = p.turn ?? 3;
+      routeTable(svg,turn,p.compare ? 2 : turn);
+      const routes = routeExamples.map(r => r.name+'は'+r.positions.slice(0,turn+1).map(positionLabel).join('、'));
+      return '上の道はS、制限ゾーンA、G。下の道はS、普通のゾーンB、G。出発時から順に、'+routes.join('。')+'。';
+    }
+    box(svg,8,199,344,99,'#f1f5f2');
+    label(svg,18,219,'Sから各地点までの合計（ターン）',14,ink,700,'start');
+    ['S','A','B','G'].forEach((key,i) => {
+      const x = 50 + i*86;
+      if (p.active===key) box(svg,x-37,225,74,65,'#d9e8dc');
+      label(svg,x,248,key,16,ink);
+      label(svg,x,277,p.labels[key],15,ink);
+    });
+    return 'Aだけが制限ゾーン。Sから各地点までの合計ターン数。'+Object.entries(p.labels).map(([k,v])=>k+'は'+v).join('、')+'。';
+  }
+  const renderers = {'map-file':mapFile,dijkstra,restricted,bottleneck,astar,'time-expanded':timeline,'max-flow':(svg,p)=>p.scene==='intro' ? flowIntro(svg) : timeline(svg,p)};
   return (svg,topic,page) => {
     svg.replaceChildren();
     const description = renderers[topic](svg,page);
