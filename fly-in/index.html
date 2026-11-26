@@ -43,6 +43,15 @@ figure { margin: 14px 16px 0; }
 }
 .lesson-map { display: block; width: 100%; max-width: 455px; height: auto; margin: auto; background: #fff; border: 1px solid #b5c3bf; border-radius: 5px; }
 .branch { display: block; width: fit-content; margin: 10px 0 0; padding: 7px 0; color: #1a5e44; text-underline-offset: 3px; }
+.topic-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:5px; }
+.topic-row > .example-link { display:grid; place-items:center; padding:0 10px; border:1px solid #b7c8be; border-radius:5px; color:#235a42; font-size:14px; background:#f8faf8; text-underline-offset:3px; }
+.example-nav { display:flex; justify-content:center; margin:12px auto 0; }
+.example-nav a { display:inline-block; min-width:100px; padding:7px 12px; text-align:center; border:1px solid #769786; border-radius:5px 0 0 5px; color:#15543b; background:white; text-decoration:none; }
+.example-nav a + a { border-radius:0 5px 5px 0; border-left:0; }
+.example-nav a[aria-current] { background:#196947; color:white; font-weight:700; }
+#map-source { margin:12px 0; }
+#map-source summary { cursor:pointer; color:#225d45; }
+#map-source pre { overflow:auto; padding:10px; background:white; font-size:14px; }
 .entry.elective { margin-left: 18px; width: calc(100% - 18px); border-left: 3px solid #4e7964; }
 .node {
   position: absolute; width: 12%; aspect-ratio: 1; transform: translate(-50%, -50%);
@@ -121,9 +130,13 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
   <h2>Fly-inを基礎から学ぶ</h2>
   <p>各ページの「Step」を押すと、図と解説が一つずつ進みます。</p>
   <nav id="topics" class="toc" aria-label="教材一覧"></nav>
+  <p>探索の参考書　<a href="https://www.shoeisha.co.jp/book/detail/9784798149776">『アルゴリズム図鑑』第4章「グラフ探索」</a></p>
   <a class="home" href="../">コードとコマンドの辞典へ戻る</a>
 </section>
 <main id="reader">
+  <nav id="example-nav" class="example-nav" aria-label="例を選ぶ" hidden>
+    <a id="basic-link">基本例</a><a id="complex-link">複雑な例</a>
+  </nav>
   <figure>
     <div class="board" id="board" role="img" aria-label="4つの点と、それらを結ぶ4本の線"></div>
     <svg id="lesson-map" class="lesson-map" viewBox="0 0 360 304" role="img" hidden></svg>
@@ -132,6 +145,7 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
       <h2 id="heading">グラフは、もの同士のつながりを表す</h2>
       <p class="explain" id="explanation"></p>
       <p id="note" hidden></p>
+      <details id="map-source" hidden><summary>この地図の入力ファイルを見る</summary><pre></pre></details>
       <a class="branch" id="branch" hidden></a>
     </figcaption>
   </figure>
@@ -145,7 +159,9 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
 </div>
 <script src="./lessons.js?v=41"></script>
 <script src="./advanced-lessons.js?v=39"></script>
-<script src="./diagrams.js?v=41"></script>
+<script src="./network-lessons.js?v=42"></script>
+<script src="./network-diagrams.js?v=42"></script>
+<script src="./diagrams.js?v=42"></script>
 <script>
 'use strict';
 const get = id => document.getElementById(id);
@@ -175,10 +191,14 @@ const graphPages = [
 ];
 const coreTopics = flyInLessons.filter(topic => topic.id !== 'dfs');
 const course = [...coreTopics, ...advancedLessons, flyInLessons.find(topic => topic.id === 'dfs')];
-const directory = course.flatMap(topic => topic.id === 'dijkstra' ? [topic, aStarLesson] : [topic]);
+const directory = [...course.flatMap(topic => topic.id === 'dijkstra' ? [topic, aStarLesson] : [topic]), networkCourse.bellman];
+const allTopics = [...directory, ...Object.values(networkCourse.examples)];
+get('map-source').querySelector('pre').textContent = networkCourse.fileLines.join('\n');
 const diagramTopics = new Set(['map-file', 'dijkstra', ...advancedLessons.map(topic => topic.id), aStarLesson.id]);
 function nextTopic() {
-  const current = lesson === aStarLesson ? 'dijkstra' : lesson.id;
+  if (lesson === networkCourse.bellman) return;
+  const base = lesson.base ?? lesson.id;
+  const current = base === 'astar' ? 'dijkstra' : base;
   return course[course.findIndex(topic => topic.id === current) + 1];
 }
 const board = get('board');
@@ -281,11 +301,11 @@ function drawBaseMap(page) {
 function show(index) {
   step = index;
   const page = pages[step];
-  const customMap = diagramTopics.has(lesson.id);
+  const customMap = Boolean(lesson.board) || diagramTopics.has(lesson.id);
   board.hidden = customMap;
   const map = get('lesson-map');
   map.toggleAttribute('hidden', !customMap);
-  if (customMap) lessonDiagram(map,lesson.id,page);
+  if (customMap) lessonDiagram(map,lesson,page);
   else drawBaseMap(page);
   get('progress').textContent = (step+1) + ' / ' + pages.length;
   get('heading').textContent = page.title;
@@ -315,30 +335,58 @@ for (const topic of directory) {
   name.textContent = topic === aStarLesson ? '発展編　'+topic.name : topic.name;
   const summary = document.createElement('small');
   summary.textContent = topic.summary;
-  text.append(name, summary); link.append(text); get('topics').append(link);
+  text.append(name, summary);
+  link.append(text);
+  const sample = networkCourse.examples[topic.id];
+  if (sample) {
+    const row = document.createElement('div');
+    row.className = 'topic-row';
+    const extra = document.createElement('a');
+    extra.className = 'example-link';
+    extra.href = '#'+sample.id;
+    extra.textContent = '複雑な例 ›';
+    extra.setAttribute('aria-label',topic.name+'の複雑な例　'+sample.name);
+    row.append(link,extra);
+    get('topics').append(row);
+  } else get('topics').append(link);
 }
 function navigate() {
-  lesson = directory.find(item => '#'+item.id===location.hash);
+  lesson = allTopics.find(item => '#'+item.id===location.hash);
   const inLesson = Boolean(lesson);
   get('contents').hidden = inLesson;
   get('reader').hidden = !inLesson;
   get('menu').style.visibility = inLesson ? 'visible' : 'hidden';
   const title = get('title');
-  title.textContent = inLesson ? lesson.name : 'Fly-in 学習ノート';
-  if (lesson?.titleParts) {
-    title.replaceChildren(...lesson.titleParts.map(part => {
+  const subject = lesson?.base ? directory.find(topic => topic.id===lesson.base) : lesson;
+  title.textContent = subject ? subject.name : 'Fly-in 学習ノート';
+  if (subject?.titleParts) {
+    title.replaceChildren(...subject.titleParts.map(part => {
       const span = document.createElement('span');
       span.textContent = part;
       return span;
     }));
   }
-  get('mode').textContent = inLesson ? '学習' : '目次';
-  document.title = get('title').textContent+'｜コードとコマンドの辞典';
+  get('mode').textContent = lesson?.base ? '応用' : inLesson ? '学習' : '目次';
+  document.title = (lesson?.base ? lesson.name+'｜' : '')+title.textContent+'｜コードとコマンドの辞典';
   if (inLesson) {
+    const base = lesson.base ?? lesson.id;
+    const sample = networkCourse.examples[base];
+    get('example-nav').hidden = !sample;
+    if (sample) {
+      for (const [id,target] of [['basic-link',base],['complex-link',sample.id]]) {
+        const tab = get(id);
+        tab.href = '#'+target;
+        if (target===lesson.id) tab.setAttribute('aria-current','page');
+        else tab.removeAttribute('aria-current');
+      }
+    }
+    const source = get('map-source');
+    source.hidden = lesson.id !== 'map-file-example';
+    source.open = false;
     const branch = get('branch');
-    branch.hidden = lesson.id !== 'dijkstra' && lesson.id !== 'astar';
+    branch.hidden = base !== 'dijkstra' && base !== 'astar';
     if (!branch.hidden) {
-      const elective = lesson.id === 'dijkstra';
+      const elective = base === 'dijkstra';
       branch.href = elective ? '#astar' : '#dijkstra';
       branch.textContent = elective ? '発展編　A*（エースター）へ' : 'ダイクストラ法に戻る';
     }

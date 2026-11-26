@@ -308,9 +308,12 @@ const lessonDiagram = (() => {
     return 'Aだけが制限ゾーン。Sから各地点までの合計ターン数。'+Object.entries(p.labels).map(([k,v])=>k+'は'+v).join('、')+'。';
   }
   const renderers = {'map-file':mapFile,dijkstra,restricted,bottleneck,astar,'time-expanded':timeline,'max-flow':(svg,p)=>p.scene==='intro' ? flowIntro(svg) : timeline(svg,p)};
-  return (svg,topic,page) => {
+  return (svg,lesson,page) => {
+    const topic = lesson.id;
     svg.replaceChildren();
-    const description = renderers[topic](svg,page);
+    const description = lesson.board
+      ? drawNetworkExample(svg,lesson,page,{label,box,line,dot,paint,ink,muted,green,brown,blue,rail})
+      : renderers[topic](svg,page);
     if (description) {
       svg.setAttribute('aria-label',description);
       return;

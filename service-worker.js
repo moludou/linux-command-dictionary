@@ -1,4 +1,4 @@
-const CACHE_NAME = "linux-command-dictionary-v41-fly-in";
+const CACHE_NAME = "linux-command-dictionary-v42-fly-in";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -7,7 +7,9 @@ const APP_FILES = [
   "./fly-in/index.html",
   "./fly-in/lessons.js?v=41",
   "./fly-in/advanced-lessons.js?v=39",
-  "./fly-in/diagrams.js?v=41",
+  "./fly-in/diagrams.js?v=42",
+  "./fly-in/network-lessons.js?v=42",
+  "./fly-in/network-diagrams.js?v=42",
   "./born2beroot/",
   "./born2beroot/index.html",
   "./born2beroot/styles.css",
