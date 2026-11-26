@@ -40,6 +40,9 @@ figure { margin: 14px 16px 0; }
   position: relative; overflow: hidden; aspect-ratio: 1; width: min(100%, max(290px, 51svh));
   margin: auto; background: white; border: 1px solid #b5c3bf;
 }
+.lesson-map { display: block; width: 100%; max-width: 455px; height: auto; margin: auto; background: #fff; border: 1px solid #b5c3bf; border-radius: 5px; }
+.branch { display: block; width: fit-content; margin: 10px 0 0; padding: 7px 0; color: #1a5e44; text-underline-offset: 3px; }
+.entry.elective { margin-left: 18px; width: calc(100% - 18px); border-left: 3px solid #4e7964; }
 .node {
   position: absolute; width: 12%; aspect-ratio: 1; transform: translate(-50%, -50%);
   display: grid; place-items: center; border-radius: 50%; background: #446b9c; color: white;
@@ -122,11 +125,13 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
 <main id="reader">
   <figure>
     <div class="board" id="board" role="img" aria-label="4つの点と、それらを結ぶ4本の線"></div>
+    <svg id="lesson-map" class="lesson-map" viewBox="0 0 360 304" role="img" hidden></svg>
     <figcaption aria-live="polite" aria-atomic="true">
       <p class="progress" id="progress"></p>
       <h2 id="heading">グラフは、もの同士のつながりを表す</h2>
       <p class="explain" id="explanation"></p>
       <p id="note" hidden></p>
+      <a class="branch" id="branch" hidden></a>
     </figcaption>
   </figure>
   <footer aria-label="解説の操作">
@@ -138,6 +143,8 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
 <noscript>図解を再生するにはJavaScriptを有効にしてください。</noscript>
 </div>
 <script src="./lessons.js"></script>
+<script src="./advanced-lessons.js?v=39"></script>
+<script src="./diagrams.js?v=39"></script>
 <script>
 'use strict';
 const get = id => document.getElementById(id);
@@ -165,6 +172,14 @@ const graphPages = [
   {title:'Aを通って目的地へ', text:'D1はAからGへ進み、目的地に着きました。通った順に並べると、S → A → Gです。このように、どこを通って目的地まで行くかを示す道筋を「経路」と呼びます。', edges:['SA','AG'], active:'G', trail:['S','A'], move:'AG'},
   {title:'グラフを見ると、別の道も分かる', text:'今度は下の線をたどってみましょう。SからBを通っても、同じGに着きます。この地図のように、点と線でつながりを表したものが「グラフ」です。', edges:['SB','BG'], trail:['S','B','G']}
 ];
+const coreTopics = flyInLessons.filter(topic => topic.id !== 'dfs');
+const course = [...coreTopics, ...advancedLessons, flyInLessons.find(topic => topic.id === 'dfs')];
+const directory = course.flatMap(topic => topic.id === 'dijkstra' ? [topic, aStarLesson] : [topic]);
+const diagramTopics = new Set([...advancedLessons, aStarLesson].map(topic => topic.id));
+function nextTopic() {
+  const current = lesson === aStarLesson ? 'dijkstra' : lesson.id;
+  return course[course.findIndex(topic => topic.id === current) + 1];
+}
 const board = get('board');
 const lines = new Map();
 const nodes = new Map();
@@ -231,17 +246,10 @@ function flightPosition(key) {
   const point = places[key];
   return {left: point.x+'%', top:(point.y-8)+'%'};
 }
-function show(index) {
-  step = index;
-  const page = pages[step];
+function drawBaseMap(page) {
   const diagram = page.diagram ?? 'flight';
   board.setAttribute('aria-label', diagramDescriptions[diagram]);
   edgeName.hidden = diagram !== 'terms';
-  get('progress').textContent = (step+1) + ' / ' + pages.length;
-  get('heading').textContent = page.title;
-  get('explanation').textContent = page.text;
-  get('note').hidden = !page.note;
-  get('note').textContent = page.note ?? '';
   displayFleet(page);
   for (const [key,line] of lines) line.classList.toggle('lit',page.edges?.includes(key) ?? false);
   for (const [key,node] of nodes) {
@@ -267,9 +275,25 @@ function show(index) {
       movement=drone.animate([from,to],{duration:750,easing:'ease-in-out'});
     }
   }
+}
+
+function show(index) {
+  step = index;
+  const page = pages[step];
+  const customMap = diagramTopics.has(lesson.id);
+  board.hidden = customMap;
+  const map = get('lesson-map');
+  map.toggleAttribute('hidden', !customMap);
+  if (customMap) lessonDiagram(map,lesson.id,page);
+  else drawBaseMap(page);
+  get('progress').textContent = (step+1) + ' / ' + pages.length;
+  get('heading').textContent = page.title;
+  get('explanation').textContent = page.text;
+  get('note').hidden = !page.note;
+  get('note').textContent = page.note ?? '';
   get('first').disabled = get('back').disabled = step===0;
   const last = step===pages.length-1;
-  const nextLesson = flyInLessons[flyInLessons.indexOf(lesson)+1];
+  const nextLesson = nextTopic();
   const action = last ? (nextLesson ? '次へ：'+nextLesson.name : '目次に戻る') : 'Step';
   get('next').textContent = action;
   get('next').setAttribute('aria-label',last ? action : '次のステップ');
@@ -278,21 +302,22 @@ get('first').onclick = () => show(0);
 get('back').onclick = () => show(Math.max(0,step-1));
 get('next').onclick = () => {
   if (step < pages.length-1) { show(step+1); return; }
-  location.hash = flyInLessons[flyInLessons.indexOf(lesson)+1]?.id ?? 'contents';
+  location.hash = nextTopic()?.id ?? 'contents';
 };
-for (const topic of flyInLessons) {
+for (const topic of directory) {
   const link = document.createElement('a');
   link.className = 'entry';
+  link.classList.toggle('elective',topic === aStarLesson);
   link.href = '#'+topic.id;
   const text = document.createElement('span');
   const name = document.createElement('strong');
-  name.textContent = topic.name;
+  name.textContent = topic === aStarLesson ? '発展編　'+topic.name : topic.name;
   const summary = document.createElement('small');
   summary.textContent = topic.summary;
   text.append(name, summary); link.append(text); get('topics').append(link);
 }
 function navigate() {
-  lesson = flyInLessons.find(item => '#'+item.id===location.hash);
+  lesson = directory.find(item => '#'+item.id===location.hash);
   const inLesson = Boolean(lesson);
   get('contents').hidden = inLesson;
   get('reader').hidden = !inLesson;
@@ -301,6 +326,13 @@ function navigate() {
   get('mode').textContent = inLesson ? '学習' : '目次';
   document.title = get('title').textContent+'｜コードとコマンドの辞典';
   if (inLesson) {
+    const branch = get('branch');
+    branch.hidden = lesson.id !== 'dijkstra' && lesson.id !== 'astar';
+    if (!branch.hidden) {
+      const elective = lesson.id === 'dijkstra';
+      branch.href = elective ? '#astar' : '#dijkstra';
+      branch.textContent = elective ? '発展編　A*（エースター）へ' : 'ダイクストラ法に戻る';
+    }
     pages = lesson.pages ?? graphPages;
     show(0);
   }
