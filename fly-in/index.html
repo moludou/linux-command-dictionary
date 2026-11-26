@@ -31,6 +31,7 @@ header {
   min-height: 55px; display: grid; align-items: center; grid-template-columns: 74px 1fr 74px;
   padding: 3px 8px; background: var(--green); color: white;
 }
+h1 span { display: inline-block; }
 h1 { text-align: center; font-size: 20px; margin: 0; }
 .menu { border: 0; background: transparent; color: white; font-size: 14px; min-height: 44px; }
 .mode { text-align: center; font-size: 14px; font-weight: 650; }
@@ -142,9 +143,9 @@ footer button { border: 0; color: #fff; border-radius: 6px; min-height: 48px; fo
 </main>
 <noscript>図解を再生するにはJavaScriptを有効にしてください。</noscript>
 </div>
-<script src="./lessons.js"></script>
+<script src="./lessons.js?v=40"></script>
 <script src="./advanced-lessons.js?v=39"></script>
-<script src="./diagrams.js?v=39"></script>
+<script src="./diagrams.js?v=40"></script>
 <script>
 'use strict';
 const get = id => document.getElementById(id);
@@ -175,7 +176,7 @@ const graphPages = [
 const coreTopics = flyInLessons.filter(topic => topic.id !== 'dfs');
 const course = [...coreTopics, ...advancedLessons, flyInLessons.find(topic => topic.id === 'dfs')];
 const directory = course.flatMap(topic => topic.id === 'dijkstra' ? [topic, aStarLesson] : [topic]);
-const diagramTopics = new Set([...advancedLessons, aStarLesson].map(topic => topic.id));
+const diagramTopics = new Set(['map-file', ...advancedLessons.map(topic => topic.id), aStarLesson.id]);
 function nextTopic() {
   const current = lesson === aStarLesson ? 'dijkstra' : lesson.id;
   return course[course.findIndex(topic => topic.id === current) + 1];
@@ -322,7 +323,15 @@ function navigate() {
   get('contents').hidden = inLesson;
   get('reader').hidden = !inLesson;
   get('menu').style.visibility = inLesson ? 'visible' : 'hidden';
-  get('title').textContent = inLesson ? lesson.name : 'Fly-in 学習ノート';
+  const title = get('title');
+  title.textContent = inLesson ? lesson.name : 'Fly-in 学習ノート';
+  if (lesson?.titleParts) {
+    title.replaceChildren(...lesson.titleParts.map(part => {
+      const span = document.createElement('span');
+      span.textContent = part;
+      return span;
+    }));
+  }
   get('mode').textContent = inLesson ? '学習' : '目次';
   document.title = get('title').textContent+'｜コードとコマンドの辞典';
   if (inLesson) {

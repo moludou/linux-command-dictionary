@@ -153,10 +153,104 @@ const lessonDiagram = (() => {
     };
     bar(svg,labels[p.scene]);
   }
-  const renderers = {restricted,bottleneck,astar,'time-expanded':timeline,'max-flow':(svg,p)=>p.scene==='intro' ? flowIntro(svg) : timeline(svg,p)};
+  const mapZones = [
+    {name:'S', kind:'start_hub', role:'出発地', x:0, y:0},
+    {name:'G', kind:'end_hub', role:'目的地', x:2, y:0},
+    {name:'A', kind:'hub', role:'途中の場所', x:1, y:1}
+  ];
+  const mapEdges = ['SA','AG'];
+  const droneCount = 2;
+  const mapRows = [
+    ['nb_drones: '+droneCount, '機体の数'],
+    ...mapZones.map(z => [z.kind+': '+z.name+' '+z.x+' '+z.y, z.role]),
+    ...mapEdges.map(([a,b]) => ['connection: '+a+'-'+b, '通路'])
+  ];
+
+  function drawFileRows(svg, readLine) {
+    label(svg,15,21,'地図ファイル',15,ink,700,'start');
+    if (readLine) label(svg,344,21,readLine+'行目',14,green,650,'end');
+    box(svg,10,30,340,137,'#f2f6f3');
+    mapRows.forEach(([code,meaning],i) => {
+      const y = 48 + i*21;
+      const active = readLine === i+1;
+      if (active) {
+        box(svg,13,y-15,334,20,'#d7e9dc');
+        line(svg,[16,y-12],[16,y+2],green,3);
+      }
+      label(svg,29,y,String(i+1),12,muted);
+      paint(svg,'text',{x:45,y,fill:active ? green : ink,'font-family':'ui-monospace, monospace','font-size':15,'font-weight':active ? 700 : 500},code);
+      label(svg,338,y,meaning,13,muted,550,'end');
+    });
+  }
+
+  function drawNeighborRows(svg,p) {
+    label(svg,15,21,'隣接リスト',15,ink,700,'start');
+    if (p.edge) label(svg,344,21,'connection: '+p.edge[0]+'-'+p.edge[1],14,green,650,'end');
+    box(svg,10,30,340,137,'#f2f6f3');
+    const neighbors = {S:[], A:[], G:[]};
+    for (const [a,b] of mapEdges.slice(0,p.listEdges)) {
+      neighbors[a].push(b);
+      neighbors[b].push(a);
+    }
+    label(svg,48,49,'場所',13,muted);
+    label(svg,109,49,'直接つながる場所（隣）',13,muted,600,'start');
+    Object.entries(neighbors).forEach(([zone,names],i) => {
+      const y = 74 + i*35;
+      if (zone===p.focusZone) box(svg,17,y-16,326,30,'#d7e9dc');
+      label(svg,48,y+5,zone,17,ink,700);
+      if (!names.length) label(svg,110,y+5,'空欄',14,muted,500,'start');
+      names.forEach((neighbor,j) => {
+        const x = 121 + j*48;
+        const changed = p.edge === zone+neighbor || p.edge === neighbor+zone;
+        box(svg,x-14,y-12,30,24,changed ? brown : 'white');
+        label(svg,x+1,y+5,neighbor,16,changed ? 'white' : ink);
+      });
+    });
+    return Object.entries(neighbors).map(([zone,names]) =>
+      zone+'の隣は'+(names.length ? names.join('と') : '空欄')).join('。');
+  }
+
+  function mapFile(svg,p) {
+    const showingList = p.listEdges !== undefined;
+    const count = p.readLine ?? mapRows.length;
+    let tableDescription = '';
+    if (showingList) tableDescription = drawNeighborRows(svg,p);
+    else drawFileRows(svg,p.readLine);
+    const zones = mapZones.slice(0,count-1);
+    const edges = mapEdges.slice(0,Math.max(0,count-1-mapZones.length));
+    const activeZone = p.focusZone ?? (p.readLine ? mapZones[p.readLine-2]?.name : undefined);
+    const activeEdge = p.edge ?? (p.readLine ? mapEdges[p.readLine-2-mapZones.length] : undefined);
+    label(svg,15,192,'地図',15,ink,700,'start');
+    label(svg,344,192,'機体　'+droneCount+'台',14,p.readLine===1 ? brown : muted,650,'end');
+    if (!zones.length) label(svg,180,249,'まだ場所は書かれていません',15,muted,550);
+    const points = {};
+    for (const z of zones) points[z.name] = [59+121*z.x,263-45*z.y];
+    for (const edge of edges) {
+      const selected = edge===activeEdge || Boolean(p.focusZone && edge.includes(p.focusZone));
+      line(svg,points[edge[0]],points[edge[1]],selected ? brown : rail,selected ? 5 : 3.5);
+    }
+    for (const z of zones) {
+      const [x,y] = points[z.name];
+      place(svg,[x,y],z.name,z.name===activeZone);
+      label(svg,x,y+35,z.role+' ('+z.x+', '+z.y+')',13,muted,600);
+    }
+    let reading = '';
+    if (!showingList) {
+      const fileText = p.readLine ? p.readLine+'行目、'+mapRows[p.readLine-1][0] : mapRows.map(([code]) => code).join('。');
+      reading = fileText+'。';
+    }
+    const lines = edges.map(([a,b]) => a+'と'+b).join('、');
+    return reading+'機体は'+droneCount+'台。地点は'+(zones.map(z=>z.name).join('、') || 'まだありません')+
+      '。通路は'+(lines || 'まだありません')+'。'+tableDescription;
+  }
+  const renderers = {'map-file':mapFile,restricted,bottleneck,astar,'time-expanded':timeline,'max-flow':(svg,p)=>p.scene==='intro' ? flowIntro(svg) : timeline(svg,p)};
   return (svg,topic,page) => {
     svg.replaceChildren();
-    renderers[topic](svg,page);
+    const description = renderers[topic](svg,page);
+    if (description) {
+      svg.setAttribute('aria-label',description);
+      return;
+    }
     const layouts = {
       restricted:'Sから通路の途中を経て制限ゾーンR、その先に目的地G。',
       bottleneck:'Sで上下に分かれ、AとBのどちらを通ってもMで合流し、Gへ進む。',
