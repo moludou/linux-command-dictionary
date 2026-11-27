@@ -13,6 +13,12 @@ Pythonの出典と権利表記は `python/legal.html`、`python/THIRD_PARTY_NOTI
 
 学習クイズや進捗管理は行わず、必要なコマンドを検索して意味・書式・引数・使用例・注意点を確認することに特化しています。
 
+## アルゴリズムの図解ノート
+
+[教材の目次](https://moludou.github.io/linux-command-dictionary/algorithms/)から、序章〜第7章の全41節を開けます。各節は書籍のページ範囲、図の再生、コマ送り、入力を変える実験に対応しています。
+
+教材の定義は `algorithms/` の分野別 JavaScript にあります。既存教材の入力例は `examples`、図と説明は `build(raw)` で追加・変更できます。新しい節を登録すると目次・検索・前後のリンクに反映されます。章構成と書籍の最終ページは `atlas.js` で管理しています。
+
 ## 公開ページ
 
 **[Linux コマンド辞典を開く](https://moludou.github.io/linux-command-dictionary/)**
