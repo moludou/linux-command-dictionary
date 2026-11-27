@@ -1,18 +1,7 @@
-const CACHE_NAME = "linux-command-dictionary-v43-algorithm-atlas";
+const CACHE_NAME = "linux-command-dictionary-v44-dictionary";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./algorithms/",
-  "./algorithms/art.js",
-  "./algorithms/atlas.css",
-  "./algorithms/atlas.js",
-  "./algorithms/dijkstra.html",
-  "./algorithms/graphs.js",
-  "./algorithms/index.html",
-  "./algorithms/methods.js",
-  "./algorithms/security.js",
-  "./algorithms/sorting.js",
-  "./algorithms/structures.js",
   "./commands.html",
   "./fly-in/",
   "./fly-in/index.html",
